@@ -1,0 +1,235 @@
+-- This file was generated with UnveilR 2.1.8 at discord.gg/threaded or discord.gg/aqfudJEEeE (hookOp is off sadly).
+
+game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local LocalPlayer = game:GetService("Players").LocalPlayer
+local PlayerGui = LocalPlayer:FindFirstChild("PlayerGui")
+local PotatosTween = PlayerGui:FindFirstChild("PotatosTween")
+PotatosTween:Destroy()
+CoreGui:FindFirstChild("PotatosTween"):Destroy()
+local Character = LocalPlayer.Character
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+local Humanoid = Character:FindFirstChild("Humanoid")
+local Connection
+Connection = LocalPlayer.CharacterAdded:Connect(function(Character_2, p2_0, p3_0, p4_0) -- args: Character_3
+    Character_2:FindFirstChild("Humanoid")
+end)
+local Vector3_New = Vector3.new
+Vector3_New(-514.68, 28.42, 222.16)
+Vector3_New(-517.56, 26.24, 114.59)
+Vector3_New(-518.05, 25.2, 6.29)
+Vector3_New(-517.15, 22.97, -102.06)
+Vector3_New(-304.2633, 30.3726, 5.6634)
+Vector3_New(-304.66, 30.69, 8.45)
+Vector3_New(-303.32, 30.69, 111.1)
+Vector3_New(-301.82, 30.69, 217.78)
+Vector3_New(-521.75, 12.6, 190.4)
+Vector3_New(-519.09, 12.6, 83.5)
+Vector3_New(-520.87, 12.6, -23.23)
+Vector3_New(-519.51, 12.6, -129.94)
+Vector3_New(-300, 12.6, -70.76)
+Vector3_New(-302.15, 12.6, 37.65)
+Vector3_New(-298.91, 12.6, 145.7)
+Vector3_New(-298.39, 12.6, 252.57)
+Vector3_New(-474.55, 12.6, 189.21)
+Vector3_New(-473.64, 12.6, 82.34)
+Vector3_New(-474.24, 12.6, -25.1)
+Vector3_New(-470.74, 12.6, -133.69)
+Vector3_New(-345, 12.6, -68.31)
+Vector3_New(-345.28, 12.6, 38.73)
+Vector3_New(-347.4, 12.6, 148.49)
+Vector3_New(-346.07, 12.6, 253.44)
+local PotatosTween = Instance.new("ScreenGui")
+PotatosTween.Name = "PotatosTween"
+PotatosTween.Parent = LocalPlayer:WaitForChild("PlayerGui")
+PotatosTween.ResetOnSpawn = false
+local _ = Enum.ZIndexBehavior.Sibling
+PotatosTween.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+local Frame = Instance.new("Frame")
+local UDim2_New = UDim2.new
+UDim2_New(0, 260, 0, 140)
+Frame.Size = UDim2.new(0, 260, 0, 140)
+UDim2_New(1, -280, 0, 50)
+Frame.Position = UDim2.new(1, -280, 0, 50)
+local Color3_FromRGB = Color3.fromRGB
+Color3_FromRGB(0, 0, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = PotatosTween
+local UICorner = Instance.new("UICorner")
+UICorner.Parent = Frame
+local UDim_New = UDim.new
+UDim_New(0, 12)
+UICorner.CornerRadius = UDim.new(0, 12)
+local Frame_2 = Instance.new("Frame")
+Frame_2.Parent = Frame
+UDim2_New(1, 0, 0, 35)
+Frame_2.Size = UDim2.new(1, 0, 0, 35)
+Color3_FromRGB(0, 0, 0)
+Frame_2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Frame_2.BorderSizePixel = 0
+local UICorner_2 = Instance.new("UICorner")
+UICorner_2.Parent = Frame_2
+UDim_New(0, 12)
+UICorner_2.CornerRadius = UDim.new(0, 12)
+local Frame_3 = Instance.new("Frame")
+Frame_3.Parent = Frame_2
+UDim2_New(1, -20, 0, 2)
+Frame_3.Size = UDim2.new(1, -20, 0, 2)
+UDim2_New(0, 10, 1, -3)
+Frame_3.Position = UDim2.new(0, 10, 1, -3)
+Color3_FromRGB(255, 255, 255)
+Frame_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Frame_3.BackgroundTransparency = 0.5
+Frame_3.BorderSizePixel = 0
+local UICorner_3 = Instance.new("UICorner")
+UICorner_3.Parent = Frame_3
+UDim_New(0, 1)
+UICorner_3.CornerRadius = UDim.new(0, 1)
+local TextLabel = Instance.new("TextLabel")
+TextLabel.Parent = Frame_2
+UDim2_New(1, -20, 1, 0)
+TextLabel.Size = UDim2.new(1, -20, 1, 0)
+UDim2_New(0, 15, 0, 0)
+TextLabel.Position = UDim2.new(0, 15, 0, 0)
+TextLabel.BackgroundTransparency = 1
+TextLabel.Text = "DoxHub Tween"
+local Enum_Font = Enum.Font
+TextLabel.Font = Enum.Font.GothamBold
+TextLabel.TextSize = 16
+Color3_FromRGB(255, 255, 255)
+TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+local Enum_TextXAlignment = Enum.TextXAlignment
+TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+local ImageLabel = Instance.new("ImageLabel")
+ImageLabel.Parent = Frame_2
+UDim2_New(0, 14, 0, 14)
+ImageLabel.Size = UDim2.new(0, 14, 0, 14)
+UDim2_New(1, -22, 0.5, -7)
+ImageLabel.Position = UDim2.new(1, -22, 0.5, -7)
+ImageLabel.BackgroundTransparency = 1
+ImageLabel.Image = "rbxassetid://3926305904"
+Color3_FromRGB(255, 255, 255)
+ImageLabel.ImageColor3 = Color3.fromRGB(255, 255, 255)
+local Vector2_New = Vector2.new
+Vector2_New(284, 4)
+ImageLabel.ImageRectOffset = Vector2.new(284, 4)
+Vector2_New(24, 24)
+ImageLabel.ImageRectSize = Vector2.new(24, 24)
+local Frame_4 = Instance.new("Frame")
+Frame_4.Parent = Frame
+UDim2_New(1, -30, 1, -55)
+Frame_4.Size = UDim2.new(1, -30, 1, -55)
+UDim2_New(0, 15, 0, 45)
+Frame_4.Position = UDim2.new(0, 15, 0, 45)
+Frame_4.BackgroundTransparency = 1
+local TextLabel_2 = Instance.new("TextLabel")
+TextLabel_2.Parent = Frame_4
+UDim2_New(1, 0, 0, 18)
+TextLabel_2.Size = UDim2.new(1, 0, 0, 18)
+TextLabel_2.BackgroundTransparency = 1
+TextLabel_2.Text = "Made by Sam"
+TextLabel_2.Font = Enum.Font.Gotham
+TextLabel_2.TextSize = 11
+Color3_FromRGB(255, 255, 255)
+TextLabel_2.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_2.TextXAlignment = Enum.TextXAlignment.Left
+local Frame_5 = Instance.new("Frame")
+Frame_5.Parent = Frame_4
+UDim2_New(1, 0, 0, 45)
+Frame_5.Size = UDim2.new(1, 0, 0, 45)
+UDim2_New(0, 0, 0, 25)
+Frame_5.Position = UDim2.new(0, 0, 0, 25)
+Color3_FromRGB(255, 255, 255)
+Frame_5.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Frame_5.BackgroundTransparency = 0.5
+Frame_5.BorderSizePixel = 0
+local UICorner_4 = Instance.new("UICorner")
+UICorner_4.Parent = Frame_5
+UDim_New(0, 8)
+UICorner_4.CornerRadius = UDim.new(0, 8)
+local TextButton = Instance.new("TextButton")
+TextButton.Parent = Frame_5
+UDim2_New(1, -4, 1, -4)
+TextButton.Size = UDim2.new(1, -4, 1, -4)
+UDim2_New(0, 2, 0, 2)
+TextButton.Position = UDim2.new(0, 2, 0, 2)
+Color3_FromRGB(0, 0, 0)
+TextButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+TextButton.BorderSizePixel = 0
+TextButton.Text = "TWEEN"
+TextButton.Font = Enum.Font.GothamBold
+TextButton.TextSize = 14
+Color3_FromRGB(255, 255, 255)
+TextButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextButton.AutoButtonColor = false
+local UICorner_5 = Instance.new("UICorner")
+UICorner_5.Parent = TextButton
+UDim_New(0, 8)
+UICorner_5.CornerRadius = UDim.new(0, 8)
+local Frame_6 = Instance.new("Frame")
+Frame_6.Parent = TextButton
+UDim2_New(0, 6, 0, 6)
+Frame_6.Size = UDim2.new(0, 6, 0, 6)
+UDim2_New(1, -12, 0.5, -3)
+Frame_6.Position = UDim2.new(1, -12, 0.5, -3)
+Color3_FromRGB(255, 50, 50)
+Frame_6.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+Frame_6.BorderSizePixel = 0
+local UICorner_6 = Instance.new("UICorner")
+UICorner_6.Parent = Frame_6
+UDim_New(1, 0)
+UICorner_6.CornerRadius = UDim.new(1, 0)
+local Connection_2
+Connection_2 = LocalPlayer.CharacterAdded:connect(function(Character_4, p2_0, p3_0, p4_0) -- args: Character_5
+    local HumanoidRootPart_3 = Character_4:WaitForChild("HumanoidRootPart")
+    Character_4:FindFirstChild("Humanoid")
+    local Vector3_Zero = Vector3.zero
+    HumanoidRootPart_3.Velocity = Vector3_Zero
+    local TweenInfo = getfenv().TweenInfo
+    Color3_FromRGB(255, 50, 50)
+    local str = TweenService:Create(Frame_6, TweenInfo.new(0.2), {
+        BackgroundColor3 = Color3.fromRGB(255, 50, 50),
+    })
+    str:Play()
+    Color3_FromRGB(0, 0, 0)
+    local str_2 = TweenService:Create(TextButton, TweenInfo.new(0.2), {
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+    })
+    str_2:Play()
+    TextButton.Text = "TWEEN"
+end)
+local Connection_3
+Connection_3 = LocalPlayer.CharacterRemoving:Connect(function(Character_6, p2_0, p3_0, p4_0) -- args: Character_7
+    HumanoidRootPart_3.Velocity = Vector3_Zero
+    Color3_FromRGB(255, 50, 50)
+    local str_3 = TweenService:Create(Frame_6, TweenInfo.new(0.2), {
+        BackgroundColor3 = Color3.fromRGB(255, 50, 50),
+    })
+    str_3:Play()
+    Color3_FromRGB(0, 0, 0)
+    local str_4 = TweenService:Create(TextButton, TweenInfo.new(0.2), {
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+    })
+    str_4:Play()
+    TextButton.Text = "TWEEN"
+end)
+local Connection_4
+Connection_4 = TextButton.MouseButton1Click:Connect(function(p1_0, p2_0, p3_0)
+    local _ = HumanoidRootPart_3.Position.Y
+end)
+Color3_FromRGB(255, 50, 50)
+local str_5 = TweenService:Create(Frame_6, TweenInfo.new(0.2), {
+    BackgroundColor3 = Color3.fromRGB(255, 50, 50),
+})
+str_5:Play()
+Color3_FromRGB(0, 0, 0)
+local str_6 = TweenService:Create(TextButton, TweenInfo.new(0.2), {
+    BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+})
+str_6:Play()
+TextButton.Text = "TWEEN"
