@@ -1,0 +1,153 @@
+-- Tokinu hub desync no tool v2 LEAKED AND DEOBFED BY LIGHT HUB FAG
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local TokinuHub = Instance.new("ScreenGui")
+TokinuHub.Name = "TokinuHubGalaxy"
+TokinuHub.ResetOnSpawn = false
+TokinuHub.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 200, 0, 270)
+Frame.Position = UDim2.new(0, 40, 0, 60)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+Frame.BackgroundTransparency = 0.2
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = TokinuHub
+
+local corner = Instance.new("UICorner", Frame)
+corner.CornerRadius = UDim.new(0, 12)
+
+local stroke = Instance.new("UIStroke", Frame)
+stroke.Thickness = 1
+stroke.Color = Color3.fromRGB(180, 180, 200)
+stroke.Transparency = 0.7
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 28)
+Title.Position = UDim2.new(0, 0, 0, 8)
+Title.BackgroundTransparency = 1
+Title.Text = "Tokinu Hub"
+Title.Font = Enum.Font.GothamMedium
+Title.TextSize = 16
+Title.TextColor3 = Color3.fromRGB(220, 220, 240)
+Title.Parent = Frame
+
+local Footer = Instance.new("TextLabel")
+Footer.Size = UDim2.new(1, -20, 0, 16)
+Footer.Position = UDim2.new(0, 10, 0, 248)
+Footer.BackgroundTransparency = 1
+Footer.Text = "discord.gg/tokinu"
+Footer.TextColor3 = Color3.fromRGB(180, 180, 200)
+Footer.Font = Enum.Font.Gotham
+Footer.TextSize = 11
+Footer.TextXAlignment = Enum.TextXAlignment.Center
+Footer.Parent = Frame
+
+local function createButton(text, yPos)
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(1, -20, 0, 32)
+	button.Position = UDim2.new(0, 10, 0, yPos)
+	button.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
+	button.BackgroundTransparency = 0.5
+	button.Font = Enum.Font.GothamMedium
+	button.TextSize = 14
+	button.TextColor3 = Color3.fromRGB(240, 240, 255)
+	button.Text = text
+	button.Parent = Frame
+
+	local corner = Instance.new("UICorner", button)
+	corner.CornerRadius = UDim.new(0, 8)
+
+	local stroke = Instance.new("UIStroke", button)
+	stroke.Thickness = 1
+	stroke.Color = Color3.fromRGB(200, 200, 220)
+	stroke.Transparency = 0.6
+
+	button.MouseEnter:Connect(function()
+		TweenService:Create(button, TweenInfo.new(0.2), { BackgroundTransparency = 0.4 }):Play()
+	end)
+
+	button.MouseLeave:Connect(function()
+		TweenService:Create(button, TweenInfo.new(0.2), { BackgroundTransparency = 0.5 }):Play()
+	end)
+
+	return button
+end
+
+local DesyncButton = createButton("Desync: OFF", 40)
+local SpeedButton = createButton("Speed: OFF", 78)
+local UnwalkButton = createButton("Unwalk: OFF", 116)
+
+local InputFrame = Instance.new("Frame")
+InputFrame.Size = UDim2.new(1, -20, 0, 65)
+InputFrame.Position = UDim2.new(0, 10, 0, 154)
+InputFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+InputFrame.BackgroundTransparency = 0.3
+InputFrame.Parent = Frame
+
+Instance.new("UICorner", InputFrame).CornerRadius = UDim.new(0, 8)
+Instance.new("UIStroke", InputFrame).Color = Color3.fromRGB(180, 180, 200)
+
+local function createInputLabel(labelText, defaultValue, yPos)
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(0.5, -5, 0, 22)
+	label.Position = UDim2.new(0, 5, 0, yPos)
+	label.Text = labelText
+	label.Font = Enum.Font.Gotham
+	label.TextSize = 12
+	label.TextColor3 = Color3.fromRGB(220, 220, 240)
+	label.BackgroundTransparency = 1
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = InputFrame
+
+	local box = Instance.new("TextBox")
+	box.Size = UDim2.new(0.5, -10, 0, 22)
+	box.Position = UDim2.new(0.5, 0, 0, yPos)
+	box.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+	box.BackgroundTransparency = 0.4
+	box.Text = defaultValue
+	box.TextColor3 = Color3.fromRGB(240, 240, 255)
+	box.Font = Enum.Font.Gotham
+	box.TextSize = 12
+	box.PlaceholderText = labelText
+	box.Parent = InputFrame
+	Instance.new("UICorner", box).CornerRadius = UDim.new(0, 5)
+
+	box.FocusLost:Connect(function(enterPressed)
+		if not (enterPressed and tonumber(box.Text)) then
+			box.Text = defaultValue
+		end
+	end)
+end
+
+createInputLabel("Speed:", "27", 5)
+createInputLabel("Jump:", "50", 32)
+
+DesyncButton.MouseButton1Click:Connect(function()
+	DesyncButton.Text = "Desync: ON"
+	TweenService:Create(DesyncButton, TweenInfo.new(0.2), {
+		BackgroundColor3 = Color3.fromRGB(80, 150, 80),
+		BackgroundTransparency = 0.3
+	}):Play()
+end)
+
+SpeedButton.MouseButton1Click:Connect(function()
+	SpeedButton.Text = "Speed: ON"
+	TweenService:Create(SpeedButton, TweenInfo.new(0.2), {
+		BackgroundColor3 = Color3.fromRGB(80, 150, 80),
+		BackgroundTransparency = 0.3
+	}):Play()
+end)
+
+UnwalkButton.MouseButton1Click:Connect(function()
+	UnwalkButton.Text = "Unwalk: ON"
+	TweenService:Create(UnwalkButton, TweenInfo.new(0.2), {
+		BackgroundColor3 = Color3.fromRGB(80, 150, 80),
+		BackgroundTransparency = 0.3
+	}):Play()
+end)
