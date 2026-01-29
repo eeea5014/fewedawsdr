@@ -1,0 +1,1051 @@
+-- ts file was generated at discord.gg/25ms
+
+local fenv = getfenv()
+
+coroutine.yield(true, 1, game)
+coroutine.yield(true, 2, workspace)
+coroutine.yield(true, 3, script)
+loadstring('\n\t--[[\n\n\t\t\t\t\t .@%(/*,.......      ...,,*/(#%&@@.\n\t\t\t\t (*   ,/(#%%&&@@@@&%((////(((##%###((/**,,.     ,//(&.\n\t\t\t   /* .%@@@@@@@@%,  .(&@@@&&&&&&@@@@@@&#(*,........*%@@@(.  ,#.\n\t\t\t */ .&@@@@@@@*  (%,   *(&&@@@@@&%(*,.             .,*(#%(*@@&*  *,\n\t\t\t#, /@@@@@@* *&( ,&&/.,/#%&&@@@&(&@@@@@@@@@@@@#*,.....,/&@@@@@@@@( .%\n\t\t   #  #@@@@@*/@% .#%./(,.,/*,//*,.,/(*@@@@@@@@@@@@%@@@@@@@@@#.#@@@@@@&. %\n\t\t  /  &@@@@@@@@(%@# *&&*&@@@@#/&@@@@/%%.,%@@@@@@@%/@@&(,  ,,,...  *%@@@# *\n\t\t#  .&@@@@@@@@@@@,((%@@@@@#.    ,&@@#@@&* .&@@@@@&,.#@@@@/&@@%(@@@&(/,(&, /,\n\t (/   (@&&&%&@@@&/, ,@#(@@@@,        #@@/,&@& /@@@@@,%#%@@@@@(     *@@@@@&,%%. .\n\t/  #/,#@@@&#(//#@@@/ %@@@&@@@(.    ,&@@(.*/*  %@@*   %@@@@@@%       (@@&(*...%&.\n\t ///@@&,  (&@@#,   /@/ ,*&@@@@#&@@%#%((%@&* /@@@@@@&. #@@@#&@@@&%%@@@@@@&,/(*@/#\n\t%%.&@# .&@@@# /@@@@%&@@@&/.   ,/((/*,  ./&@@@@@@@@@@,*&(./%@@#*&@@@(#(....,&#*@/\n\t@%.&& .&@@@&*    /&@@@@@@@@@@@@@@@@&@@#/(%@@@@@@@@@@&,  (@@@@@@@@@@@@/,@@@@@#.&*\n\t&&,%% .&*    /@@@(.  ,(@@@@@&/(////#( /&@@@@@@@@@@@@@@@(  ,&@@@@@@@@&, (@@&*/@(/\n\t.%*#@( /@@@@( *@@@@@@/     *%@@@@@@@&.,@& ,#, .&@@@@@@# .#*%&/,#@@@@*   *@@&/*&*\n\t .&/.#@@@@@@@,   *&@@%.,&@@&(,    ,(%@%&@@@@@@@@@(.*,  /@@@@@@@@@&,      %@@@@..\n\t@* .%@@@@@@@@(       .   (@@@@@@@@(       .*(%&@@@@@@@@@@@@&(,  ./.*@%   /@@% ./\n\t  @* .&@@@@@@&.             ./&@@@*.&@@@@@@@&, ,**,.    .,*(&(.%@@# %@*  ,@@% ,#\n\t\t&, /@@@@@@*                    .#@@@@@@@@*.%@@@@@(,@@@@@@& ,%(.      .&@% ,#\n\t\t  / *@@@@@#                                                           %@&.,#\n\t\t  (( .&@@@@*                                                          #@&.,#\n\t\t   .&. ,&@@@,                                                         (@&.,#\n\t\t\t  #. .%@@* /@@/                                                   /@&.,(\n\t\t\t\t./  #@%. %@&,,#,                                              /@@,./\n\t\t\t\t  *(  #@%. . (@@@@@%/,                                        /@@,.*\n\t\t\t\t\t//  %@&, *@@@@@@@@( (@%/.                                 #@@, (\n\t\t\t\t\t  #* .&@@#. (@@@@&.*@@@@@@@@%. */.                  *..%*.&@@, /\n\t\t\t\t\t\t@* .%@@@%, ,/ .@@@@@@@@@@,.%@@@@@% .&@@@* #@&..&@*,* %@@&. *\n\t\t\t\t\t\t   /  *&@@@@%,   *(&@@@@&. #@@@@@* #@@@% (@@* ,.   /@@@@* (\n\t\t\t\t\t\t\t @#. .#@@@@@@&(,.                      .,*(%&@@@@@&..(\n\t\t\t\t\t\t\t\t &(.   ./%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@(. ((\n\t\t\t\t\t\t\t\t\t  ,#/*.       ..,,,,,,,,....          ,/#\n\n\t]]--\n\n\t return setfenv(function(...) return olXGAHPP(...) end, setmetatable({ ["olXGAHPP"] = ... }, { __index = getfenv((...)) })) ', 'Luraph', nil)
+
+local _call7 = game:GetService('Players')
+local _call9 = game:GetService('UserInputService')
+
+game:GetService('TweenService')
+
+local _call13 = game:GetService('RunService')
+local _call15 = game:GetService('HttpService')
+local _call17 = game:GetService('ReplicatedStorage')
+
+game:GetService('Workspace')
+game:GetService('Lighting')
+game:GetService('StarterGui')
+
+local _LocalPlayer24 = _call7.LocalPlayer
+
+tostring(_LocalPlayer24.UserId)
+require(_call17.Datas.Traits)
+
+local _req35 = require(_call17.Datas.Mutations)
+local _call37 = _call17:WaitForChild('Packages')
+local _call39 = _call17:WaitForChild('Datas')
+local _call41 = _call17:WaitForChild('Shared')
+local _call43 = _call17:WaitForChild('Utils')
+
+require(_call37:WaitForChild('Synchronizer'))
+require(_call39:WaitForChild('Animals'))
+require(_call39:WaitForChild('Rarities'))
+require(_call41:WaitForChild('Animals'))
+require(_call43:WaitForChild('NumberUtils'))
+hookfunction(function(...)
+    error("internal 954: invalid argument #1 to 'info' (function or level expected)")
+end, function(...)
+    error('line 1: attempt to call a nil value')
+end)
+
+fenv.getconnections = function(...)
+    local _62_vararg1 = ...
+
+    tostring(_62_vararg1):find('ProximityPrompt')
+
+    return {}
+end
+fenv.getEquippedItem = function(...)
+    local _66_vararg1 = ...
+
+    return _66_vararg1:FindFirstChildOfClass('Tool').Name
+end
+fenv.createESP = function(...)
+    local _70_vararg1 = ...
+    local _ = _70_vararg1 == _LocalPlayer24
+    local _Character72 = _70_vararg1.Character
+    local _call76 = Instance.new('Highlight')
+
+    _call76.Name = 'PlayerESP'
+    _call76.Adornee = _Character72
+    _call76.FillColor = Color3.fromRGB(0, 255, 255)
+    _call76.OutlineColor = Color3.fromRGB(0, 200, 255)
+    _call76.FillTransparency = 0.5
+    _call76.OutlineTransparency = 0
+    _call76.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    _call76.Parent = _Character72
+
+    local _call84 = Instance.new('BillboardGui')
+
+    _call84.Name = 'ESPInfo'
+    _call84.Adornee = _Character72:FindFirstChild('HumanoidRootPart')
+    _call84.Size = UDim2.new(0, 200, 0, 40)
+    _call84.StudsOffset = Vector3.new(0, 3, 0)
+    _call84.AlwaysOnTop = true
+    _call84.Parent = _Character72
+
+    local _call90 = Instance.new('TextLabel')
+
+    _call90.Size = UDim2.new(1, 0, 0, 20)
+    _call90.BackgroundTransparency = 1
+    _call90.Text = _70_vararg1.Name
+    _call90.TextColor3 = Color3.fromRGB(0, 255, 255)
+    _call90.TextStrokeTransparency = 0.5
+    _call90.TextStrokeColor3 = Color3.new(0, 0, 0)
+    _call90.Font = Enum.Font.GothamBold
+    _call90.TextSize = 14
+    _call90.Parent = _call84
+
+    local _call101 = Instance.new('TextLabel')
+
+    _call101.Size = UDim2.new(1, 0, 0, 18)
+    _call101.Position = UDim2.new(0, 0, 0, 22)
+    _call101.BackgroundTransparency = 1
+    _call101.Text = 'Item: None'
+    _call101.TextColor3 = Color3.fromRGB(255, 255, 100)
+    _call101.TextStrokeTransparency = 0.5
+    _call101.TextStrokeColor3 = Color3.new(0, 0, 0)
+    _call101.Font = Enum.Font.Gotham
+    _call101.TextSize = 12
+    _call101.Parent = _call84
+end
+fenv.removeESP = function(...) end
+fenv.updateESP = function(...) end
+fenv.enableESPPlayers = function(...)
+    for _117, _117_2 in pairs(_call7:GetPlayers())do
+        coroutine.yield(true, _117, _117_2)
+    end
+
+    _call13.RenderStepped:Connect(function(...)
+        coroutine.yield(true, _70_vararg1, {
+            billboard = _call84,
+            character = _Character72,
+            highlight = _call76,
+            itemLabel = _call101,
+        })
+    end)
+end
+fenv.disableESPPlayers = function(...)
+    coroutine.yield(true, _70_vararg1, {
+        billboard = _call84,
+        character = _Character72,
+        highlight = _call76,
+        itemLabel = _call101,
+    })
+    _call121:Disconnect()
+end
+fenv.getTraitMultiplier = function(...)
+    local _128_vararg1 = ...
+    local _call132 = _call15:JSONDecode(_128_vararg1:GetAttribute('Traits'))
+
+    type(_call132)
+
+    for _133, _133_2 in pairs(_call132)do
+        coroutine.yield(true, _133, _133_2)
+    end
+
+    return 0
+end
+fenv.getFinalGeneration = function(...)
+    local _135_vararg1 = ...
+    local _Idx137 = require(_call17.Datas.Animals)[_135_vararg1.Name]
+    local _ = _Idx137.Generation
+    local _ = _Idx137.Price
+    local _call143 = _call15:JSONDecode(_135_vararg1:GetAttribute('Traits'))
+
+    type(_call143)
+
+    for _144, _144_2 in pairs(_call143)do
+        coroutine.yield(true, _144, _144_2)
+    end
+
+    local _call147 = _135_vararg1:GetAttribute('Mutation')
+    local _ = _req35[_call147]
+    local _ = _req35[_call147].Modifier
+
+    error('line 1: attempt to perform arithmetic (add) on number and nil')
+end
+fenv.formatNumber = function(...)
+    error('line 1: attempt to compare number <= table')
+end
+fenv.isPlayerPlot = function(...)
+    local _152_vararg1 = ...
+    local _ = _152_vararg1:FindFirstChild('PlotSign'):FindFirstChild('YourBase').Enabled
+
+    return true
+end
+fenv.findHighestBrainrot = function(...)
+    for _163, _163_2 in pairs(workspace:FindFirstChild('Plots'):GetChildren())do
+        coroutine.yield(true, _163, _163_2)
+    end
+
+    return nil
+end
+fenv.createHighestValueESP = function(...)
+    local _165_vararg1 = ...
+    local _ = _165_vararg1.model
+    local _model167 = _165_vararg1.model
+    local _PrimaryPart168 = _model167.PrimaryPart
+    local _call170 = Instance.new('Highlight', _model167)
+
+    _call170.Name = 'BrainrotESPHighlight'
+    _call170.Adornee = _model167
+    _call170.FillColor = Color3.fromRGB(255, 0, 0)
+    _call170.OutlineColor = Color3.fromRGB(255, 0, 0)
+    _call170.FillTransparency = 0.6
+    _call170.OutlineTransparency = 0
+    _call170.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+
+    local _call178 = Instance.new('BoxHandleAdornment')
+
+    _call178.Name = 'BrainrotBoxHighlight'
+    _call178.Adornee = _PrimaryPart168
+    _call178.Size = (_PrimaryPart168.Size + Vector3.new(0.5, 0.5, 0.5))
+    _call178.Color3 = Color3.fromRGB(255, 0, 0)
+    _call178.Transparency = 0.7
+    _call178.AlwaysOnTop = true
+    _call178.ZIndex = 1
+    _call178.Parent = _PrimaryPart168
+
+    local _call186 = Instance.new('Highlight')
+
+    _call186.Name = 'BrainrotOutline'
+    _call186.Adornee = _model167
+    _call186.FillColor = Color3.fromRGB(255, 0, 0)
+    _call186.FillTransparency = 0.8
+    _call186.OutlineColor = Color3.fromRGB(255, 0, 0)
+    _call186.OutlineTransparency = 0
+    _call186.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    _call186.Parent = _model167
+
+    local _call195 = _165_vararg1.plot:FindFirstChild('Podium')
+
+    _call195:IsA('BasePart')
+
+    local _call199 = Instance.new('Highlight')
+
+    _call199.Name = 'PodiumOutline'
+    _call199.Adornee = _call195
+    _call199.FillColor = Color3.fromRGB(255, 0, 0)
+    _call199.FillTransparency = 0.9
+    _call199.OutlineColor = Color3.fromRGB(255, 0, 0)
+    _call199.OutlineTransparency = 0
+    _call199.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    _call199.Parent = _call195
+
+    local _call207 = Instance.new('BillboardGui', _PrimaryPart168)
+
+    _call207.Size = UDim2.new(0, 220, 0, 80)
+    _call207.StudsOffset = Vector3.new(0, 8, 0)
+    _call207.AlwaysOnTop = true
+
+    local _call213 = Instance.new('Frame', _call207)
+
+    _call213.Size = UDim2.new(1, 0, 1, 0)
+    _call213.BackgroundTransparency = 1
+
+    local _call217 = Instance.new('TextLabel', _call213)
+
+    _call217.Size = UDim2.new(1, 0, 0.5, 0)
+    _call217.BackgroundTransparency = 1
+    _call217.Text = _165_vararg1.petName
+    _call217.TextColor3 = Color3.fromRGB(255, 0, 0)
+    _call217.TextStrokeTransparency = 0
+    _call217.TextScaled = true
+    _call217.Font = Enum.Font.Arcade
+    _call217.TextXAlignment = Enum.TextXAlignment.Center
+    _call217.TextYAlignment = Enum.TextYAlignment.Center
+
+    local _call230 = Instance.new('TextLabel', _call213)
+
+    _call230.Size = UDim2.new(1, 0, 0.5, 0)
+    _call230.Position = UDim2.new(0, 0, 0.5, 0)
+    _call230.BackgroundTransparency = 1
+    _call230.Text = _165_vararg1.formattedValue
+    _call230.TextColor3 = Color3.fromRGB(255, 0, 0)
+    _call230.TextStrokeTransparency = 0
+    _call230.TextScaled = true
+    _call230.Font = Enum.Font.Arcade
+    _call230.TextXAlignment = Enum.TextXAlignment.Center
+    _call230.TextYAlignment = Enum.TextYAlignment.Center
+end
+fenv.createTracerLine = function(...)
+    local _ = _165_vararg1.model
+    local _call248 = _LocalPlayer24.Character:FindFirstChild('HumanoidRootPart')
+    local _call252 = Instance.new('Attachment')
+
+    _call252.Name = 'Att0'
+    _call252.Parent = _call248
+
+    local _call254 = Instance.new('Attachment')
+
+    _call254.Name = 'Att1'
+    _call254.Parent = _165_vararg1.model.PrimaryPart
+
+    local _call256 = Instance.new('Beam')
+
+    _call256.Name = 'TracerBeam'
+    _call256.Attachment0 = _call252
+    _call256.Attachment1 = _call254
+    _call256.FaceCamera = true
+    _call256.Width0 = 0.3
+    _call256.Width1 = 0.3
+    _call256.Color = ColorSequence.new(Color3.fromRGB(255, 0, 0))
+    _call256.Transparency = NumberSequence.new(0)
+    _call256.LightEmission = 1
+    _call256.LightInfluence = 0
+    _call256.Brightness = 3
+    _call256.Parent = _call248
+
+    _call13.Heartbeat:Connect(function(...)
+        local _ = _call256.Parent
+    end)
+
+    return true
+end
+fenv.removeTracerLine = function(...)
+    _call265:Disconnect()
+    _call256:Destroy()
+    _call252:Destroy()
+    _call254:Destroy()
+end
+fenv.updateHighestValueESP = function(...)
+    for _282, _282_2 in pairs(workspace:FindFirstChild('Plots'):GetChildren())do
+        coroutine.yield(true, _282, _282_2)
+    end
+
+    _call170:Destroy()
+    _call207:Destroy()
+    _call178:Destroy()
+    _call199:Destroy()
+
+    return nil
+end
+fenv.enableESPBest = function(...)
+    for _297, _297_2 in pairs(workspace:FindFirstChild('Plots'):GetChildren())do
+        coroutine.yield(true, _297, _297_2)
+    end
+
+    task.spawn(function(...)
+        local _ = tick() - tick()
+
+        error('line 1: attempt to compare number < table')
+    end)
+end
+fenv.disableESPBest = function(...)
+    task.cancel(_call300)
+end
+fenv.verifyTracerConnection = function(...) end
+
+task.spawn(function(...)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    task.wait(2)
+    error('internal 550: <25ms: infinitelooperror>')
+end)
+
+fenv.handleModelRemoval = function(...) end
+
+task.spawn(function(...)
+    local _call317 = workspace:WaitForChild('Plots')
+
+    _call317.ChildAdded:Connect(function(...) end)
+    _call317.ChildRemoved:Connect(function(...) end)
+end)
+
+fenv.findPlayerPlot = function(...)
+    for _333, _333_2 in pairs(workspace:FindFirstChild('Plots'):GetChildren())do
+        coroutine.yield(true, _333, _333_2)
+    end
+
+    warn('\u{274c} Base del jugador no encontrada! Buscando: ' .. _LocalPlayer24.DisplayName .. "'s Base")
+
+    return nil, nil
+end
+fenv.createPlotLine = function(...)
+    local _ = fenv.stopPlotLine
+
+    error('line 1: attempt to call a nil value')
+end
+fenv.stopPlotLine = function(...) end
+fenv.enableBaseLine = function(...)
+    _LocalPlayer24.Character:FindFirstChild('HumanoidRootPart')
+    task.wait(1)
+    _LocalPlayer24.Character:FindFirstChild('HumanoidRootPart')
+end
+fenv.disableBaseLine = function(...) end
+fenv.reloadBaseLine = function(...) end
+fenv.isSentryPlaced = function(...) end
+fenv.isMySentry = function(...) end
+fenv.isOwnedByPlayer = function(...) end
+fenv.findBat = function(...) end
+fenv.equipBat = function(...) end
+fenv.unequipBat = function(...) end
+fenv.sentryExists = function(...) end
+fenv.updateSentryPosition = function(...) end
+fenv.destroySentry = function(...) end
+fenv.scanExistingSentries = function(...) end
+fenv.startSentryWatch = function(...) end
+fenv.stopSentryWatch = function(...) end
+fenv.enableAntiTurret = function(...) end
+fenv.disableAntiTurret = function(...) end
+fenv.getLaserRemote = function(...) end
+fenv.isValidTarget = function(...) end
+fenv.findNearestAllowed = function(...) end
+fenv.safeFire = function(...) end
+fenv.autoLaserWorker = function(...) end
+fenv.enableAimbot = function(...) end
+fenv.disableAimbot = function(...) end
+fenv.getStealCount = function(...) end
+fenv.kickPlayer = function(...) end
+fenv.startMonitoring = function(...) end
+fenv.stopMonitoring = function(...) end
+fenv.enableKickSteal = function(...) end
+fenv.disableKickSteal = function(...) end
+fenv.setupNoWalkAnimation = function(...) end
+fenv.enableUnwalkAnim = function(...) end
+fenv.disableUnwalkAnim = function(...) end
+fenv.isMyBaseAnimal = function(...) end
+fenv.findProximityPromptForAnimal = function(...) end
+fenv.getAnimalPosition = function(...) end
+fenv.getNearestAnimal = function(...) end
+fenv.buildStealCallbacks = function(...) end
+fenv.executeInternalStealAsync = function(...) end
+fenv.attemptSteal = function(...) end
+fenv.isMyBaseAnimal = function(...) end
+fenv.findProximityPromptForAnimal = function(...) end
+fenv.getAnimalPosition = function(...) end
+fenv.getNearestAnimal = function(...) end
+fenv.buildStealCallbacks = function(...) end
+fenv.executeInternalStealAsync = function(...) end
+fenv.attemptSteal = function(...) end
+fenv.scanAllPlots = function(...) end
+fenv.startAutoSteal = function(...) end
+fenv.stopAutoSteal = function(...) end
+fenv.enableAutoSteal = function(...) end
+fenv.disableAutoSteal = function(...) end
+fenv.updateUseItemEventHandler = function(...) end
+fenv.setupInstantAnimationBlocker = function(...) end
+fenv.enableContinuousMonitoring = function(...) end
+fenv.toggleAntiBee = function(...) end
+fenv.toggleAntiBoogie = function(...) end
+fenv.toggleAntiDebuff = function(...) end
+fenv.cacheCharacterData = function(...) end
+fenv.disconnectAll = function(...) end
+fenv.isRagdolled = function(...) end
+fenv.removeRagdollConstraints = function(...) end
+fenv.forceExitRagdoll = function(...) end
+fenv.antiRagdollLoop = function(...) end
+fenv.setupCameraBinding = function(...) end
+fenv.onCharacterAdded = function(...) end
+fenv.enableAntiRagdoll = function(...) end
+fenv.disableAntiRagdoll = function(...) end
+fenv.isBaseWall = function(...) end
+fenv.tryApplyInvisibleWalls = function(...) end
+fenv.cleanupRemovedParts = function(...) end
+fenv.enableXrayBase = function(...) end
+fenv.disableXrayBase = function(...) end
+fenv.addThread = function(...) end
+fenv.addConnection = function(...) end
+fenv.storeOriginalSettings = function(...) end
+fenv.applyFFlags = function(...) end
+fenv.nukeVisualEffects = function(...) end
+fenv.optimizeCharacter = function(...) end
+fenv.enableFpsBoost = function(...) end
+fenv.disableFpsBoost = function(...) end
+fenv.updateBillboard = function(...) end
+fenv.findLowestValidRemainingTime = function(...) end
+fenv.scanAndConnect = function(...) end
+fenv.enableTimerESP = function(...) end
+fenv.disableTimerESP = function(...) end
+fenv.saveConfig = function(...) end
+fenv.loadConfig = function(...) end
+fenv.applyLoadedConfig = function(...) end
+fenv.resetConfig = function(...) end
+
+_call9.InputBegan:Connect(function(...) end)
+Color3.fromRGB(10, 15, 25)
+Color3.fromRGB(18, 22, 35)
+Color3.fromRGB(240, 245, 255)
+Color3.fromRGB(255, 255, 255)
+Color3.fromRGB(64, 224, 208)
+Color3.fromRGB(127, 255, 212)
+Color3.fromRGB(147, 112, 219)
+Color3.fromRGB(186, 85, 211)
+Color3.fromRGB(30, 144, 255)
+Color3.fromRGB(25, 25, 112)
+Color3.fromRGB(0, 139, 139)
+Color3.fromRGB(75, 0, 130)
+Color3.fromRGB(135, 206, 235)
+Color3.fromRGB(0, 255, 255)
+Color3.fromRGB(255, 0, 255)
+Color3.fromRGB(0, 255, 127)
+Color3.fromRGB(255, 69, 0)
+Color3.fromRGB(150, 240, 255)
+Color3.fromRGB(200, 150, 255)
+
+fenv.setupNotificationKeybinds = function(...) end
+fenv.passesGenerationFilter = function(...) end
+fenv.removeToast = function(...) end
+fenv.createInteractiveToast = function(...) end
+fenv.createElement = function(...) end
+fenv.tween = function(...) end
+fenv.applyGradientText = function(...) end
+fenv.applyKeybindGradient = function(...) end
+fenv.makeTextGlow = function(...) end
+fenv.toggleControl = function(...) end
+fenv.updateControlsVisibility = function(...) end
+fenv.setupKeybindEditing = function(...) end
+fenv.switchSection = function(...) end
+fenv.startDragging = function(...) end
+fenv.stopDragging = function(...) end
+fenv.handleDragging = function(...) end
+fenv.createParticleEffects = function(...) end
+fenv.createControlsInterface = function(...) end
+
+local _call509 = Instance.new('TextButton')
+
+coroutine.yield(true, 'TextColor3', Color3.fromRGB(255, 255, 255))
+
+_call509.Text = 'R'
+_call509.BorderSizePixel = 0
+
+coroutine.yield(true, 'Font', Enum.Font.GothamBold)
+
+_call509.BackgroundTransparency = 0.3
+
+coroutine.yield(true, 'Position', UDim2.new(1, -30, 1, -30))
+coroutine.yield(true, 'BackgroundColor3', Color3.fromRGB(255, 50, 50))
+
+_call509.Name = 'ResetConfigButton'
+_call509.TextSize = 12
+
+coroutine.yield(true, 'Size', UDim2.new(0, 25, 0, 25))
+
+local _call516 = Instance.new('UICorner')
+
+_call516.CornerRadius = UDim.new(0, 5)
+_call516.Parent = _call509
+
+local _call520 = Instance.new('UIStroke')
+
+_call520.Color = Color3.fromRGB(255, 100, 100)
+_call520.Thickness = 1.5
+_call520.Transparency = 0.3
+_call520.Parent = _call509
+
+_call509.MouseEnter:Connect(function(...) end)
+_call509.MouseLeave:Connect(function(...) end)
+_call509.MouseButton1Click:Connect(function(...) end)
+
+fenv.createFloatingToggle = function(...) end
+fenv.toggleControlsInterface = function(...) end
+fenv.cleanup = function(...) end
+fenv.initialize = function(...) end
+
+local _ = genv.AUTO_TP_ON_START
+
+task.spawn(function(...) end)
+task.spawn(function(...) end)
+_call9.InputBegan:Connect(function(...) end)
+loadstring(game:HttpGet('https://raw.githubusercontent.com/xspeedHub0/Withelist/refs/heads/main/test'))()
+
+return {
+    isVisible = function(...) end,
+    cleanup = function(...) end,
+    toggleControl = function(...) end,
+    toggleInterface = function(...) end,
+}
