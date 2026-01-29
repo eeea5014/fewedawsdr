@@ -1,0 +1,355 @@
+local Players = game:GetService("Players")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local UserInputService = game:GetService("UserInputService")
+
+local LocalPlayer = Players.LocalPlayer
+
+if getgenv().SCRIPTERHUBXLoaded then return end
+getgenv().SCRIPTERHUBXLoaded = true
+
+local gui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
+gui.Name = "SCRIPTERHUBX"
+gui.ResetOnSpawn = false
+
+local mainFrame = Instance.new("Frame", gui)
+mainFrame.Size = UDim2.fromOffset(220, 280)
+mainFrame.Position = UDim2.fromOffset(10, 10)
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 0, 0)
+mainFrame.Active = true
+mainFrame.Draggable = true
+
+local corner = Instance.new("UICorner", mainFrame)
+corner.CornerRadius = UDim.new(0, 6)
+
+local stroke = Instance.new("UIStroke", mainFrame)
+stroke.Color = Color3.fromRGB(255, 0, 0)
+stroke.Thickness = 2
+
+local closeBtn = Instance.new("TextButton", mainFrame)
+closeBtn.Size = UDim2.fromOffset(20, 20)
+closeBtn.Position = UDim2.new(1, -25, 0, 5)
+closeBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+closeBtn.Text = "X"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 14
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 10)
+
+closeBtn.MouseButton1Click:Connect(function()
+    gui:Destroy()
+    getgenv().SCRIPTERHUBXLoaded = false
+end)
+
+local title = Instance.new("TextLabel", mainFrame)
+title.Size = UDim2.new(1, -40, 0, 30)
+title.Position = UDim2.fromOffset(10, 5)
+title.BackgroundTransparency = 1
+title.Text = "SCRIPTER HUB X"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextXAlignment = Enum.TextXAlignment.Left
+
+local function createButton(name, yPos)
+    local button = Instance.new("TextButton", mainFrame)
+    button.Size = UDim2.new(1, -20, 0, 35)
+    button.Position = UDim2.fromOffset(10, yPos)
+    button.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    button.Text = name
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 14
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 6)
+    return button
+end
+
+local setBtn = createButton("SET POSITION", 40)
+local desyncBtn = createButton("ENABLE DESYNC", 85)
+local friendsBtn = createButton("ALLOW FRIENDS", 130)
+local speedBtn = createButton("SPEED BOOSTER", 175)
+
+local status = Instance.new("TextLabel", mainFrame)
+status.Size = UDim2.new(1, -20, 0, 20)
+status.Position = UDim2.fromOffset(10, 220)
+status.BackgroundTransparency = 1
+status.Text = "Status: Ready"
+status.Font = Enum.Font.GothamMedium
+status.TextSize = 12
+status.TextColor3 = Color3.fromRGB(255, 255, 255)
+status.TextXAlignment = Enum.TextXAlignment.Left
+
+local discord = Instance.new("TextLabel", mainFrame)
+discord.Size = UDim2.new(1, -20, 0, 15)
+discord.Position = UDim2.fromOffset(10, 245)
+discord.BackgroundTransparency = 1
+discord.Text = "discord.gg/6grZjrBqM"
+discord.Font = Enum.Font.GothamMedium
+discord.TextSize = 11
+discord.TextColor3 = Color3.fromRGB(255, 255, 255)
+discord.TextXAlignment = Enum.TextXAlignment.Left
+
+local pos1, pos2
+local beam1, beam2
+local part1, part2
+
+local function createBeam(position, index)
+    local char = LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    
+    local part = Instance.new("Part", Workspace)
+    part.Anchored = true
+    part.CanCollide = false
+    part.Transparency = 1
+    part.CFrame = CFrame.new(position)
+    
+    local a0 = Instance.new("Attachment", part)
+    local a1 = Instance.new("Attachment", char.HumanoidRootPart)
+    
+    local beam = Instance.new("Beam", Workspace)
+    beam.Attachment0 = a0
+    beam.Attachment1 = a1
+    beam.Width0 = 0.7
+    beam.Width1 = 0.7
+    beam.FaceCamera = true
+    beam.Color = ColorSequence.new(Color3.fromRGB(255, 0, 0))
+    beam.LightEmission = 1
+    
+    if index == 1 then
+        if beam1 then beam1:Destroy() end
+        if part1 then part1:Destroy() end
+        beam1, part1 = beam, part
+    else
+        if beam2 then beam2:Destroy() end
+        if part2 then part2:Destroy() end
+        beam2, part2 = beam, part
+    end
+end
+
+setBtn.MouseButton1Click:Connect(function()
+    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if hrp then
+        pos1 = hrp.CFrame
+        createBeam(pos1.Position, 1)
+        status.Text = "Status: Position Set"
+    end
+end)
+
+local ESPFolder, ServerESP
+local serverPosition
+local positionConn
+
+local function ClearESP()
+    if positionConn then
+        positionConn:Disconnect()
+        positionConn = nil
+    end
+    if ESPFolder then
+        ESPFolder:Destroy()
+        ESPFolder = nil
+    end
+    ServerESP = nil
+end
+
+local function CreateESPPart(name, color)
+    local part = Instance.new("Part")
+    part.Size = Vector3.new(4, 8, 4)
+    part.Anchored = true
+    part.CanCollide = false
+    part.Material = Enum.Material.Neon
+    part.Color = color
+    part.Transparency = 0.3
+    part.Parent = ESPFolder
+    
+    local highlight = Instance.new("Highlight", part)
+    highlight.FillColor = color
+    highlight.OutlineColor = color
+    highlight.FillTransparency = 0.5
+    
+    return part
+end
+
+local function TrackServer(hrp)
+    serverPosition = hrp.Position
+    positionConn = hrp:GetPropertyChangedSignal("Position"):Connect(function()
+        task.wait(0.15)
+        if hrp then
+            serverPosition = hrp.Position
+            if ServerESP then
+                ServerESP.CFrame = CFrame.new(serverPosition)
+            end
+        end
+    end)
+end
+
+local function SetServerESP()
+    ClearESP()
+    ESPFolder = Instance.new("Folder", Workspace)
+    ESPFolder.Name = "DesyncESP"
+    
+    ServerESP = CreateESPPart("SERVER POSITION", Color3.fromRGB(255, 0, 0))
+    
+    local char = LocalPlayer.Character
+    if char then
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            TrackServer(hrp)
+            ServerESP.CFrame = CFrame.new(serverPosition)
+        end
+    end
+end
+
+local function ApplyFFlags()
+    local FFlags = {
+        PhysicsSenderMaxBandwidthBps = "20000",
+        WorldStepMax = "30",
+        DisableDPIScale = "true",
+        S2PhysicsSenderRate = "15000"
+    }
+    
+    for name, value in pairs(FFlags) do
+        pcall(function()
+            sethiddenproperty(settings().Physics, name, tonumber(value) or value == "true")
+        end)
+    end
+end
+
+local function RespawnPlayer()
+    local char = LocalPlayer.Character
+    if not char then return end
+    
+    local hum = char:FindFirstChildWhichIsA("Humanoid")
+    if hum then
+        hum:ChangeState(Enum.HumanoidStateType.Dead)
+    end
+    
+    char:ClearAllChildren()
+    local temp = Instance.new("Model", Workspace)
+    LocalPlayer.Character = temp
+    task.wait()
+    LocalPlayer.Character = char
+    temp:Destroy()
+end
+
+local function Desync()
+    ApplyFFlags()
+    RespawnPlayer()
+    task.wait(0.6)
+    SetServerESP()
+    
+    status.Text = "Status: Desync Active"
+    desyncBtn.Text = "DESYNC ENABLED"
+    desyncBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+end
+
+desyncBtn.MouseButton1Click:Connect(function()
+    Desync()
+end)
+
+friendsBtn.MouseButton1Click:Connect(function()
+    pcall(function()
+        local Packages = game:GetService("ReplicatedStorage"):WaitForChild("Packages")
+        local Net = Packages:WaitForChild("Net")
+        local REPlotServiceToggleFriends = Net:WaitForChild("RE/PlotService/ToggleFriends")
+        REPlotServiceToggleFriends:FireServer()
+        status.Text = "Status: Friends Allowed"
+    end)
+end)
+
+local speedBoosterEnabled = false
+local speedBoosterConnection = nil
+
+speedBtn.MouseButton1Click:Connect(function()
+    speedBoosterEnabled = not speedBoosterEnabled
+    
+    if speedBoosterEnabled then
+        speedBtn.Text = "SPEED: ON"
+        speedBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+        
+        if speedBoosterConnection then
+            speedBoosterConnection:Disconnect()
+        end
+        
+        speedBoosterConnection = RunService.Heartbeat:Connect(function()
+            local Char = LocalPlayer.Character
+            if not Char then return end
+            local HRP = Char:FindFirstChild("HumanoidRootPart")
+            local Hum = Char:FindFirstChildOfClass("Humanoid")
+            if not HRP or not Hum then return end
+            
+            local moveVector = Hum.MoveDirection
+            if moveVector.Magnitude > 0.1 then
+                local inputDirection = Vector3.new(moveVector.X, 0, moveVector.Z).Unit
+                HRP.AssemblyLinearVelocity = Vector3.new(inputDirection.X * 28.5, HRP.AssemblyLinearVelocity.Y, inputDirection.Z * 28.5)
+            else
+                HRP.AssemblyLinearVelocity = Vector3.new(0, HRP.AssemblyLinearVelocity.Y, 0)
+            end
+        end)
+    else
+        speedBtn.Text = "SPEED BOOSTER"
+        speedBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+        
+        if speedBoosterConnection then
+            speedBoosterConnection:Disconnect()
+            speedBoosterConnection = nil
+        end
+        
+        local Char = LocalPlayer.Character
+        if Char and Char:FindFirstChild("HumanoidRootPart") then
+            Char.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, Char.HumanoidRootPart.AssemblyLinearVelocity.Y, 0)
+        end
+    end
+end)
+
+local targetPositions = {
+    Vector3.new(-481.88, -3.79, 138.02),
+    Vector3.new(-481.75, -3.79, 89.18),
+    Vector3.new(-481.82, -3.79, 30.95),
+    Vector3.new(-481.75, -3.79, -17.79),
+    Vector3.new(-481.80, -3.79, -76.06),
+    Vector3.new(-481.72, -3.79, -124.70),
+    Vector3.new(-337.45, -3.85, -124.72),
+    Vector3.new(-337.37, -3.85, -76.07),
+    Vector3.new(-337.46, -3.79, -17.72),
+    Vector3.new(-337.41, -3.79, 30.92),
+    Vector3.new(-337.32, -3.79, 89.02),
+    Vector3.new(-337.27, -3.79, 137.90),
+    Vector3.new(-337.45, -3.79, 196.29),
+    Vector3.new(-337.37, -3.79, 244.91),
+    Vector3.new(-481.72, -3.79, 196.21),
+    Vector3.new(-481.76, -3.79, 244.92)
+}
+
+task.spawn(function()
+    while task.wait(1) do
+        local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            local closest, dist = nil, math.huge
+            for _, v in ipairs(targetPositions) do
+                local d = (hrp.Position - v).Magnitude
+                if d < dist then
+                    dist = d
+                    closest = v
+                end
+            end
+            if closest then
+                pos2 = CFrame.new(closest)
+                createBeam(pos2.Position, 2)
+            end
+        end
+    end
+end)
+
+ProximityPromptService.PromptButtonHoldEnded:Connect(function(prompt, who)
+    if who ~= LocalPlayer then return end
+    if prompt.Name ~= "Steal" and prompt.ActionText ~= "Steal" then return end
+    
+    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    
+    if pos1 then hrp.CFrame = pos1 end
+    if pos2 then task.wait(0.05); hrp.CFrame = pos2 end
+    
+    status.Text = "Status: Steal Executed"
+end)
