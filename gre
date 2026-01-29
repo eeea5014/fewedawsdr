@@ -1,0 +1,424 @@
+-- Borralho test Script - Quantum Cloner Desync
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local character = player.Character or player.CharacterAdded:Wait()
+local backpack = player:WaitForChild("Backpack")
+
+-- Criar ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "BorralhoTest"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = playerGui
+
+-- Frame principal
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 340, 0, 240)
+mainFrame.Position = UDim2.new(0.5, -170, 0.5, -120)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Parent = screenGui
+
+-- UICorner para bordas arredondadas
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 15)
+mainCorner.Parent = mainFrame
+
+-- Borda branca
+local border = Instance.new("UIStroke")
+border.Color = Color3.fromRGB(255, 255, 255)
+border.Thickness = 2
+border.Parent = mainFrame
+
+-- Header (área para arrastar)
+local header = Instance.new("Frame")
+header.Name = "Header"
+header.Size = UDim2.new(1, 0, 0, 40)
+header.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+header.BorderSizePixel = 0
+header.Parent = mainFrame
+
+local headerCorner = Instance.new("UICorner")
+headerCorner.CornerRadius = UDim.new(0, 15)
+headerCorner.Parent = header
+
+-- Título
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(1, -20, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "Borralho test"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 18
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = header
+
+-- Botão Test
+local testButton = Instance.new("TextButton")
+testButton.Name = "TestButton"
+testButton.Size = UDim2.new(0, 300, 0, 50)
+testButton.Position = UDim2.new(0.5, -150, 0, 70)
+testButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+testButton.BorderSizePixel = 0
+testButton.Text = "Test (Quantum Desync)"
+testButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+testButton.TextSize = 16
+testButton.Font = Enum.Font.GothamSemibold
+testButton.Parent = mainFrame
+
+local buttonCorner = Instance.new("UICorner")
+buttonCorner.CornerRadius = UDim.new(0, 10)
+buttonCorner.Parent = testButton
+
+local buttonStroke = Instance.new("UIStroke")
+buttonStroke.Color = Color3.fromRGB(255, 255, 255)
+buttonStroke.Thickness = 1
+buttonStroke.Parent = testButton
+
+-- Status label
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Name = "StatusLabel"
+statusLabel.Size = UDim2.new(1, -20, 0, 70)
+statusLabel.Position = UDim2.new(0, 10, 0, 140)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "Status: Pronto\nQuantum Cloner: Não encontrado\nFlags: 0 aplicadas"
+statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+statusLabel.TextSize = 13
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.TextXAlignment = Enum.TextXAlignment.Center
+statusLabel.Parent = mainFrame
+
+-- Sistema de arrastar (compatível com mobile)
+local dragging = false
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    local newPosition = UDim2.new(
+        startPos.X.Scale,
+        startPos.X.Offset + delta.X,
+        startPos.Y.Scale,
+        startPos.Y.Offset + delta.Y
+    )
+    
+    TweenService:Create(mainFrame, TweenInfo.new(0.1), {Position = newPosition}):Play()
+end
+
+header.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+header.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input == dragInput then
+        update(input)
+    end
+end)
+
+-- FLAGS PURAS EXTREMAS para Quantum Cloner Desync (SEM prefixos DFInt/FFTag)
+local quantumDesyncFlags = {
+    -- WORLDSTEP & PHYSICS MANIPULATION (CRÍTICO)
+    {"TaskSchedulerTargetFps", "9999"},
+    {"MaxMissedWorldStepsRemembered", "1000"},
+    {"DefaultMtuSize", "1"},
+    {"DebugSimIntegrationStabilityTesting", "true"},
+    
+    -- S2 PHYSICS SENDER (MATA SINCRONIZAÇÃO)
+    {"S2PhysicsSenderRate", "1"},
+    {"PhysicsSenderMaxBandwidthBps", "1"},
+    {"PhysicsSenderMaxBandwidthBpsScaling", "1"},
+    {"S2PhysicsSenderRateReduction", "99"},
+    
+    -- NETWORK RECEIVE (BLOQUEIA UPDATES)
+    {"PhysicsReceiveMaxBandwidthBps", "1"},
+    {"PhysicsReceiveMaxBandwidthBpsScaling", "1"},
+    {"DataSenderRate", "1"},
+    {"DataSenderMaxBandwidthBps", "1"},
+    
+    -- REPLICATOR (DESTROI REPLICAÇÃO)
+    {"ReplicatorPendingThrottle", "999999"},
+    {"ReplicatorPendingThrottleSeconds", "999"},
+    {"ReplicatorMaxDataBudget", "1"},
+    {"ReplicatorMaxUpdateBacklog", "1"},
+    
+    -- NETWORK MTU & CONNECTION (SUFOCA REDE)
+    {"ConnectionMTUSize", "1"},
+    {"NetworkProtocolTimeoutMs", "999999"},
+    {"NetworkStreamingNetworkLatencyMs", "999999"},
+    {"NetworkStreamingNetworkPriorityInflation", "999999"},
+    
+    -- SIMULATION BLOCKS (INFLAÇÃO MÁXIMA)
+    {"SimBlockLargeLocalEchoInflation", "999999"},
+    {"SimBlockRemoteOwnerInflation", "999999"},
+    {"TaskSchedulerAutoShutdownDelay", "1"},
+    
+    -- CHARACTER REPLICATION
+    {"AssemblySerializeFix", "false"},
+    {"SimInterpolationFix", "false"},
+    {"PhysicsAnalyzerEnabled", "false"},
+    {"ReplicateHumanoidChange", "false"},
+    {"ReplicateWaitForChild", "false"},
+    {"CharacterUpdateReplicationLag", "true"},
+    {"HumanoidParallelUnseat", "true"},
+    {"HumanoidParallelSafety", "false"},
+    
+    -- MOVEMENT REPLICATION
+    {"ReplicateMoveDirection", "false"},
+    {"ReplicateJumpHeight", "false"},
+    {"ReplicateJumpPower", "false"},
+    {"ReplicateWalkSpeed", "false"},
+    {"ReplicateMaxSlopeAngle", "false"},
+    
+    -- PHYSICS CHAOS
+    {"SimPhysicsIgnoreEmptyAssemblies", "true"},
+    {"UserFixCharacterRootCollision", "false"},
+    {"FixCharacterBuoyancy", "false"},
+    
+    -- NETWORK OWNERSHIP
+    {"EnableNetworkOwnerFix", "false"},
+    {"NetworkOwnershipRuleReplicates", "false"},
+    {"FixNetworkOwnerShip", "false"},
+    {"EnableHumanoidNetworkOwnership", "false"},
+    {"FixProjectileOwnership", "false"},
+    
+    -- INTERPOLATION
+    {"DebugDisableInterpolation", "true"},
+    {"EnableUniversalSync", "false"},
+    {"FixStateInterpolation", "false"},
+    
+    -- TELEPORT
+    {"DebugDisableTeleportConfirmation", "true"},
+    {"TeleportFix", "false"},
+    
+    -- ANIMATION
+    {"AnimatorPostEvaluate", "false"},
+    {"AnimatorSyncFix", "false"},
+    {"EnableAnimatorMotor6D", "false"},
+    {"AnimatorAnalyzeUnused", "true"},
+    
+    -- CLONE SYSTEM
+    {"AllowFastClone", "true"},
+    {"DisableDuplicateEnumCheck", "true"},
+    {"DebugCheckRobloxVersion", "false"},
+    
+    -- NETWORK SLEEP
+    {"EnableNetworkSleepFix", "false"},
+    {"NetworkWakeDisabled", "true"},
+    {"EnableNetworkSleepGrace", "false"},
+    
+    -- HTTP & CACHE
+    {"HttpCacheCleanMinFilesRequired", "999999999"},
+    {"HttpCacheMaxKilobytes", "1"},
+    
+    -- ADDITIONAL POWER
+    {"ReplicateInstanceArchivable", "false"},
+    {"EnableAccessoryScale", "false"},
+    {"FixGraphicsQuality", "false"},
+    {"DebugPauseVoxelizer", "true"}
+}
+
+local desyncActive = false
+local flagsApplied = false
+
+-- Função para encontrar Quantum Cloner
+local function findQuantumCloner()
+    local cloner = backpack:FindFirstChild("Quantum Cloner")
+    if not cloner then
+        cloner = character:FindFirstChild("Quantum Cloner")
+    end
+    return cloner
+end
+
+-- Função para equipar Quantum Cloner
+local function equipQuantumCloner()
+    local cloner = findQuantumCloner()
+    
+    if not cloner then
+        statusLabel.Text = "Status: Erro\nQuantum Cloner não encontrado!\nFlags: " .. (flagsApplied and #quantumDesyncFlags or 0)
+        statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+        return false
+    end
+    
+    if cloner.Parent == backpack then
+        character.Humanoid:EquipTool(cloner)
+        task.wait(0.3)
+    end
+    
+    statusLabel.Text = "Status: Quantum Cloner equipado\nPreparando desync...\nFlags: " .. (flagsApplied and #quantumDesyncFlags or 0)
+    statusLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+    return true
+end
+
+-- Função para aplicar FastFlags
+local function applyQuantumFlags()
+    if flagsApplied then return end
+    
+    local successCount = 0
+    
+    for i, flag in ipairs(quantumDesyncFlags) do
+        local success = pcall(function()
+            setfflag(flag[1], flag[2])
+        end)
+        
+        if success then
+            successCount = successCount + 1
+        end
+    end
+    
+    flagsApplied = true
+    return successCount
+end
+
+-- Função principal de desync
+local function activateQuantumDesync()
+    if desyncActive then
+        statusLabel.Text = "Status: Desync já ativo!\nQuantum Cloner: Ativo\nFlags: " .. #quantumDesyncFlags
+        statusLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+        return
+    end
+    
+    -- Aplicar flags primeiro
+    local flagCount = applyQuantumFlags()
+    task.wait(0.2)
+    
+    -- Equipar Quantum Cloner
+    if not equipQuantumCloner() then
+        return
+    end
+    
+    task.wait(0.5)
+    
+    -- Procurar remote events no caminho correto
+    local packages = ReplicatedStorage:WaitForChild("Packages", 5)
+    if not packages then
+        statusLabel.Text = "Status: Erro\nPackages não encontrado!\nFlags: " .. flagCount
+        statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+        warn("❌ Packages não encontrado")
+        return
+    end
+    
+    local netFolder = packages:WaitForChild("Net", 5)
+    if not netFolder then
+        statusLabel.Text = "Status: Erro\nNet folder não encontrado!\nFlags: " .. flagCount
+        statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+        warn("❌ Net folder não encontrado")
+        return
+    end
+    
+    local useItemRemote = netFolder:WaitForChild("RE/UseItem", 5)
+    local teleportRemote = netFolder:WaitForChild("RE/QuantumCloner/OnTeleport", 5)
+    
+    if not useItemRemote or not teleportRemote then
+        statusLabel.Text = "Status: Erro\nRemotos não encontrados!\nFlags: " .. flagCount
+        statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+        warn("❌ Remotos não encontrados")
+        return
+    end
+    
+    statusLabel.Text = "Status: Ativando desync...\nCriando clone...\nFlags: " .. flagCount
+    statusLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+    
+    -- Usar Quantum Cloner (cria clone)
+    local success1 = pcall(function()
+        useItemRemote:FireServer("Quantum Cloner")
+    end)
+    
+    task.wait(0.15)
+    
+    -- Usar OnTeleport (teleporta original)
+    local success2 = pcall(function()
+        teleportRemote:FireServer()
+    end)
+    
+    if success1 and success2 then
+        desyncActive = true
+        statusLabel.Text = "Status: DESYNC ATIVO!\nClone criado + Teleport\nFlags: " .. flagCount .. "/" .. #quantumDesyncFlags
+        statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+        testButton.Text = "Desync Ativo! (Quantum)"
+        testButton.BackgroundColor3 = Color3.fromRGB(20, 70, 20)
+        testButton.TextColor3 = Color3.fromRGB(150, 255, 150)
+        
+        print("[Borralho test] Quantum Desync ativado com sucesso!")
+        print("Clone criado na posição original")
+        print("Personagem teleportado com " .. flagCount .. " flags aplicadas")
+    else
+        statusLabel.Text = "Status: Erro ao usar itens\nVerifique RemoteEvent\nFlags: " .. flagCount
+        statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+    end
+end
+
+-- Verificar se Quantum Cloner existe
+task.spawn(function()
+    task.wait(2)
+    local cloner = findQuantumCloner()
+    if cloner then
+        statusLabel.Text = "Status: Pronto\nQuantum Cloner: Encontrado ✓\nFlags: 0 aplicadas"
+        statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+    else
+        statusLabel.Text = "Status: Pronto\nQuantum Cloner: NÃO encontrado ✗\nFlags: 0 aplicadas"
+        statusLabel.TextColor3 = Color3.fromRGB(255, 150, 100)
+    end
+end)
+
+-- Conectar botão
+testButton.MouseButton1Click:Connect(function()
+    if not desyncActive then
+        activateQuantumDesync()
+    end
+end)
+
+-- Efeito hover no botão
+testButton.MouseEnter:Connect(function()
+    if not desyncActive then
+        TweenService:Create(testButton, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        }):Play()
+    end
+end)
+
+testButton.MouseLeave:Connect(function()
+    if not desyncActive then
+        TweenService:Create(testButton, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        }):Play()
+    end
+end)
+
+-- Atualizar character reference
+player.CharacterAdded:Connect(function(newChar)
+    character = newChar
+    desyncActive = false
+    testButton.Text = "Test (Quantum Desync)"
+    testButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    testButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+end)
+
+print("Borralho test - Quantum Desync carregado!")
+print("Aguardando Quantum Cloner e OnTeleport...")
+print("Flags prontas: " .. #quantumDesyncFlags)
