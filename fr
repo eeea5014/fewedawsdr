@@ -1,0 +1,1155 @@
+-- ts file was generated at discord.gg/25ms
+
+local fenv = getfenv()
+local _call5 = game:GetService('UserInputService')
+local _call7 = game:GetService('TweenService')
+
+game:GetService('TeleportService')
+game:GetService('HttpService')
+
+local _LocalPlayer12 = game:GetService('Players').LocalPlayer
+
+Color3.fromRGB(20, 25, 35)
+
+local _call20 = Color3.fromRGB(0, 255, 100)
+
+Color3.fromRGB(255, 150, 0)
+Color3.fromRGB(255, 120, 120)
+
+local _ = fenv.syn
+local _httprequest32 = http.request
+
+fenv.createElement = function(_33, _33_2, _33_3)
+    local _call35 = Instance.new(_33)
+
+    for _36, _36_2 in pairs(_33_2)do
+        _call35[_36] = _36_2
+    end
+
+    return _call35
+end
+fenv.tween = function(_37, _37_2, _37_3, _37_4)
+    local _ = _37.Parent
+
+    _call7:Create(_37, _37_2, _37_3):Play()
+end
+fenv.fetchServers = function(_43, _43_2, _43_3, _43_4, _43_5, _43_6)
+    local _call46 = _httprequest32({
+        Url = 'https://games.roblox.com/v1/games/' .. _43 .. '/servers/Public?limit=100',
+        Method = 'GET',
+        Headers = {
+            ['User-Agent'] = 'Roblox/WinInet',
+        },
+    })
+    local _ = _call46.StatusCode
+
+    warn('\u{274c} Error HTTP:', _call46.StatusCode)
+
+    return false
+end
+fenv.hopAllServers = function(_50, _50_2, _50_3)
+    local _call54 = _httprequest32({
+        Url = 'https://games.roblox.com/v1/games/' .. game.PlaceId .. '/servers/Public?limit=100',
+        Method = 'GET',
+        Headers = {
+            ['User-Agent'] = 'Roblox/WinInet',
+        },
+    })
+    local _ = _call54.StatusCode
+
+    warn('\u{274c} Error HTTP:', _call54.StatusCode)
+end
+fenv.updateButtonText = function(_58, _58_2, _58_3, _58_4, _58_5, _58_6) end
+fenv.createServerHopButton = function(_59, _59_2, _59_3, _59_4)
+    local _call65 = Instance.new('ScreenGui')
+
+    _call65.Name = 'ServerHopGUI'
+    _call65.DisplayOrder = 999999
+    _call65.ResetOnSpawn = false
+    _call65.IgnoreGuiInset = true
+    _call65.Parent = _LocalPlayer12:WaitForChild('PlayerGui')
+    _call65.ZIndexBehavior = Enum.ZIndexBehavior.Global
+
+    local _call71 = Instance.new('Frame')
+
+    _call71.BackgroundColor3 = Color3.fromRGB(30, 35, 50)
+    _call71.BackgroundTransparency = 0.1
+    _call71.Name = 'ServerHopButton'
+    _call71.Position = UDim2.new(0, -190, 0, -10)
+    _call71.Parent = _call65
+    _call71.ZIndex = 10000
+    _call71.BorderSizePixel = 0
+    _call71.Size = UDim2.new(0, 180, 0, 50)
+
+    local _call73 = Instance.new('UICorner')
+
+    _call73.CornerRadius = UDim.new(0, 8)
+    _call73.Parent = _call71
+
+    local _call77 = Instance.new('UIStroke')
+
+    _call77.Thickness = 2
+    _call77.Color = _call20
+    _call77.Parent = _call71
+
+    local _call79 = Instance.new('UIGradient')
+    local _call85 = ColorSequence.new({
+        [1] = ColorSequenceKeypoint.new(0, _call20),
+        [2] = ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 0, 255)),
+    })
+
+    _call79.Color = _call85
+    _call79.Rotation = 45
+    _call79.Parent = _call77
+
+    task.spawn(function()
+        local _ = _call77.Parent
+        local _ = _call77.Parent
+
+        _call79.Rotation = 0
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 2
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 4
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 6
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 8
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 10
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 12
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 14
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 16
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 18
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 20
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 22
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 24
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 26
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 28
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 30
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 32
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 34
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 36
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 38
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 40
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 42
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 44
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 46
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 48
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 50
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 52
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 54
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 56
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 58
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 60
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 62
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 64
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 66
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 68
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 70
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 72
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 74
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 76
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 78
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 80
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 82
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 84
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 86
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 88
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 90
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 92
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 94
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 96
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 98
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 100
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 102
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 104
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 106
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 108
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 110
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 112
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 114
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 116
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 118
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 120
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 122
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 124
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 126
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 128
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 130
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 132
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 134
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 136
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 138
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 140
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 142
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 144
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 146
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 148
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 150
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 152
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 154
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 156
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 158
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 160
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 162
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 164
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 166
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 168
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 170
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 172
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 174
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 176
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 178
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 180
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 182
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 184
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 186
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 188
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 190
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 192
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 194
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 196
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 198
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 200
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 202
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 204
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 206
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 208
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 210
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 212
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 214
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 216
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 218
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 220
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 222
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 224
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 226
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 228
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 230
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 232
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 234
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 236
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 238
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 240
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 242
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 244
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 246
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 248
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 250
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 252
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 254
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 256
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 258
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 260
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 262
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 264
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 266
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 268
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 270
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 272
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 274
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 276
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 278
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 280
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 282
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 284
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 286
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 288
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 290
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 292
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 294
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 296
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 298
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 300
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 302
+
+        task.wait(0.03)
+
+        local _ = _call77.Parent
+
+        _call79.Rotation = 304
+
+        error('internal 550: <25ms: infinitelooperror>')
+    end)
+
+    local _call252 = Instance.new('TextButton')
+
+    _call252.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _call252.Parent = _call71
+    _call252.Text = '\u{d7}'
+    _call252.BackgroundTransparency = 0.2
+    _call252.BorderSizePixel = 0
+    _call252.Font = Enum.Font.GothamBold
+    _call252.Name = 'CloseButton'
+    _call252.Position = UDim2.new(1, -22, 0, 5)
+    _call252.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+    _call252.ZIndex = 10002
+    _call252.TextSize = 16
+    _call252.Size = UDim2.new(0, 20, 0, 20)
+
+    local _call254 = Instance.new('UICorner')
+
+    _call254.CornerRadius = UDim.new(1, 0)
+    _call254.Parent = _call252
+
+    _call252.MouseEnter:Connect(function(_260, _260_2, _260_3, _260_4)
+        TweenInfo.new(0.2)
+        UDim2.new(0, 22, 0, 22)
+        UDim2.new(1, -23, 0, 4)
+        error('internal 550: <25ms: infinitelooperror>')
+    end)
+    _call252.MouseLeave:Connect(function(_271, _271_2, _271_3, _271_4)
+        TweenInfo.new(0.2)
+        UDim2.new(0, 20, 0, 20)
+        UDim2.new(1, -22, 0, 5)
+        error('internal 550: <25ms: infinitelooperror>')
+    end)
+    _call252.MouseButton1Click:Connect(function(_282, _282_2) end)
+
+    local _call288 = Instance.new('Frame')
+
+    _call288.Name = 'ContentFrame'
+    _call288.Position = UDim2.new(0, 10, 0, 5)
+    _call288.Parent = _call71
+    _call288.ZIndex = 10001
+    _call288.BackgroundTransparency = 1
+    _call288.Size = UDim2.new(1, -30, 1, -10)
+
+    local _call298 = Instance.new('TextLabel')
+
+    _call298.TextColor3 = Color3.fromRGB(200, 230, 255)
+    _call298.Parent = _call288
+    _call298.Text = '\u{1f504}'
+    _call298.Font = Enum.Font.GothamBold
+    _call298.Name = 'ServerIcon'
+    _call298.Position = UDim2.new(0, 0, 0.5, -15)
+    _call298.BackgroundTransparency = 1
+    _call298.ZIndex = 10002
+    _call298.TextSize = 20
+    _call298.Size = UDim2.new(0, 30, 0, 30)
+
+    local _call310 = Instance.new('TextLabel')
+
+    _call310.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _call310.Parent = _call288
+    _call310.Text = 'SERVER HOP'
+    _call310.ZIndex = 10002
+    _call310.BackgroundTransparency = 1
+    _call310.Font = Enum.Font.GothamBold
+    _call310.Name = 'HopText'
+    _call310.Position = UDim2.new(0, 35, 0, 0)
+    _call310.TextXAlignment = Enum.TextXAlignment.Left
+    _call310.TextYAlignment = Enum.TextYAlignment.Center
+    _call310.TextSize = 14
+    _call310.Size = UDim2.new(1, -35, 1, 0)
+
+    local _call312 = Instance.new('UIGradient')
+    local _call320 = ColorSequence.new({
+        [1] = ColorSequenceKeypoint.new(0, _call20),
+        [2] = ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 200, 255)),
+        [3] = ColorSequenceKeypoint.new(1, _call20),
+    })
+
+    _call312.Color = _call320
+    _call312.Rotation = 0
+    _call312.Parent = _call310
+
+    task.spawn(function(_323, _323_2, _323_3) end)
+
+    local _call329 = Instance.new('TextButton')
+
+    _call329.ZIndex = 10003
+    _call329.Name = 'ClickButton'
+    _call329.Position = UDim2.new(0, 0, 0, 0)
+    _call329.Parent = _call288
+    _call329.Text = ''
+    _call329.BackgroundTransparency = 1
+    _call329.Size = UDim2.new(1, -25, 1, 0)
+
+    _call329.InputBegan:Connect(function(_333, _333_2, _333_3, _333_4, _333_5) end)
+    _call329.InputEnded:Connect(function(_337, _337_2, _337_3, _337_4) end)
+    _call5.InputChanged:Connect(function(_341, _341_2) end)
+    _call71.Destroying:Connect(function(_345) end)
+    _call329.MouseEnter:Connect(function(_349, _349_2, _349_3) end)
+    _call329.MouseLeave:Connect(function(_353, _353_2, _353_3, _353_4, _353_5) end)
+    _call329.MouseButton1Click:Connect(function(_357, _357_2) end)
+
+    _call71.Size = UDim2.new(0, 0, 0, 50)
+    _call71.Position = UDim2.new(1, -10, 0, 10)
+
+    local _ = _call71.Parent
+    local _call374 = _call7:Create(_call71, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Position = UDim2.new(1, -190, 0, 10),
+        Size = UDim2.new(0, 180, 0, 50),
+    })
+
+    _call374:Play()
+
+    return _call71
+end
+fenv.cleanupServerHopButton = function(_377, _377_2, _377_3, _377_4, _377_5) end
+fenv.toggleServerHopButton = function(_378, _378_2) end
+
+task.spawn(function(_381) end)
+_call5.InputBegan:Connect(function(_385, _385_2) end)
+
+local _ = fenv.optimizedServerHop
+
+return {
+    cleanup = function(_387, _387_2, _387_3, _387_4, _387_5) end,
+    stop = function(_388, _388_2, _388_3, _388_4, _388_5) end,
+    toggle = function(_389, _389_2) end,
+    getButton = function() end,
+    create = function(_391, _391_2, _391_3, _391_4) end,
+}
