@@ -1,0 +1,90 @@
+-- LAG GLOBAL COM BOTÃO ON/OFF + TEXTO OFF HUB
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local LAG_ATIVO = false
+local INTENSIDADE = 180
+
+local parts = {}
+
+-- cria partes
+for i = 1, INTENSIDADE do
+	local p = Instance.new("Part")
+	p.Size = Vector3.new(12, 12, 12)
+	p.Anchored = false
+	p.CanCollide = true
+	p.Material = Enum.Material.Metal
+	p.Transparency = 0.4
+	p.Name = "LagPart"
+	p.Parent = workspace
+	table.insert(parts, p)
+end
+
+-- lag loop
+RunService.Heartbeat:Connect(function()
+	if not LAG_ATIVO then return end
+
+	for _, plr in pairs(Players:GetPlayers()) do
+		local char = plr.Character
+		if char and char:FindFirstChild("HumanoidRootPart") then
+			local hrp = char.HumanoidRootPart
+
+			for _, part in pairs(parts) do
+				part.Position = hrp.Position + Vector3.new(
+					math.random(-10,10),
+					math.random(0,10),
+					math.random(-10,10)
+				)
+
+				part.AssemblyLinearVelocity = Vector3.new(
+					math.random(-60,60),
+					math.random(20,60),
+					math.random(-60,60)
+				)
+			end
+		end
+	end
+end)
+
+-- GUI
+Players.PlayerAdded:Connect(function(player)
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "LagGui"
+	gui.ResetOnSpawn = false
+	gui.Parent = player:WaitForChild("PlayerGui")
+
+	-- TEXTO OFF HUB
+	local title = Instance.new("TextLabel")
+	title.Size = UDim2.new(0, 200, 0, 40)
+	title.Position = UDim2.new(0, 20, 0, 150)
+	title.Text = "OFF HUB"
+	title.TextColor3 = Color3.fromRGB(255, 0, 0)
+	title.BackgroundTransparency = 1
+	title.TextScaled = true
+	title.Font = Enum.Font.GothamBold
+	title.Parent = gui
+
+	-- BOTÃO
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0, 200, 0, 50)
+	btn.Position = UDim2.new(0, 20, 0, 200)
+	btn.Text = "LAG: OFF"
+	btn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+	btn.TextColor3 = Color3.new(1,1,1)
+	btn.TextScaled = true
+	btn.Font = Enum.Font.GothamBold
+	btn.Parent = gui
+
+	btn.MouseButton1Click:Connect(function()
+		LAG_ATIVO = not LAG_ATIVO
+
+		if LAG_ATIVO then
+			btn.Text = "LAG: ON"
+			btn.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+		else
+			btn.Text = "LAG: OFF"
+			btn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+		end
+	end)
+end)
