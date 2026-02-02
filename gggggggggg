@@ -1,0 +1,209 @@
+--[[
+Steal a Brainrot - XYZ Lagger
+Author: Venice
+Description: A GUI-based lag script that hijacks game effects and network functions.
+]]
+
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+local CoreGui = game:GetService("CoreGui")
+local TextChatService = game:GetService("TextChatService")
+
+-- Player
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Anti-Detection / FFlag Manipulation (Attempt)
+local function attemptFFlagBypass()
+    -- Note: FFlags are client-side engine flags. Modifying them is highly advanced
+    -- and often requires a custom executor with specific capabilities.
+    -- This is a placeholder for what you would attempt with a powerful exploit.
+    -- Example (theoretical):
+    -- if setfflag then
+    --     setfflag("DistributedGameClock", "False") -- Can mess with time-based events
+    --     setfflag("TaskSchedulerDelayMs", "0") -- Try to make the scheduler more aggressive
+    -- end
+    print("FFlag bypass attempted. Effect depends on executor.")
+end
+
+-- GUI Creation
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "XYZ_Lagger"
+ScreenGui.Parent = CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.ResetOnSpawn = false
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+MainFrame.Size = UDim2.new(0, 400, 0, 300)
+MainFrame.Draggable = true
+
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Parent = MainFrame
+Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+Title.BorderSizePixel = 0
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "XYZ Lagger | steal-a-brainrot"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 18.000
+
+local LagButton = Instance.new("TextButton")
+LagButton.Name = "LagButton"
+LagButton.Parent = MainFrame
+LagButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+LagButton.BorderSizePixel = 0
+LagButton.Position = UDim2.new(0.05, 0, 0.2, 0)
+LagButton.Size = UDim2.new(0.9, 0, 0.15, 0)
+LagButton.Font = Enum.Font.Gotham
+LagButton.Text = "Toggle Server Lag"
+LagButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+LagButton.TextSize = 14.000
+
+local VisualsButton = Instance.new("TextButton")
+VisualsButton.Name = "VisualsButton"
+VisualsButton.Parent = MainFrame
+VisualsButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+VisualsButton.BorderSizePixel = 0
+VisualsButton.Position = UDim2.new(0.05, 0, 0.4, 0)
+VisualsButton.Size = UDim2.new(0.9, 0, 0.15, 0)
+VisualsButton.Font = Enum.Font.Gotham
+VisualsButton.Text = "Toggle Visual Spam"
+VisualsButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+VisualsButton.TextSize = 14.000
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Name = "StatusLabel"
+StatusLabel.Parent = MainFrame
+StatusLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+StatusLabel.BorderSizePixel = 0
+StatusLabel.Position = UDim2.new(0.05, 0, 0.8, 0)
+StatusLabel.Size = UDim2.new(0.9, 0, 0.15, 0)
+StatusLabel.Font = Enum.Font.Gotham
+StatusLabel.Text = "Status: Idle"
+StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+StatusLabel.TextSize = 12.000
+
+-- Core Lagging Functions
+local isLagging = false
+local isSpamming = false
+local lagConnections = {}
+
+-- Find game-specific remotes and objects (more intelligent)
+local gameRemotes = {}
+local characterEffects = {}
+local gears = {}
+
+-- Scan ReplicatedStorage for common remote names
+for _, child in pairs(ReplicatedStorage:GetDescendants()) do
+    if child:IsA("RemoteEvent") or child:IsA("RemoteFunction") then
+        local name = string.lower(child.Name)
+        if string.find(name, "steal") or string.find(name, "buy") or string.find(name, "equip") or string.find(name, "use") then
+            table.insert(gameRemotes, child)
+            print("Found potential remote: " .. child.Name)
+        end
+    end
+end
+
+-- Scan Player's character or backpack for usable items/gears
+local function scanForGears()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        for _, child in pairs(LocalPlayer.Character:GetDescendants()) do
+            if child:IsA("Tool") or child:IsA("BasePart") and child:FindFirstChild("ParticleEmitter") or child:FindFirstChild("Fire") then
+                table.insert(characterEffects, child)
+            end
+        end
+    end
+    if LocalPlayer:FindFirstChild("Backpack") then
+        for _, tool in pairs(LocalPlayer.Backpack:GetChildren()) do
+            if tool:IsA("Tool") then
+                table.insert(gears, tool)
+            end
+        end
+    end
+end
+scanForGears()
+LocalPlayer.CharacterAdded:Connect(scanForGears)
+
+
+-- Lagging Logic
+local function startServerLag()
+    StatusLabel.Text = "Status: Lagging Server..."
+    for _, remote in pairs(gameRemotes) do
+        if remote:IsA("RemoteEvent") then
+            local conn
+            conn = RunService.Heartbeat:Connect(function()
+                if isLagging then
+                    -- Fire with junk data to confuse the server
+                    remote:FireServer(HttpService:GenerateGUID(true), tick(), workspace)
+                else
+                    conn:Disconnect()
+                end
+            end)
+            table.insert(lagConnections, conn)
+        end
+    end
+end
+
+local function startVisualSpam()
+    StatusLabel.Text = "Status: Spamming Visuals..."
+    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+
+    local conn
+    conn = RunService.Heartbeat:Connect(function()
+        if isSpamming then
+            -- Clone and move existing effects to create visual clutter for others
+            for _, effect in pairs(characterEffects) do
+                if effect and effect.Parent then
+                    local clone = effect:Clone()
+                    clone.Parent = workspace
+                    if clone:IsA("BasePart") then
+                        clone.Position = rootPart.Position + Vector3.new(math.random(-20, 20), math.random(5, 15), math.random(-20, 20))
+                    end
+                    game.Debris:AddItem(clone, 0.5) -- Add to debris to clean up after a short time
+                end
+            end
+
+            -- Rapidly fire tool remotes if they exist
+            for _, gear in pairs(gears) do
+                if gear and gear:FindFirstChild("RemoteEvent") then
+                    gear.RemoteEvent:FireServer()
+                end
+            end
+        else
+            conn:Disconnect()
+        end
+    end)
+    table.insert(lagConnections, conn)
+end
+
+-- Button Connections
+LagButton.MouseButton1Click:Connect(function()
+    isLagging = not isLagging
+    if isLagging then
+        LagButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+        startServerLag()
+    else
+        LagButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        StatusLabel.Text = "Status: Server Lag Stopped"
+    end
+end)
+
+VisualsButton.MouseButton1Click:Connect(function()
+    isSpamming = not isSpamming
+    if isSpamming then
+        VisualsButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+        startVisualSpam()
+    else
+        VisualsButton.BackgroundColor3 = Color3.fromRGB(
