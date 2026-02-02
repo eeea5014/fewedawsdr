@@ -1,0 +1,89 @@
+-- Steal a Brainrot Server Lag Script
+-- Overloads the game with legitimate actions to cause lag for others
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- Find relevant remote events/folders (adjust based on game's structure)
+local remotes = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage
+local brainrotFolder = workspace:FindFirstChild("Brainrots") or workspace
+
+-- Function to spam network requests
+local function spamNetwork()
+    -- Constantly request brainrot data
+    for i = 1, 1000 do
+        if remotes:FindFirstChild("GetBrainrot") then
+            remotes.GetBrainrot:InvokeServer()
+        end
+        if remotes:FindFirstChild("UpdateStats") then
+            remotes.UpdateStats:FireServer()
+        end
+        task.wait()
+    end
+end
+
+-- Function to overload visual effects
+local function visualSpam()
+    -- Spam purchase/steal attempts to create effects
+    for i = 1, 500 do
+        if remotes:FindFirstChild("StealBrainrot") then
+            remotes.StealBrainrot:FireServer("FakeTarget")
+        end
+        if remotes:FindFirstChild("BuyItem") then
+            remotes.BuyItem:FireServer("RandomItem", math.random(1, 100))
+        end
+        task.wait(0.01)
+    end
+end
+
+-- Function to create movement lag
+local function movementSpam()
+    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    
+    -- Rapid position changes to confuse server
+    for i = 1, 200 do
+        humanoid:Move(Vector3.new(math.random(-100, 100), 0, math.random(-100, 100)))
+        task.wait(0.001)
+    end
+end
+
+-- Function to overload inventory systems
+local function inventorySpam()
+    -- Constant inventory updates
+    for i = 1, 300 do
+        if remotes:FindFirstChild("SwapItem") then
+            remotes.SwapItem:FireServer(math.random(1, 10), math.random(1, 10))
+        end
+        if remotes:FindFirstChild("EquipItem") then
+            remotes.EquipItem:FireServer("RandomSlot")
+        end
+        task.wait(0.005)
+    end
+end
+
+-- Main execution - run all lag methods simultaneously
+spawn(spamNetwork)
+spawn(visualSpam)
+spawn(movementSpam)
+spawn(inventorySpam)
+
+-- Continuous lag generation
+RunService.Heartbeat:Connect(function()
+    -- Constant small requests to maintain lag
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            if remotes:FindFirstChild("RequestPlayerData") then
+                remotes.RequestPlayerData:FireServer(player.UserId)
+            end
+        end
+    end
+end)
+
+-- Notification
+local hint = Instance.new("Hint", workspace)
+hint.Text = "Brainrot Lag Script Activated - Other players should be lagging now!"
