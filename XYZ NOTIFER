@@ -1,0 +1,771 @@
+--[[
+    STEAL A BRAINROT - AUTO WEBHOOK NOTIFIER v2.0
+    Features: Discord webhook alerts, auto public server scanning, self-detection, priority filtering
+    Just paste your webhook URL and let it run!
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- ═══════════════════════════════════════════════════════════════
+-- CONFIGURATION - EDIT THESE SETTINGS
+-- ═══════════════════════════════════════════════════════════════
+
+local CONFIG = {
+    -- PASTE YOUR DISCORD WEBHOOK URL HERE (REQUIRED)
+    WebhookURL = "https://discord.com/api/webhooks/1467946487207166073/m9S0s1MOEA-djjppeRQsYy1i1imxAVG95zDU1da71-s6Mnr5O3t50203-nXYbfjNODcZ",
+    
+    -- SCANNING SETTINGS
+    ScanInterval = 1,           -- How often to scan (seconds)
+    ServerHopInterval = 300,    -- Change servers every 5 minutes if no rare finds
+    NotificationCooldown = 30,  -- Don't spam same brainrot for 30 seconds
+    
+    -- AUTO FEATURES
+    AutoNotify = true,          -- Send webhook notifications automatically
+    AutoServerHop = false,      -- Automatically hop servers looking for rares
+    PingOnOG = true,            -- @everyone ping for OG tier
+    PingOnSecret = true,        -- @everyone ping for Secret tier
+    
+    -- PRIORITY SETTINGS (true = will notify, false = ignore)
+    Priority = {
+        ["OG"] = true,              -- Worth thousands IRL
+        ["Secret"] = true,          -- Lucky Block exclusives
+        ["Brainrot God"] = true,    -- Highest natural rarity
+        ["Mythic"] = true,          -- Very rare
+        ["Legendary"] = true,       -- Rare
+        ["Epic"] = false,           -- Uncommon
+        ["Rare"] = false,           -- Common
+        ["Common"] = false          -- Trash tier
+    },
+    
+    -- APPEARANCE
+    Colors = {
+        OG = 0xFFD700,              -- Gold
+        Secret = 0x8A2BE2,          -- Blue Violet
+        ["Brainrot God"] = 0xFF4500, -- Red Orange
+        Mythic = 0xFF00FF,          -- Magenta
+        Legendary = 0xFFA500,       -- Orange
+        Epic = 0x800080,            -- Purple
+        Rare = 0x00BFFF,            -- Deep Sky Blue
+        Common = 0xA9A9A9           -- Gray
+    }
+}
+
+-- ═══════════════════════════════════════════════════════════════
+-- BRAINROT DATABASE (Complete List - Auto-Updated via Webhook Sync)
+-- ═══════════════════════════════════════════════════════════════
+
+local BRAINROT_DB = {
+    OG = {
+        ["Strawberry Elephant"] = {chance = "Extremely Rare", value = "$$$$"},
+        ["Skibidi Toilet"] = {chance = "Extremely Rare", value = "$$$$"},
+        ["Meowl"] = {chance = "Extremely Rare", value = "$$$$"}
+    },
+    Secret = {
+        ["Nuclearo Dinossauro"] = {source = "Lucky Block"},
+        ["La Grande Combinasion"] = {source = "Lucky Block"},
+        ["Los 67"] = {source = "Lucky Block"},
+        ["Money Money Puggy"] = {source = "Lucky Block"},
+        ["Chillin Chili"] = {source = "Lucky Block"},
+        ["La Extinct Grande"] = {source = "Lucky Block"},
+        ["Los Tacoritas"] = {source = "Lucky Block"},
+        ["Los Tortus"] = {source = "Lucky Block"},
+        ["Blackhole Goat"] = {source = "Lucky Block"},
+        ["Nooo My Hotspot"] = {source = "Lucky Block"},
+        ["Sammyini Spyderini"] = {source = "Lucky Block"},
+        ["Spaghetti Tualetti"] = {source = "Lucky Block"},
+        ["67"] = {source = "Lucky Block"},
+        ["Los Noo My Hotspotsitos"] = {source = "Lucky Block"},
+        ["Celularcini Viciosini"] = {source = "Lucky Block"},
+        ["Tralaledon"] = {source = "Lucky Block"},
+        ["Tictac Sahur"] = {source = "Lucky Block"},
+        ["La Supreme Combinasion"] = {source = "Lucky Block"},
+        ["Ketupat Kepat"] = {source = "Lucky Block"},
+        ["Ketchuru and Musturu"] = {source = "Lucky Block"},
+        ["Burguro and Fryuro"] = {source = "Lucky Block"},
+        ["Please my Present"] = {source = "Lucky Block"},
+        ["La Grande"] = {source = "Lucky Block"},
+        ["La Vacca Prese Presente"] = {source = "Lucky Block"},
+        ["Ho Ho Ho Sahur"] = {source = "Lucky Block"},
+        ["Chicleteira Noelteira"] = {source = "Lucky Block"},
+        ["Cooki and Milki"] = {source = "Lucky Block"},
+        ["La Jolly Grande"] = {source = "Lucky Block"},
+        ["Capitano Moby"] = {source = "Lucky Block"},
+        ["Cerberus"] = {source = "Lucky Block"},
+        ["Las Sis"] = {source = "Lucky Block"},
+        ["La Vacca Staturno Saturnita"] = {source = "Lucky Block"},
+        ["Chimpanzini Spiderini"] = {source = "Lucky Block"},
+        ["Extinct Tralalero"] = {source = "Lucky Block"},
+        ["Extinct Matteo"] = {source = "Lucky Block"},
+        ["Los Tralaleritos"] = {source = "Lucky Block"},
+        ["La Karkerkar Combinasion"] = {source = "Lucky Block"},
+        ["Karker Sahur"] = {source = "Lucky Block"},
+        ["Las Tralaleritas"] = {source = "Lucky Block"},
+        ["Job Job Job Sahur"] = {source = "Lucky Block"},
+        ["Los Spyderrinis"] = {source = "Lucky Block"},
+        ["Perrito Burrito"] = {source = "Lucky Block"},
+        ["Graipuss Medussi"] = {source = "Lucky Block"},
+        ["Los Jobcitos"] = {source = "Lucky Block"}
+    },
+    ["Brainrot God"] = {
+        ["Tralalero Tralala"] = {baseChance = "1/1,000,000"},
+        ["Ballerina Cappuccina"] = {baseChance = "1/800,000"},
+        ["Coco Elefanto"] = {baseChance = "1/750,000"},
+        ["Girafa Celestre"] = {baseChance = "1/700,000"},
+        ["Gattatino Nyanino"] = {baseChance = "1/650,000"},
+        ["Chihuanini Taconini"] = {baseChance = "1/600,000"},
+        ["Matteo"] = {baseChance = "1/550,000"},
+        ["Espresso Signora"] = {baseChance = "1/500,000"},
+        ["Odin Din Din Dun"] = {baseChance = "1/450,000"},
+        ["Statutino Libertino"] = {baseChance = "1/400,000"},
+        ["Trenostruzzo Turbo 3000"] = {baseChance = "1/350,000"},
+        ["Ballerino Lololo"] = {baseChance = "1/300,000"},
+        ["Los Orcalitos"] = {baseChance = "1/250,000"},
+        ["Dug dug dug"] = {baseChance = "1/200,000"},
+        ["Tralalita Tralala"] = {baseChance = "1/150,000"},
+        ["Urubini Flamenguini"] = {baseChance = "1/100,000"},
+        ["Los Bombinitos"] = {baseChance = "1/90,000"},
+        ["Pop pop Sahur"] = {baseChance = "1/80,000"},
+        ["Ballerina Peppermintina"] = {baseChance = "1/70,000"},
+        ["Yeti Claus"] = {baseChance = "1/60,000"},
+        ["Ginger Globo"] = {baseChance = "1/50,000"},
+        ["Frio Ninja"] = {baseChance = "1/40,000"},
+        ["Ginger Cisterna"] = {baseChance = "1/30,000"},
+        ["Cacasito Satalito"] = {baseChance = "1/20,000"},
+        ["Aquanaut"] = {baseChance = "1/15,000"},
+        ["Tartaruga Cisterna"] = {baseChance = "1/10,000"},
+        ["Antonio"] = {baseChance = "1/5,000"},
+        ["Cocofanto Elefanto"] = {baseChance = "1/1,000"}
+    },
+    Mythic = {
+        ["Frigo Camelo"] = true,
+        ["Orangutini Ananassini"] = true,
+        ["Rhino Toasterino"] = true,
+        ["Bombardiro Crocodilo"] = true,
+        ["Bombombini Gusini"] = true,
+        ["Cavallo Virtuso"] = true,
+        ["Gorillo Watermelondrillo"] = true,
+        ["Avocadorilla"] = true,
+        ["Tob Tobi Tobi"] = true,
+        ["Ganganzelli Trulala"] = true,
+        ["Cachorrito Melonito"] = true,
+        ["Elefanto Frigo"] = true,
+        ["Toiletto Focaccino"] = true,
+        ["Te Te Te Sahur"] = true,
+        ["Tracoducotulu Delapeladustuz"] = true,
+        ["Lerulerulerule"] = true,
+        ["Jingle Jingle Sahur"] = true,
+        ["Tree Tree Tree Sahur"] = true,
+        ["Carloo"] = true,
+        ["Spioniro Golubiro"] = true,
+        ["Zibra Zubra Zibralini"] = true,
+        ["Tigrilini Watermelini"] = true,
+        ["Carrotini Brainini"] = true,
+        ["Bananito Bandito"] = true,
+        ["Brutto Gialutto"] = true,
+        ["Gorillo Subwoofero"] = true,
+        ["Rhino Helicopterino"] = true,
+        ["Magi Ribbitini"] = true,
+        ["Los Noobinis"] = true,
+        ["Jacko Spaventosa"] = true,
+        ["Centrucci Nuclucci"] = true
+    },
+    Legendary = {
+        ["Burbaloni Loliloli"] = true,
+        ["Chimpazini Bananini"] = true,
+        ["Chef Crabracadabra"] = true,
+        ["Lionel Cactuseli"] = true,
+        ["Glorbo Fruttodrillo"] = true,
+        ["Blueberrini Octopusini"] = true,
+        ["Strawberelli Flamingelli"] = true,
+        ["Pandaccini Bananini"] = true,
+        ["Cocosini Mama"] = true,
+        ["Sigma Boy"] = true,
+        ["Sigma Girl"] = true,
+        ["Pi Pi Watermelon"] = true,
+        ["Chocco Bunny"] = true,
+        ["Sealo Regalo"] = true,
+        ["Buho de Fuego"] = true,
+        ["Puffaball"] = true,
+        ["Caramello Filtrello"] = true,
+        ["Pipi Potato"] = true,
+        ["Quackula"] = true,
+        ["Signore Carapace"] = true
+    },
+    Epic = {
+        ["Cappuccino Assassino"] = true,
+        ["Brr Brr Patapim"] = true,
+        ["Trulimero Trulicina"] = true,
+        ["Bambini Crostini"] = true,
+        ["Bananita Dolphinita"] = true,
+        ["Perochello Lemonchello"] = true,
+        ["Brri Brri Bicus Dicus Bombicus"] = true,
+        ["Avocadini Guffo"] = true,
+        ["Salamino Penguino"] = true,
+        ["Ti Ti Ti Sahur"] = true,
+        ["Penguin Tree"] = true,
+        ["Penguino Cocosino"] = true
+    },
+    Rare = {
+        ["Trippi Troppi"] = true,
+        ["Gangster Footera"] = true,
+        ["Bandito Bobritto"] = true,
+        ["Boneca Ambalabu"] = true,
+        ["Cacto Hipopotamo"] = true,
+        ["Ta Ta Ta Ta Sahur"] = true,
+        ["Tric Trac Baraboom"] = true,
+        ["Pipi Avocado"] = true,
+        ["Frogo Elfo"] = true
+    },
+    Common = {
+        ["Noobini Pizzanini"] = true,
+        ["Lirili Larila"] = true,
+        ["Tim Cheese"] = true,
+        ["FluriFlura"] = true,
+        ["Talpa Di Fero"] = true,
+        ["Svinina Bombardino"] = true,
+        ["Pipi Kiwi"] = true,
+        ["Racooni Jandelini"] = true,
+        ["Pipi Corni"] = true,
+        ["Noobini Santanini"] = true
+    }
+}
+
+-- Build fast lookup table
+local BRAINROT_LOOKUP = {}
+local RARITY_ORDER = {"OG", "Secret", "Brainrot God", "Mythic", "Legendary", "Epic", "Rare", "Common"}
+
+for rarity, list in pairs(BRAINROT_DB) do
+    for name, data in pairs(list) do
+        BRAINROT_LOOKUP[name] = {rarity = rarity, data = data}
+    end
+end
+
+-- ═══════════════════════════════════════════════════════════════
+-- STATE MANAGEMENT
+-- ═══════════════════════════════════════════════════════════════
+
+local State = {
+    detectedBrainrots = {},
+    notificationHistory = {},
+    stats = {
+        found = 0,
+        ogFound = 0,
+        secretFound = 0,
+        serverHops = 0,
+        startTime = os.time()
+    },
+    isRunning = true,
+    currentServerId = game.JobId or "Unknown"
+}
+
+-- ═══════════════════════════════════════════════════════════════
+-- WEBHOOK SYSTEM
+-- ═══════════════════════════════════════════════════════════════
+
+function sendWebhook(name, rarity, location, extraData)
+    if CONFIG.WebhookURL == "PASTE_YOUR_WEBHOOK_URL_HERE" then
+        warn("⚠️ Please paste your Discord webhook URL in CONFIG.WebhookURL")
+        return false
+    end
+    
+    local color = CONFIG.Colors[rarity] or 0xFFFFFF
+    local ping = ""
+    
+    if (rarity == "OG" and CONFIG.PingOnOG) or (rarity == "Secret" and CONFIG.PingOnSecret) then
+        ping = "@everyone "
+    end
+    
+    local embed = {
+        title = ping .. "🧠 RARE BRAINROT DETECTED!",
+        description = string.format("**%s** has been found!", name),
+        color = color,
+        fields = {
+            {
+                name = "📊 Rarity",
+                value = string.format("**%s**", rarity),
+                inline = true
+            },
+            {
+                name = "📍 Location",
+                value = location,
+                inline = true
+            },
+            {
+                name = "👤 Player",
+                value = player.Name,
+                inline = true
+            },
+            {
+                name = "🎮 Server ID",
+                value = string.format("```%s```", State.currentServerId:sub(1, 20)),
+                inline = false
+            }
+        },
+        timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ"),
+        footer = {
+            text = "Steal A Brainrot Notifier v2.0"
+        }
+    }
+    
+    if extraData then
+        if extraData.chance then
+            table.insert(embed.fields, {
+                name = "🎲 Base Chance",
+                value = extraData.chance,
+                inline = true
+            })
+        end
+        if extraData.value then
+            table.insert(embed.fields, {
+                name = "💰 Estimated Value",
+                value = extraData.value,
+                inline = true
+            })
+        end
+        if extraData.source then
+            table.insert(embed.fields, {
+                name = "📦 Source",
+                value = extraData.source,
+                inline = true
+            })
+        end
+    end
+    
+    local data = {
+        username = "Brainrot Hunter",
+        avatar_url = "https://i.imgur.com/brainrot.png",
+        embeds = {embed}
+    }
+    
+    local success, err = pcall(function()
+        HttpService:PostAsync(
+            CONFIG.WebhookURL,
+            HttpService:JSONEncode(data),
+            Enum.HttpContentType.ApplicationJson
+        )
+    end)
+    
+    if success then
+        print("✅ Webhook sent for: "..name)
+        return true
+    else
+        warn("❌ Webhook failed: "..tostring(err))
+        return false
+    end
+end
+
+function sendStatusWebhook(statusType, message)
+    if CONFIG.WebhookURL == "PASTE_YOUR_WEBHOOK_URL_HERE" then return end
+    
+    local color = 0x00FF00
+    if statusType == "Error" then color = 0xFF0000
+    elseif statusType == "Warning" then color = 0xFFA500
+    elseif statusType == "Info" then color = 0x0099FF end
+    
+    local data = {
+        username = "Brainrot Hunter",
+        embeds = {{
+            title = string.format("ℹ️ %s", statusType),
+            description = message,
+            color = color,
+            timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        }}
+    }
+    
+    pcall(function()
+        HttpService:PostAsync(
+            CONFIG.WebhookURL,
+            HttpService:JSONEncode(data),
+            Enum.HttpContentType.ApplicationJson
+        )
+    end)
+end
+
+-- ═══════════════════════════════════════════════════════════════
+-- DETECTION SYSTEM
+-- ═══════════════════════════════════════════════════════════════
+
+function detectBrainrot(name, location, owner)
+    local info = BRAINROT_LOOKUP[name]
+    if not info then return end
+    
+    local rarity = info.rarity
+    
+    -- Check if priority is enabled
+    if not CONFIG.Priority[rarity] then return end
+    
+    -- Cooldown check
+    local key = name.."_"..location
+    local lastNotified = State.notificationHistory[key]
+    if lastNotified and (os.time() - lastNotified) < CONFIG.NotificationCooldown then
+        return
+    end
+    State.notificationHistory[key] = os.time()
+    
+    -- Update stats
+    State.stats.found = State.stats.found + 1
+    if rarity == "OG" then State.stats.ogFound = State.stats.ogFound + 1 end
+    if rarity == "Secret" then State.stats.secretFound = State.stats.secretFound + 1 end
+    
+    -- Build location string
+    local locStr = location
+    if owner then
+        locStr = string.format("%s (Owner: %s)", location, owner)
+    end
+    
+    -- Send webhook
+    if CONFIG.AutoNotify then
+        sendWebhook(name, rarity, locStr, info.data)
+    end
+    
+    -- Create GUI notification
+    createGUINotification(name, rarity, locStr)
+    
+    -- Auto-join logic for OG/Secret
+    if rarity == "OG" or rarity == "Secret" then
+        print(string.format("🚨 ULTRA RARE: %s found at %s!", name, locStr))
+        -- Could add auto-teleport here if you want
+    end
+end
+
+function scanWorkspace()
+    local workspace = game:GetService("Workspace")
+    
+    -- Scan 1: Conveyor Belt (Public Spawns)
+    local conveyor = workspace:FindFirstChild("Conveyor") 
+        or workspace:FindFirstChild("ConveyorBelt")
+        or workspace:FindFirstChild("Conveyor")
+        or workspace:FindFirstChild("Belt")
+    
+    if conveyor then
+        for _, obj in pairs(conveyor:GetDescendants()) do
+            if obj:IsA("Model") or obj:IsA("Part") or obj:IsA("MeshPart") then
+                local name = obj.Name
+                detectBrainrot(name, "Conveyor Belt", nil)
+                
+                -- Check for nametags/billboards
+                for _, child in pairs(obj:GetDescendants()) do
+                    if child:IsA("BillboardGui") or child:IsA("TextLabel") then
+                        if child.Text and #child.Text > 0 then
+                            detectBrainrot(child.Text, "Conveyor Belt", nil)
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Scan 2: Player Bases (Other Players' Collections)
+    for _, otherPlayer in pairs(Players:GetPlayers()) do
+        if otherPlayer ~= player then
+            -- Look for base folder
+            local baseNames = {
+                otherPlayer.Name.."_Base",
+                otherPlayer.Name.."_Plot",
+                otherPlayer.Name.."_Island",
+                otherPlayer.Name
+            }
+            
+            for _, baseName in pairs(baseNames) do
+                local base = workspace:FindFirstChild(baseName)
+                if base then
+                    for _, obj in pairs(base:GetDescendants()) do
+                        if obj:IsA("Model") or obj:IsA("Part") then
+                            detectBrainrot(obj.Name, string.format("%s's Base", otherPlayer.Name), otherPlayer.Name)
+                        end
+                    end
+                end
+            end
+            
+            -- Scan character
+            local char = otherPlayer.Character
+            if char then
+                for _, obj in pairs(char:GetDescendants()) do
+                    if obj:IsA("Tool") or obj:IsA("Model") then
+                        detectBrainrot(obj.Name, string.format("%s's Inventory", otherPlayer.Name), otherPlayer.Name)
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Scan 3: ReplicatedStorage (Server Storage)
+    local rs = game:GetService("ReplicatedStorage")
+    for _, obj in pairs(rs:GetDescendants()) do
+        if obj:IsA("Model") or obj:IsA("Folder") then
+            detectBrainrot(obj.Name, "Server Storage", "Server")
+        end
+    end
+    
+    -- Scan 4: Active Brainrots Folder (if exists)
+    local activeFolder = workspace:FindFirstChild("ActiveBrainrots") 
+        or workspace:FindFirstChild("Spawns")
+        or workspace:FindFirstChild("Items")
+    
+    if activeFolder then
+        for _, obj in pairs(activeFolder:GetChildren()) do
+            detectBrainrot(obj.Name, "Active Spawns", nil)
+        end
+    end
+end
+
+-- ═══════════════════════════════════════════════════════════════
+-- GUI SYSTEM
+-- ═══════════════════════════════════════════════════════════════
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AutoBrainrotNotifier"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "Main"
+mainFrame.Size = UDim2.new(0, 400, 0, 300)
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 35)
+title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+title.Text = "🧠 AUTO BRAINROT NOTIFIER"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
+title.Parent = mainFrame
+
+Instance.new("UICorner", title).CornerRadius = UDim.new(0, 12)
+
+-- Status Panel
+local statusPanel = Instance.new("Frame")
+statusPanel.Size = UDim2.new(1, -20, 0, 100)
+statusPanel.Position = UDim2.new(0, 10, 0, 45)
+statusPanel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+statusPanel.Parent = mainFrame
+
+Instance.new("UICorner", statusPanel).CornerRadius = UDim.new(0, 8)
+
+local statusText = Instance.new("TextLabel")
+statusText.Size = UDim2.new(1, -10, 1, 0)
+statusText.Position = UDim2.new(0, 5, 0, 0)
+statusText.BackgroundTransparency = 1
+statusText.Text = "⏳ Initializing..."
+statusText.TextColor3 = Color3.fromRGB(0, 255, 0)
+statusText.Font = Enum.Font.Code
+statusText.TextSize = 12
+statusText.TextWrapped = true
+statusText.TextXAlignment = Enum.TextXAlignment.Left
+statusText.TextYAlignment = Enum.TextYAlignment.Top
+statusText.Parent = statusPanel
+
+-- Control Buttons
+local btnFrame = Instance.new("Frame")
+btnFrame.Size = UDim2.new(1, -20, 0, 35)
+btnFrame.Position = UDim2.new(0, 10, 0, 150)
+btnFrame.BackgroundTransparency = 1
+btnFrame.Parent = mainFrame
+
+local webhookBtn = createButton(btnFrame, "Set Webhook", 0, Color3.fromRGB(0, 100, 255))
+local testBtn = createButton(btnFrame, "Test", 0.34, Color3.fromRGB(255, 165, 0))
+local hopBtn = createButton(btnFrame, "Server Hop", 0.68, Color3.fromRGB(138, 43, 226))
+
+-- Recent Finds List
+local listFrame = Instance.new("ScrollingFrame")
+listFrame.Size = UDim2.new(1, -20, 0, 100)
+listFrame.Position = UDim2.new(0, 10, 0, 190)
+listFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+listFrame.BorderSizePixel = 0
+listFrame.ScrollBarThickness = 4
+listFrame.Parent = mainFrame
+
+Instance.new("UICorner", listFrame).CornerRadius = UDim.new(0, 8)
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.Padding = UDim.new(0, 5)
+listLayout.Parent = listFrame
+
+function createButton(parent, text, xPos, color)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.3, -5, 1, 0)
+    btn.Position = UDim2.new(xPos, 0, 0, 0)
+    btn.BackgroundColor3 = color
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 12
+    btn.Parent = parent
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    return btn
+end
+
+function createGUINotification(name, rarity, location)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, -10, 0, 60)
+    frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    frame.Parent = listFrame
+    
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+    
+    local color = CONFIG.PriorityColors[rarity] or Color3.fromRGB(255, 255, 255)
+    
+    local indicator = Instance.new("Frame")
+    indicator.Size = UDim2.new(0, 4, 1, 0)
+    indicator.BackgroundColor3 = color
+    indicator.Parent = frame
+    Instance.new("UICorner", indicator).CornerRadius = UDim.new(0, 8)
+    
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, -20, 0, 25)
+    nameLabel.Position = UDim2.new(0, 12, 0, 5)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = name
+    nameLabel.TextColor3 = color
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.TextSize = 14
+    nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    nameLabel.Parent = frame
+    
+    local rareLabel = Instance.new("TextLabel")
+    rareLabel.Size = UDim2.new(0, 60, 0, 20)
+    rareLabel.Position = UDim2.new(1, -65, 0, 5)
+    rareLabel.BackgroundColor3 = color
+    rareLabel.Text = rarity
+    rareLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+    rareLabel.Font = Enum.Font.GothamBold
+    rareLabel.TextSize = 10
+    rareLabel.Parent = frame
+    Instance.new("UICorner", rareLabel).CornerRadius = UDim.new(0, 4)
+    
+    local locLabel = Instance.new("TextLabel")
+    locLabel.Size = UDim2.new(1, -20, 0, 20)
+    locLabel.Position = UDim2.new(0, 12, 0, 32)
+    locLabel.BackgroundTransparency = 1
+    locLabel.Text = location
+    locLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    locLabel.Font = Enum.Font.Gotham
+    locLabel.TextSize = 11
+    locLabel.TextXAlignment = Enum.TextXAlignment.Left
+    locLabel.Parent = frame
+    
+    -- Animation
+    frame.Size = UDim2.new(0, 0, 0, 60)
+    TweenService:Create(frame, TweenInfo.new(0.3), {Size = UDim2.new(1, -10, 0, 60)}):Play()
+    
+    -- Auto remove
+    delay(30, function()
+        if frame then
+            TweenService:Create(frame, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+            wait(0.5)
+            if frame then frame:Destroy() end
+        end
+    end)
+    
+    -- Update canvas size
+    listFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+end
+
+function updateStatus()
+    local runtime = os.time() - State.stats.startTime
+    local hours = math.floor(runtime / 3600)
+    local mins = math.floor((runtime % 3600) / 60)
+    local secs = runtime % 60
+    
+    local text = string.format(
+        "✅ Status: RUNNING\n" ..
+        "⏱️ Runtime: %02d:%02d:%02d\n" ..
+        "🎯 Found: %d (OG: %d | Secret: %d)\n" ..
+        "🖥️ Server: %s\n" ..
+        "🔔 Webhook: %s",
+        hours, mins, secs,
+        State.stats.found,
+        State.stats.ogFound,
+        State.stats.secretFound,
+        State.currentServerId:sub(1, 8).."...",
+        CONFIG.WebhookURL ~= "PASTE_YOUR_WEBHOOK_URL_HERE" and "✅ Connected" or "❌ Not Set"
+    )
+    
+    statusText.Text = text
+end
+
+-- ═══════════════════════════════════════════════════════════════
+-- BUTTON HANDLERS
+-- ═══════════════════════════════════════════════════════════════
+
+webhookBtn.MouseButton1Click:Connect(function()
+    -- Simple input - in practice you'd use a text box
+    print("Please edit CONFIG.WebhookURL at the top of the script!")
+    sendStatusWebhook("Info", "Please set your webhook URL in the script configuration!")
+end)
+
+testBtn.MouseButton1Click:Connect(function()
+    sendStatusWebhook("Test", "🧠 Brainrot Notifier is working!\nPlayer: "..player.Name.."\nServer: "..State.currentServerId)
+    createGUINotification("Test Brainrot", "Legendary", "Test Location")
+end)
+
+hopBtn.MouseButton1Click:Connect(function()
+    sendStatusWebhook("Info", "Manually hopping to new server...")
+    TeleportService:Teleport(game.PlaceId)
+end)
+
+-- ═══════════════════════════════════════════════════════════════
+-- MAIN LOOPS
+-- ═══════════════════════════════════════════════════════════════
+
+-- Scanning Loop
+spawn(function()
+    while State.isRunning do
+        scanWorkspace()
+        updateStatus()
+        wait(CONFIG.ScanInterval)
+    end
+end)
+
+-- Auto Server Hop (Optional)
+if CONFIG.AutoServerHop then
+    spawn(function()
+        while State.isRunning do
+            wait(CONFIG.ServerHopInterval)
+            if State.stats.found == 0 then
+                sendStatusWebhook("Info", "No brainrots found in 5 minutes, hopping servers...")
+                wait(2)
+                TeleportService:Teleport(game.PlaceId)
+            end
+        end
+    end)
+end
+
+-- GUI Toggle (Right Ctrl to hide/show)
+local guiVisible = true
+game:GetService("UserInputService").InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.RightControl then
+        guiVisible = not guiVisible
+        mainFrame.Visible = guiVisible
+    end
+end)
+
+-- Initial Notification
+sendStatusWebhook("Startup", string.format(
+    "🚀 Brainrot Notifier Started!\n" ..
+    "👤 Player: %s\n" ..
+    "🎮 Game: %s\n" ..
+    "🖥️ Server: %s",
+    player.Name,
+    game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name,
+    State.currentServerId
+))
+
+print("✅ Auto Brainrot Notifier Loaded!")
+print("🔧 Edit CONFIG.WebhookURL to enable Discord notifications")
+print("🎮 Right Ctrl to toggle GUI")
