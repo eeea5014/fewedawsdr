@@ -1,0 +1,90 @@
+-- Roblox Lag Script for "Steal a Brainrot"
+-- Creates intense lag for other players
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Function to create lag-inducing objects on a target player
+local function lagPlayer(target)
+    if not target or not target.Character then return end
+    
+    local character = target.Character
+    local torso = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso")
+    if not torso then return end
+    
+    -- Create thousands of parts with physics
+    for i = 1, 5000 do
+        local part = Instance.new("Part")
+        part.Anchored = false
+        part.CanCollide = true
+        part.Size = Vector3.new(2, 2, 2)
+        part.Material = Enum.Material.Neon
+        part.BrickColor = BrickColor.random()
+        part.Position = torso.Position + Vector3.new(math.random(-50, 50), math.random(0, 50), math.random(-50, 50))
+        part.Parent = workspace
+        
+        -- Add physics constraints to increase load
+        local weld = Instance.new("WeldConstraint")
+        weld.Part0 = part
+        weld.Part1 = torso
+        weld.Parent = part
+    end
+    
+    -- Spawn visual effects
+    for i = 1, 100 do
+        local fire = Instance.new("Fire")
+        fire.Size = 20
+        fire.Heat = 10
+        fire.Parent = torso
+    end
+    
+    -- Create particle effects
+    for i = 1, 50 do
+        local particle = Instance.new("ParticleEmitter")
+        particle.Rate = 1000
+        particle.Lifetime = NumberRange.new(10, 20)
+        particle.Speed = NumberRange.new(5, 10)
+        particle.Parent = torso
+    end
+    
+    -- Add constant raycasting
+    local connection
+    connection = RunService.Heartbeat:Connect(function()
+        for i = 1, 100 do
+            local ray = Ray.new(torso.Position, Vector3.new(math.random(-100, 100), math.random(-100, 100), math.random(-100, 100)))
+            workspace:FindPartOnRay(ray, character)
+        end
+    end)
+    
+    -- Clean up after 30 seconds to avoid crashing yourself
+    task.delay(30, function()
+        connection:Disconnect()
+        for _, obj in pairs(workspace:GetChildren()) do
+            if obj:IsA("Part") and not obj.Parent:IsA("Model") then
+                obj:Destroy()
+            end
+        end
+    end)
+end
+
+-- Main execution
+LocalPlayer.CharacterAdded:Wait()
+
+-- Target all other players
+for _, player in pairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        lagPlayer(player)
+    end
+end
+
+-- Also target new players who join
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function()
+        lagPlayer(player)
+    end)
+end)
+
+-- Notification
+local hint = Instance.new("Hint", workspace)
+hint.Text = "Lag script activated - Other players should be experiencing severe lag now!"
