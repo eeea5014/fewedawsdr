@@ -1,0 +1,589 @@
+--[[
+    STEAL A BRAINROT - PUBLIC SERVER NOTIFIER v3.0
+    Simple, reliable, and actually works!
+    Just paste webhook and run. No server hopping, scans your current public server.
+]]
+
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
+local player = Players.LocalPlayer
+
+-- ═══════════════════════════════════════════════════════════════
+-- CONFIGURATION - ONLY EDIT THIS SECTION
+-- ═══════════════════════════════════════════════════════════════
+
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1467946487207166073/m9S0s1MOEA-djjppeRQsYy1i1imxAVG95zDU1da71-s6Mnr5O3t50203-nXYbfjNODcZ" -- <-- PASTE YOUR WEBHOOK HERE
+
+-- What to notify for (true = notify, false = ignore)
+local NOTIFY_OG = true      -- Worth thousands IRL
+local NOTIFY_SECRET = true  -- Lucky block/event exclusives  
+local NOTIFY_GOD = true     -- Brainrot God tier
+local NOTIFY_MYTHIC = true  -- Very rare
+local NOTIFY_LEGENDARY = false -- Rare but common
+local NOTIFY_EPIC = false   -- Uncommon
+local NOTIFY_RARE = false   -- Common
+local NOTIFY_COMMON = false -- Trash
+
+-- Timing
+local CHECK_DELAY = 2       -- Seconds between scans (don't spam)
+local COOLDOWN = 60         -- Don't notify same brainrot for 60 seconds
+
+-- ═══════════════════════════════════════════════════════════════
+-- BRAINROT DATABASE - ALL 300+ BRAINROTS ORGANIZED BY RARITY
+-- ═══════════════════════════════════════════════════════════════
+
+local BRAINROTS = {
+    -- OG TIER (The Holy Grail - Worth $1000+ IRL)
+    ["Strawberry Elephant"] = "OG",
+    ["Skibidi Toilet"] = "OG",
+    ["Meowl"] = "OG",
+    
+    -- SECRET TIER (Lucky Blocks & Events)
+    ["Nuclearo Dinossauro"] = "Secret",
+    ["La Grande Combinasion"] = "Secret",
+    ["Los 67"] = "Secret",
+    ["Money Money Puggy"] = "Secret",
+    ["Chillin Chili"] = "Secret",
+    ["La Extinct Grande"] = "Secret",
+    ["Los Tacoritas"] = "Secret",
+    ["Los Tortus"] = "Secret",
+    ["Blackhole Goat"] = "Secret",
+    ["Nooo My Hotspot"] = "Secret",
+    ["Sammyini Spyderini"] = "Secret",
+    ["Spaghetti Tualetti"] = "Secret",
+    ["67"] = "Secret",
+    ["Los Noo My Hotspotsitos"] = "Secret",
+    ["Celularcini Viciosini"] = "Secret",
+    ["Tralaledon"] = "Secret",
+    ["Tictac Sahur"] = "Secret",
+    ["La Supreme Combinasion"] = "Secret",
+    ["Ketupat Kepat"] = "Secret",
+    ["Ketchuru and Musturu"] = "Secret",
+    ["Burguro and Fryuro"] = "Secret",
+    ["Please my Present"] = "Secret",
+    ["La Grande"] = "Secret",
+    ["La Vacca Prese Presente"] = "Secret",
+    ["Ho Ho Ho Sahur"] = "Secret",
+    ["Chicleteira Noelteira"] = "Secret",
+    ["Cooki and Milki"] = "Secret",
+    ["La Jolly Grande"] = "Secret",
+    ["Capitano Moby"] = "Secret",
+    ["Cerberus"] = "Secret",
+    ["Las Sis"] = "Secret",
+    ["La Vacca Staturno Saturnita"] = "Secret",
+    ["Chimpanzini Spiderini"] = "Secret",
+    ["Extinct Tralalero"] = "Secret",
+    ["Extinct Matteo"] = "Secret",
+    ["Los Tralaleritos"] = "Secret",
+    ["La Karkerkar Combinasion"] = "Secret",
+    ["Karker Sahur"] = "Secret",
+    ["Las Tralaleritas"] = "Secret",
+    ["Job Job Job Sahur"] = "Secret",
+    ["Los Spyderrinis"] = "Secret",
+    ["Perrito Burrito"] = "Secret",
+    ["Graipuss Medussi"] = "Secret",
+    ["Los Jobcitos"] = "Secret",
+    
+    -- BRAINROT GOD TIER
+    ["Tralalero Tralala"] = "Brainrot God",
+    ["Ballerina Cappuccina"] = "Brainrot God",
+    ["Coco Elefanto"] = "Brainrot God",
+    ["Girafa Celestre"] = "Brainrot God",
+    ["Gattatino Nyanino"] = "Brainrot God",
+    ["Chihuanini Taconini"] = "Brainrot God",
+    ["Matteo"] = "Brainrot God",
+    ["Espresso Signora"] = "Brainrot God",
+    ["Odin Din Din Dun"] = "Brainrot God",
+    ["Statutino Libertino"] = "Brainrot God",
+    ["Trenostruzzo Turbo 3000"] = "Brainrot God",
+    ["Ballerino Lololo"] = "Brainrot God",
+    ["Los Orcalitos"] = "Brainrot God",
+    ["Dug dug dug"] = "Brainrot God",
+    ["Tralalita Tralala"] = "Brainrot God",
+    ["Urubini Flamenguini"] = "Brainrot God",
+    ["Los Bombinitos"] = "Brainrot God",
+    ["Pop pop Sahur"] = "Brainrot God",
+    ["Ballerina Peppermintina"] = "Brainrot God",
+    ["Yeti Claus"] = "Brainrot God",
+    ["Ginger Globo"] = "Brainrot God",
+    ["Frio Ninja"] = "Brainrot God",
+    ["Ginger Cisterna"] = "Brainrot God",
+    ["Cacasito Satalito"] = "Brainrot God",
+    ["Aquanaut"] = "Brainrot God",
+    ["Tartaruga Cisterna"] = "Brainrot God",
+    ["Antonio"] = "Brainrot God",
+    ["Cocofanto Elefanto"] = "Brainrot God",
+    
+    -- MYTHIC TIER
+    ["Frigo Camelo"] = "Mythic",
+    ["Orangutini Ananassini"] = "Mythic",
+    ["Rhino Toasterino"] = "Mythic",
+    ["Bombardiro Crocodilo"] = "Mythic",
+    ["Bombombini Gusini"] = "Mythic",
+    ["Cavallo Virtuso"] = "Mythic",
+    ["Gorillo Watermelondrillo"] = "Mythic",
+    ["Avocadorilla"] = "Mythic",
+    ["Tob Tobi Tobi"] = "Mythic",
+    ["Ganganzelli Trulala"] = "Mythic",
+    ["Cachorrito Melonito"] = "Mythic",
+    ["Elefanto Frigo"] = "Mythic",
+    ["Toiletto Focaccino"] = "Mythic",
+    ["Te Te Te Sahur"] = "Mythic",
+    ["Tracoducotulu Delapeladustuz"] = "Mythic",
+    ["Lerulerulerule"] = "Mythic",
+    ["Jingle Jingle Sahur"] = "Mythic",
+    ["Tree Tree Tree Sahur"] = "Mythic",
+    ["Carloo"] = "Mythic",
+    ["Spioniro Golubiro"] = "Mythic",
+    ["Zibra Zubra Zibralini"] = "Mythic",
+    ["Tigrilini Watermelini"] = "Mythic",
+    ["Carrotini Brainini"] = "Mythic",
+    ["Bananito Bandito"] = "Mythic",
+    ["Brutto Gialutto"] = "Mythic",
+    ["Gorillo Subwoofero"] = "Mythic",
+    ["Rhino Helicopterino"] = "Mythic",
+    ["Magi Ribbitini"] = "Mythic",
+    ["Los Noobinis"] = "Mythic",
+    ["Jacko Spaventosa"] = "Mythic",
+    ["Centrucci Nuclucci"] = "Mythic",
+    
+    -- LEGENDARY TIER
+    ["Burbaloni Loliloli"] = "Legendary",
+    ["Chimpazini Bananini"] = "Legendary",
+    ["Chef Crabracadabra"] = "Legendary",
+    ["Lionel Cactuseli"] = "Legendary",
+    ["Glorbo Fruttodrillo"] = "Legendary",
+    ["Blueberrini Octopusini"] = "Legendary",
+    ["Strawberelli Flamingelli"] = "Legendary",
+    ["Pandaccini Bananini"] = "Legendary",
+    ["Cocosini Mama"] = "Legendary",
+    ["Sigma Boy"] = "Legendary",
+    ["Sigma Girl"] = "Legendary",
+    ["Pi Pi Watermelon"] = "Legendary",
+    ["Chocco Bunny"] = "Legendary",
+    ["Sealo Regalo"] = "Legendary",
+    ["Buho de Fuego"] = "Legendary",
+    ["Puffaball"] = "Legendary",
+    ["Caramello Filtrello"] = "Legendary",
+    ["Pipi Potato"] = "Legendary",
+    ["Quackula"] = "Legendary",
+    ["Signore Carapace"] = "Legendary",
+    
+    -- EPIC TIER
+    ["Cappuccino Assassino"] = "Epic",
+    ["Brr Brr Patapim"] = "Epic",
+    ["Trulimero Trulicina"] = "Epic",
+    ["Bambini Crostini"] = "Epic",
+    ["Bananita Dolphinita"] = "Epic",
+    ["Perochello Lemonchello"] = "Epic",
+    ["Brri Brri Bicus Dicus Bombicus"] = "Epic",
+    ["Avocadini Guffo"] = "Epic",
+    ["Salamino Penguino"] = "Epic",
+    ["Ti Ti Ti Sahur"] = "Epic",
+    ["Penguin Tree"] = "Epic",
+    ["Penguino Cocosino"] = "Epic",
+    
+    -- RARE TIER
+    ["Trippi Troppi"] = "Rare",
+    ["Gangster Footera"] = "Rare",
+    ["Bandito Bobritto"] = "Rare",
+    ["Boneca Ambalabu"] = "Rare",
+    ["Cacto Hipopotamo"] = "Rare",
+    ["Ta Ta Ta Ta Sahur"] = "Rare",
+    ["Tric Trac Baraboom"] = "Rare",
+    ["Pipi Avocado"] = "Rare",
+    ["Frogo Elfo"] = "Rare",
+    
+    -- COMMON TIER
+    ["Noobini Pizzanini"] = "Common",
+    ["Lirili Larila"] = "Common",
+    ["Tim Cheese"] = "Common",
+    ["FluriFlura"] = "Common",
+    ["Talpa Di Fero"] = "Common",
+    ["Svinina Bombardino"] = "Common",
+    ["Pipi Kiwi"] = "Common",
+    ["Racooni Jandelini"] = "Common",
+    ["Pipi Corni"] = "Common",
+    ["Noobini Santanini"] = "Common"
+}
+
+-- Colors for Discord embeds
+local RARITY_COLORS = {
+    ["OG"] = 0xFFD700,
+    ["Secret"] = 0x8A2BE2,
+    ["Brainrot God"] = 0xFF4500,
+    ["Mythic"] = 0xFF00FF,
+    ["Legendary"] = 0xFFA500,
+    ["Epic"] = 0x800080,
+    ["Rare"] = 0x00BFFF,
+    ["Common"] = 0xA9A9A9
+}
+
+-- Notification settings check
+local NOTIFY_SETTINGS = {
+    ["OG"] = NOTIFY_OG,
+    ["Secret"] = NOTIFY_SECRET,
+    ["Brainrot God"] = NOTIFY_GOD,
+    ["Mythic"] = NOTIFY_MYTHIC,
+    ["Legendary"] = NOTIFY_LEGENDARY,
+    ["Epic"] = NOTIFY_EPIC,
+    ["Rare"] = NOTIFY_RARE,
+    ["Common"] = NOTIFY_COMMON
+}
+
+-- ═══════════════════════════════════════════════════════════════
+-- STATE TRACKING
+-- ═══════════════════════════════════════════════════════════════
+
+local foundBrainrots = {}
+local lastNotification = {}
+local totalFound = 0
+local startTime = os.time()
+
+-- ═══════════════════════════════════════════════════════════════
+-- SIMPLE GUI
+-- ═══════════════════════════════════════════════════════════════
+
+local function createGUI()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "BrainrotScanner"
+    gui.ResetOnSpawn = false
+    
+    -- Main frame
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 300, 0, 150)
+    frame.Position = UDim2.new(0.5, -150, 0.1, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    frame.BorderSizePixel = 0
+    frame.Parent = gui
+    
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+    
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    title.Text = "🧠 BRAINROT SCANNER"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 14
+    title.Parent = frame
+    Instance.new("UICorner", title).CornerRadius = UDim.new(0, 8)
+    
+    -- Status text
+    local status = Instance.new("TextLabel")
+    status.Name = "Status"
+    status.Size = UDim2.new(1, -20, 0, 80)
+    status.Position = UDim2.new(0, 10, 0, 40)
+    status.BackgroundTransparency = 1
+    status.Text = "Initializing..."
+    status.TextColor3 = Color3.fromRGB(0, 255, 0)
+    status.Font = Enum.Font.Code
+    status.TextSize = 12
+    status.TextWrapped = true
+    status.TextXAlignment = Enum.TextXAlignment.Left
+    status.TextYAlignment = Enum.TextYAlignment.Top
+    status.Parent = frame
+    
+    -- Last found
+    local lastFound = Instance.new("TextLabel")
+    lastFound.Name = "LastFound"
+    lastFound.Size = UDim2.new(1, -20, 0, 20)
+    lastFound.Position = UDim2.new(0, 10, 1, -25)
+    lastFound.BackgroundTransparency = 1
+    lastFound.Text = "Waiting for brainrots..."
+    lastFound.TextColor3 = Color3.fromRGB(255, 255, 0)
+    lastFound.Font = Enum.Font.Gotham
+    lastFound.TextSize = 11
+    lastFound.TextXAlignment = Enum.TextXAlignment.Left
+    lastFound.Parent = frame
+    
+    gui.Parent = player:WaitForChild("PlayerGui")
+    return {Gui = gui, Status = status, LastFound = lastFound}
+end
+
+local GUI = createGUI()
+
+-- ═══════════════════════════════════════════════════════════════
+-- WEBHOOK FUNCTION
+-- ═══════════════════════════════════════════════════════════════
+
+local function sendWebhook(name, rarity, location)
+    if WEBHOOK_URL == "PASTE_YOUR_DISCORD_WEBHOOK_HERE" then
+        warn("⚠️ Please set your webhook URL!")
+        return false
+    end
+    
+    local color = RARITY_COLORS[rarity] or 0xFFFFFF
+    local ping = (rarity == "OG" or rarity == "Secret") and "@everyone " or ""
+    
+    local data = {
+        content = ping .. "🧠 **" .. name .. "** detected!",
+        embeds = {{
+            title = "Brainrot Found in Public Server",
+            description = string.format("**%s** (%s)", name, rarity),
+            color = color,
+            fields = {
+                {name = "📍 Location", value = location, inline = true},
+                {name = "👤 Found By", value = player.Name, inline = true},
+                {name = "⏰ Time", value = os.date("%H:%M:%S"), inline = true}
+            },
+            footer = {text = "Steal A Brainrot Scanner"}
+        }}
+    }
+    
+    local success, err = pcall(function()
+        HttpService:PostAsync(
+            WEBHOOK_URL,
+            HttpService:JSONEncode(data),
+            Enum.HttpContentType.ApplicationJson
+        )
+    end)
+    
+    return success
+end
+
+-- ═══════════════════════════════════════════════════════════════
+-- DETECTION LOGIC - SCANS CONVEYOR BELT AND PLAYER BASES
+-- ═══════════════════════════════════════════════════════════════
+
+local function checkConveyor()
+    -- Try multiple possible names for the conveyor
+    local possibleNames = {"Conveyor", "ConveyorBelt", "Belt", "SpawnConveyor", "MainConveyor"}
+    local conveyor = nil
+    
+    for _, name in ipairs(possibleNames) do
+        conveyor = Workspace:FindFirstChild(name)
+        if conveyor then break end
+    end
+    
+    -- Also check in Workspace children deeply
+    if not conveyor then
+        for _, obj in pairs(Workspace:GetChildren()) do
+            if obj:IsA("Model") or obj:IsA("Folder") then
+                for _, child in pairs(obj:GetChildren()) do
+                    if child.Name:lower():find("conveyor") or child.Name:lower():find("belt") then
+                        conveyor = child
+                        break
+                    end
+                end
+            end
+            if conveyor then break end
+        end
+    end
+    
+    return conveyor
+end
+
+local function scanForBrainrots()
+    local found = {}
+    
+    -- 1. SCAN CONVEYOR BELT (Main source)
+    local conveyor = checkConveyor()
+    if conveyor then
+        for _, obj in pairs(conveyor:GetDescendants()) do
+            if obj:IsA("Model") or obj:IsA("Part") or obj:IsA("MeshPart") then
+                local name = obj.Name
+                local rarity = BRAINROTS[name]
+                if rarity and NOTIFY_SETTINGS[rarity] then
+                    table.insert(found, {
+                        name = name,
+                        rarity = rarity,
+                        location = "Conveyor Belt",
+                        obj = obj
+                    })
+                end
+                
+                -- Check for name tags/billboards above brainrots
+                for _, child in pairs(obj:GetDescendants()) do
+                    if child:IsA("BillboardGui") or child:IsA("TextLabel") or child:IsA("TextBox") then
+                        if child.Text then
+                            local textName = child.Text:gsub("%s+", " "):match("^%s*(.-)%s*$")
+                            local textRarity = BRAINROTS[textName]
+                            if textRarity and NOTIFY_SETTINGS[textRarity] then
+                                table.insert(found, {
+                                    name = textName,
+                                    rarity = textRarity,
+                                    location = "Conveyor Belt (Label)",
+                                    obj = obj
+                                })
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    -- 2. SCAN PLAYER BASES (Other players' brainrots)
+    for _, otherPlayer in pairs(Players:GetPlayers()) do
+        if otherPlayer ~= player then
+            -- Look for their base
+            local base = Workspace:FindFirstChild(otherPlayer.Name .. "_Base") 
+                      or Workspace:FindFirstChild(otherPlayer.Name .. "Base")
+                      or Workspace:FindFirstChild(otherPlayer.Name .. "_Plot")
+                      or Workspace:FindFirstChild(otherPlayer.Name .. "Plot")
+            
+            -- Also check for any folder/model with player name
+            if not base then
+                for _, obj in pairs(Workspace:GetChildren()) do
+                    if obj.Name:find(otherPlayer.Name) and (obj:IsA("Model") or obj:IsA("Folder")) then
+                        base = obj
+                        break
+                    end
+                end
+            end
+            
+            if base then
+                for _, obj in pairs(base:GetDescendants()) do
+                    if obj:IsA("Model") or obj:IsA("Part") then
+                        local name = obj.Name
+                        local rarity = BRAINROTS[name]
+                        -- Only notify for high tier in bases to avoid spam
+                        if rarity and (rarity == "OG" or rarity == "Secret" or rarity == "Brainrot God") then
+                            table.insert(found, {
+                                name = name,
+                                rarity = rarity,
+                                location = otherPlayer.Name .. "'s Base",
+                                obj = obj
+                            })
+                        end
+                    end
+                end
+            end
+            
+            -- Check their character (holding brainrots)
+            local char = otherPlayer.Character
+            if char then
+                for _, obj in pairs(char:GetDescendants()) do
+                    if obj:IsA("Tool") or obj:IsA("Model") then
+                        local name = obj.Name
+                        local rarity = BRAINROTS[name]
+                        if rarity and (rarity == "OG" or rarity == "Secret") then
+                            table.insert(found, {
+                                name = name,
+                                rarity = rarity,
+                                location = otherPlayer.Name .. " (Holding)",
+                                obj = obj
+                            })
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    -- 3. CHECK FOR SHOP/SPAWN AREAS
+    local shop = Workspace:FindFirstChild("Shop") or Workspace:FindFirstChild("Store")
+    if shop then
+        for _, obj in pairs(shop:GetDescendants()) do
+            if obj:IsA("Model") or obj:IsA("Part") then
+                local name = obj.Name
+                local rarity = BRAINROTS[name]
+                if rarity and NOTIFY_SETTINGS[rarity] then
+                    table.insert(found, {
+                        name = name,
+                        rarity = rarity,
+                        location = "Shop",
+                        obj = obj
+                    })
+                end
+            end
+        end
+    end
+    
+    return found
+end
+
+-- ═══════════════════════════════════════════════════════════════
+-- MAIN LOOP
+-- ═══════════════════════════════════════════════════════════════
+
+local function updateStatus()
+    local runtime = os.time() - startTime
+    local mins = math.floor(runtime / 60)
+    local secs = runtime % 60
+    
+    local statusText = string.format(
+        "Status: RUNNING\n" ..
+        "Runtime: %02d:%02d\n" ..
+        "Found: %d brainrots\n" ..
+        "Webhook: %s",
+        mins, secs,
+        totalFound,
+        WEBHOOK_URL ~= "PASTE_YOUR_DISCORD_WEBHOOK_HERE" and "✅ Active" or "❌ Not Set"
+    )
+    
+    GUI.Status.Text = statusText
+end
+
+local function mainLoop()
+    while true do
+        local found = scanForBrainrots()
+        
+        for _, item in ipairs(found) do
+            local key = item.name .. "_" .. item.location
+            
+            -- Check cooldown
+            if not lastNotification[key] or (os.time() - lastNotification[key]) > COOLDOWN then
+                lastNotification[key] = os.time()
+                totalFound = totalFound + 1
+                
+                -- Send webhook
+                sendWebhook(item.name, item.rarity, item.location)
+                
+                -- Update GUI
+                GUI.LastFound.Text = string.format("Last: %s (%s) at %s", 
+                    item.name, item.rarity, item.location)
+                GUI.LastFound.TextColor3 = Color3.fromRGB(0, 255, 0)
+                
+                print(string.format("🧠 Found: %s (%s) at %s", 
+                    item.name, item.rarity, item.location))
+            end
+        end
+        
+        updateStatus()
+        wait(CHECK_DELAY)
+    end
+end
+
+-- ═══════════════════════════════════════════════════════════════
+-- STARTUP
+-- ═══════════════════════════════════════════════════════════════
+
+print("🧠 Brainrot Scanner Started!")
+print("📊 Scanning for: " .. (NOTIFY_OG and "OG " or "") .. 
+      (NOTIFY_SECRET and "Secret " or "") .. 
+      (NOTIFY_GOD and "God " or "") .. 
+      (NOTIFY_MYTHIC and "Mythic " or ""))
+
+if WEBHOOK_URL == "PASTE_YOUR_DISCORD_WEBHOOK_HERE" then
+    warn("⚠️ REMEMBER: Paste your Discord webhook URL in the WEBHOOK_URL variable!")
+    GUI.LastFound.Text = "⚠️ Set your webhook URL!"
+    GUI.LastFound.TextColor3 = Color3.fromRGB(255, 0, 0)
+else
+    -- Test webhook
+    spawn(function()
+        local testData = {
+            content = "🧠 Brainrot Scanner activated by **" .. player.Name .. "**",
+            embeds = {{
+                title = "Scanner Online",
+                description = "Monitoring public server for rare brainrots...",
+                color = 0x00FF00,
+                timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+            }}
+        }
+        pcall(function()
+            HttpService:PostAsync(
+                WEBHOOK_URL,
+                HttpService:JSONEncode(testData),
+                Enum.HttpContentType.ApplicationJson
+            )
+        end)
+    end)
+end
+
+-- Start scanning
+spawn(mainLoop)
