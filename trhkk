@@ -1,0 +1,528 @@
+--[[
+	Steal a Brainrot - Brainrot Notifier
+	Shows which brainrots are on the public server + priority (rarity).
+	One script • Nice GUI • Press J to open/close.
+	Put as LocalScript in StarterPlayerScripts.
+]]
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local TeleportService = game:GetService("TeleportService")
+local UserInputService = game:GetService("UserInputService")
+
+-- ============ STEAL A BRAINROT RARITY (priority) ============
+-- OG = 10, Secret = 9, Brainrot God = 8, Mythic = 7, Legendary = 6, Epic = 5, Rare = 4, Common = 3
+local RARITY_ORDER = { OG = 10, Secret = 9, ["Brainrot God"] = 8, Mythic = 7, Legendary = 6, Epic = 5, Rare = 4, Common = 3 }
+local RARITY_COLORS = {
+	OG = Color3.fromRGB(255, 200, 50),
+	Secret = Color3.fromRGB(180, 100, 255),
+	["Brainrot God"] = Color3.fromRGB(255, 120, 50),
+	Mythic = Color3.fromRGB(80, 150, 255),
+	Legendary = Color3.fromRGB(50, 220, 220),
+	Epic = Color3.fromRGB(100, 220, 120),
+	Rare = Color3.fromRGB(120, 180, 255),
+	Common = Color3.fromRGB(140, 140, 150),
+	Unknown = Color3.fromRGB(100, 100, 110),
+}
+
+-- Known brainrot names -> rarity (Steal a Brainrot list; lowercase key for matching)
+local BRAINROT_TO_RARITY = {}
+do
+	local list = {
+		-- Common
+		["noobini pizzanini"] = "Common", ["noobini santanini"] = "Common", ["lirili larila"] = "Common",
+		["tim cheese"] = "Common", ["fluriflura"] = "Common", ["talpa di fero"] = "Common",
+		["svinina bombardino"] = "Common", ["raccooni jandelini"] = "Common", ["tartaragno"] = "Common",
+		["pipi kiwi"] = "Common", ["pipi corni"] = "Common",
+		-- Rare
+		["trippi troppi"] = "Rare", ["tung tung tung sahur"] = "Rare", ["gangster footera"] = "Rare",
+		["bandito bobritto"] = "Rare", ["boneca ambalabu"] = "Rare", ["cacto hipopotamo"] = "Rare",
+		["cupkake koala"] = "Rare", ["tric trac baraboom"] = "Rare", ["frogo elfo"] = "Rare",
+		["pipi avocado"] = "Rare", ["pinealotto fruttarino"] = "Rare", ["cappuccino assassino"] = "Rare",
+		-- Epic
+		["bandito axolito"] = "Epic", ["brr brr patapim"] = "Epic", ["avocadini antilopini"] = "Epic",
+		["trulimero trulicina"] = "Epic", ["bambini crostini"] = "Epic", ["malame amarele"] = "Epic",
+		["bananita dolphinita"] = "Epic", ["brri brri bicus dicus bombicus"] = "Epic", ["frogato pirato"] = "Epic",
+		["penguin tree"] = "Epic", ["penguino cocosino"] = "Epic", ["salamino penguino"] = "Epic",
+		["doi doi do"] = "Epic", ["wombo rollo"] = "Epic", ["mummio rappitto"] = "Epic",
+		-- Legendary
+		["burbaloni loliloli"] = "Legendary", ["chimpazini bananini"] = "Legendary", ["sigma boy"] = "Legendary",
+		["sigmа boy"] = "Legendary", ["sigma girl"] = "Legendary", ["ballerina cappuccina"] = "Legendary",
+		["chef crabracadabra"] = "Legendary", ["lionel cactuseli"] = "Legendary", ["quivioli ameleonni"] = "Legendary",
+		["clickerino crabo"] = "Legendary", ["glorbo fruttodrillo"] = "Legendary", ["caramello filtrello"] = "Legendary",
+		["pipi potato"] = "Legendary", ["blueberrini octopusin"] = "Legendary", ["strawberelli flamingelli"] = "Legendary",
+		["pandaccini bananini"] = "Legendary", ["quackula"] = "Legendary", ["quackula"] = "Legendary",
+		["cocosini mama"] = "Legendary", ["pi pi watermelon"] = "Legendary", ["signore carapace"] = "Legendary",
+		["chocco bunny"] = "Legendary", ["puffaball"] = "Legendary", ["sealo regalo"] = "Legendary",
+		["buho de fuego"] = "Legendary",
+		-- Mythic
+		["frigo camelo"] = "Mythic", ["orangutini ananassini"] = "Mythic", ["rhino toasterino"] = "Mythic",
+		["bombardiro crocodilo"] = "Mythic", ["brutto gialutto"] = "Mythic", ["bombombini gusini"] = "Mythic",
+		["avocadorilla"] = "Mythic", ["cavallo virtuso"] = "Mythic", ["gorillo subwoofero"] = "Mythic",
+		["gorillo watermelondrillo"] = "Mythic", ["tob toobi tobi"] = "Mythic", ["lerulerulerule"] = "Mythic",
+		["ganganzelli trulala"] = "Mythic", ["rhino helicopterino"] = "Mythic", ["carloo"] = "Mythic",
+		["elephanto frigo"] = "Mythic", ["jacko spaventosa"] = "Mythic", ["carrotini brainini"] = "Mythic",
+		["cocofanto elefanto"] = "Mythic", ["tree tree tree sahur"] = "Mythic",
+		-- Brainrot God
+		["antonio"] = "Brainrot God", ["coco elefanto"] = "Brainrot God", ["girafa celestre"] = "Brainrot God",
+		["gattatino nyanino"] = "Brainrot God", ["chihuanini taconini"] = "Brainrot God", ["matteo"] = "Brainrot God",
+		["tralalero tralala"] = "Brainrot God", ["money money man"] = "Brainrot God", ["espresso signora"] = "Brainrot God",
+		["alessio"] = "Brainrot God", ["orcalero orcala"] = "Brainrot God", ["tralalita tralala"] = "Brainrot God",
+		["tukanno bananno"] = "Brainrot God", ["extinct ballerina"] = "Brainrot God", ["vampira cappucina"] = "Brainrot God",
+		["jacko jack jack"] = "Brainrot God", ["capi taco"] = "Brainrot God", ["ballerina peppermintina"] = "Brainrot God",
+		["pakrahmatmamat"] = "Brainrot God", ["aquanaut"] = "Brainrot God", ["corn corn corn sahur"] = "Brainrot God",
+		["tartaruga cisterna"] = "Brainrot God", ["yeti claus"] = "Brainrot God", ["ginger globo"] = "Brainrot God",
+		["anpali babel"] = "Brainrot God", ["noo la polizia"] = "Brainrot God", ["noo la polizia"] = "Brainrot God",
+		["brr es teh patipum"] = "Brainrot God", ["los orcalitos"] = "Brainrot God", ["crabbo limonetta"] = "Brainrot God",
+		["orcalita orcala"] = "Brainrot God", ["cacasito satalito"] = "Brainrot God", ["squalanana"] = "Brainrot God",
+		["snailenzo"] = "Brainrot God", ["los tipi tacos"] = "Brainrot God", ["piccionetta macchina"] = "Brainrot God",
+		["bambu bambu sahur"] = "Brainrot God", ["cappuccino clownino"] = "Brainrot God", ["skull skull skull"] = "Brainrot God",
+		["belula beluga"] = "Brainrot God", ["tentacolo tecnico"] = "Brainrot God", ["trenostruzzo turbo 3000"] = "Brainrot God",
+		-- Secret
+		["la vacca staturno saturnita"] = "Secret", ["bisonte giuppitere"] = "Secret", ["los matteos"] = "Secret",
+		["karkerkar kurkur"] = "Secret", ["trenostruzzo turbo 4000"] = "Secret", ["jackorilla"] = "Secret",
+		["sammyni spyderini"] = "Secret", ["dul dul dul"] = "Secret", ["blackhole goat"] = "Secret",
+		["chachechi"] = "Secret", ["agarrini la palini"] = "Secret", ["los spyderinis"] = "Secret",
+		["extinct tralalero"] = "Secret", ["fragola la la la"] = "Secret", ["los tralaleritos"] = "Secret",
+		["zombie tralala"] = "Secret", ["los tortus"] = "Secret", ["vulturino skeletono"] = "Secret",
+		["boatito auratito"] = "Secret", ["chimpanzini spiderini"] = "Secret", ["guerriro digitale"] = "Secret",
+		["yess my examine"] = "Secret", ["extinct matteo"] = "Secret", ["las tralaleritas"] = "Secret",
+		["pumpkini spyderini"] = "Secret", ["job job job sahur"] = "Secret", ["frankentteo"] = "Secret",
+		["karker sahur"] = "Secret", ["los karkeritos"] = "Secret", ["las vaquitas saturnitas"] = "Secret",
+		["trickolino"] = "Secret", ["perrito burrito"] = "Secret", ["graipuss medussi"] = "Secret",
+		["noo my hotspot"] = "Secret", ["los jobcitos"] = "Secret", ["sahur combinasion"] = "Secret",
+		["telemorte"] = "Secret", ["to to to sahur"] = "Secret", ["pirulitoita bicicleteira"] = "Secret",
+		["pot pumpkin"] = "Secret", ["quesadilla crocodila"] = "Secret", ["burrito bandito"] = "Secret",
+		["noo my candy"] = "Secret", ["rang ring bus"] = "Secret", ["guest 666"] = "Secret",
+		["los chicleteiras"] = "Secret", ["67"] = "Secret", ["la grande combinasion"] = "Secret",
+		["mariachi corazoni"] = "Secret", ["swag soda"] = "Secret", ["los combinasionas"] = "Secret",
+		["nuclearo dinossauro"] = "Secret", ["tacorita bicicleta"] = "Secret", ["las sis"] = "Secret",
+		["los spooky combinasionas"] = "Secret", ["karkerkar combinasion"] = "Secret", ["los hotspotsitos"] = "Secret",
+		["money money puggy"] = "Secret", ["los mobilis"] = "Secret", ["los 67"] = "Secret",
+		["celularcini viciosini"] = "Secret", ["la extinct grande"] = "Secret", ["los bros"] = "Secret",
+		["la spooky grande"] = "Secret", ["chillin chili"] = "Secret", ["chipso and queso"] = "Secret",
+		["tralaledon"] = "Secret", ["los puggies"] = "Secret", ["los primos"] = "Secret", ["eviledon"] = "Secret",
+		["los tacoritas"] = "Secret", ["tang tang keletang"] = "Secret", ["ketupat kepat"] = "Secret",
+		["la taco combinasion"] = "Secret", ["tictac sahur"] = "Secret", ["orcaledon"] = "Secret",
+		["la supreme combinasion"] = "Secret", ["ketchuru and masturu"] = "Secret", ["garama and madundung"] = "Secret",
+		["spaghetti tualetti"] = "Secret", ["los spaghettis"] = "Secret", ["spooky and pumpky"] = "Secret",
+		["fragrama and chocrama"] = "Secret", ["la casa boo"] = "Secret", ["la secret combinasion"] = "Secret",
+		["burguro and fryuro"] = "Secret", ["capitano moby"] = "Secret", ["headless horseman"] = "Secret",
+		["dragon cannelloni"] = "Secret", ["dragon gingerini"] = "Secret",
+		-- OG
+		["meowl"] = "OG", ["strawberry elephant"] = "OG", ["cooki and milki"] = "OG", ["skibidi toilet"] = "OG",
+	}
+	for name, rarity in pairs(list) do
+		BRAINROT_TO_RARITY[name] = rarity
+	end
+end
+
+local CHECK_INTERVAL = 2
+local NOTIFY_COOLDOWN = 8
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Lightweight scan (GetChildren only, no GetDescendants = no FPS lag): only 2–3 levels with GetChildren (no GetDescendants = no FPS kill)
+local function scanWorkspaceForBrainrots()
+	local Workspace = game:GetService("Workspace")
+	local seen = {}
+	local found = {}
+
+	local function addIfBrainrot(obj)
+		local name = obj.Name
+		if not name or name == "" then return end
+		local key = name:lower():gsub("%s+", " "):gsub("^%s+", ""):gsub("%s+$", "")
+		if seen[key] then return end
+		local rarity = BRAINROT_TO_RARITY[key]
+		if rarity then
+			seen[key] = true
+			table.insert(found, { displayName = name, rarity = rarity, order = RARITY_ORDER[rarity] or 0 })
+		end
+	end
+
+	-- Level 1: direct children of Workspace
+	for _, obj in ipairs(Workspace:GetChildren()) do
+		addIfBrainrot(obj)
+		if obj:IsA("Model") or obj:IsA("Folder") then
+			-- Level 2
+			for _, sub in ipairs(obj:GetChildren()) do
+				addIfBrainrot(sub)
+				-- Level 3 (e.g. bases with units inside)
+				if (sub:IsA("Model") or sub:IsA("Folder")) and #sub:GetChildren() < 60 then
+					for _, sub2 in ipairs(sub:GetChildren()) do
+						addIfBrainrot(sub2)
+					end
+				end
+			end
+		end
+	end
+
+	table.sort(found, function(a, b) return a.order > b.order end)
+	return found
+end
+
+-- You're on a private server = no brainrots to steal from others; script only scans when on a public server
+local function isPrivateServer()
+	return (game.PrivateServerId or "") ~= ""
+end
+
+-- ============ NICE GUI ============
+local sg = Instance.new("ScreenGui")
+sg.Name = "StealABrainrotNotifier"
+sg.ResetOnSpawn = false
+sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+sg.Parent = playerGui
+
+-- Toggle button (always visible when panel is closed)
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Name = "Toggle"
+toggleBtn.Size = UDim2.new(0, 44, 0, 44)
+toggleBtn.Position = UDim2.new(0, 16, 0, 16)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+toggleBtn.BorderSizePixel = 0
+toggleBtn.Text = "🧠"
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.TextSize = 22
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.Parent = sg
+local tbCorner = Instance.new("UICorner")
+tbCorner.CornerRadius = UDim.new(0, 12)
+tbCorner.Parent = toggleBtn
+local tbStroke = Instance.new("UIStroke")
+tbStroke.Color = Color3.fromRGB(90, 160, 255)
+tbStroke.Thickness = 2
+tbStroke.Parent = toggleBtn
+
+-- Main panel
+local main = Instance.new("Frame")
+main.Name = "MainPanel"
+main.Size = UDim2.new(0, 340, 0, 420)
+main.Position = UDim2.new(0, 16, 0, 70)
+main.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
+main.BorderSizePixel = 0
+main.ClipsDescendants = true
+main.Parent = sg
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 16)
+mainCorner.Parent = main
+
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Color = Color3.fromRGB(70, 130, 220)
+mainStroke.Thickness = 2
+mainStroke.Parent = main
+
+-- Gradient overlay (optional depth)
+local grad = Instance.new("UIGradient")
+grad.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 32, 42)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 22, 30)),
+})
+grad.Rotation = 90
+grad.Parent = main
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -24, 0, 36)
+title.Position = UDim2.new(0, 16, 0, 14)
+title.BackgroundTransparency = 1
+title.Text = "Steal a Brainrot"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 20
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = main
+
+local subtitle = Instance.new("TextLabel")
+subtitle.Size = UDim2.new(1, -24, 0, 20)
+subtitle.Position = UDim2.new(0, 16, 0, 48)
+subtitle.BackgroundTransparency = 1
+subtitle.Text = "Brainrots on this server"
+subtitle.TextColor3 = Color3.fromRGB(160, 170, 200)
+subtitle.TextSize = 13
+subtitle.Font = Enum.Font.Gotham
+subtitle.TextXAlignment = Enum.TextXAlignment.Left
+subtitle.Parent = main
+
+-- Count
+local countLabel = Instance.new("TextLabel")
+countLabel.Name = "Count"
+countLabel.Size = UDim2.new(1, -24, 0, 22)
+countLabel.Position = UDim2.new(0, 16, 0, 72)
+countLabel.BackgroundTransparency = 1
+countLabel.Text = "0 brainrots"
+countLabel.TextColor3 = Color3.fromRGB(120, 200, 255)
+countLabel.TextSize = 14
+countLabel.Font = Enum.Font.Gotham
+countLabel.TextXAlignment = Enum.TextXAlignment.Left
+countLabel.Parent = main
+
+-- Shown when on private server (no scan = no FPS hit)
+local privateMsg = Instance.new("TextLabel")
+privateMsg.Name = "PrivateServerMsg"
+privateMsg.Size = UDim2.new(1, -24, 0, 44)
+privateMsg.Position = UDim2.new(0, 12, 0, 98)
+privateMsg.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+privateMsg.BorderSizePixel = 0
+privateMsg.Text = "You're on a private server.\nJoin a public server to see brainrots here."
+privateMsg.TextColor3 = Color3.fromRGB(200, 180, 120)
+privateMsg.TextSize = 13
+privateMsg.Font = Enum.Font.Gotham
+privateMsg.TextXAlignment = Enum.TextXAlignment.Left
+privateMsg.TextYAlignment = Enum.TextYAlignment.Top
+privateMsg.TextWrapped = true
+privateMsg.Visible = false
+privateMsg.Parent = main
+Instance.new("UICorner", privateMsg).CornerRadius = UDim.new(0, 10)
+do
+	local pad = Instance.new("UIPadding", privateMsg)
+	pad.PaddingLeft = UDim.new(0, 10)
+	pad.PaddingTop = UDim.new(0, 8)
+end
+
+-- Scroll list
+local scroll = Instance.new("ScrollingFrame")
+scroll.Name = "List"
+scroll.Size = UDim2.new(1, -24, 0, 200)
+scroll.Position = UDim2.new(0, 12, 0, 98)
+scroll.BackgroundColor3 = Color3.fromRGB(18, 20, 26)
+scroll.BorderSizePixel = 0
+scroll.ScrollBarThickness = 6
+scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scroll.Parent = main
+Instance.new("UICorner", scroll).CornerRadius = UDim.new(0, 10)
+local listLayout = Instance.new("UIListLayout")
+listLayout.Padding = UDim.new(0, 6)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Parent = scroll
+
+-- Join section
+local joinY = 308
+local joinLabel = Instance.new("TextLabel")
+joinLabel.Size = UDim2.new(1, -24, 0, 22)
+joinLabel.Position = UDim2.new(0, 16, 0, joinY - 4)
+joinLabel.BackgroundTransparency = 1
+joinLabel.Text = "Join server"
+joinLabel.TextColor3 = Color3.fromRGB(180, 190, 220)
+joinLabel.TextSize = 13
+joinLabel.Font = Enum.Font.Gotham
+joinLabel.TextXAlignment = Enum.TextXAlignment.Left
+joinLabel.Parent = main
+
+local rejoinBtn = Instance.new("TextButton")
+rejoinBtn.Size = UDim2.new(0.48, -6, 0, 36)
+rejoinBtn.Position = UDim2.new(0, 12, 0, joinY + 22)
+rejoinBtn.BackgroundColor3 = Color3.fromRGB(50, 110, 180)
+rejoinBtn.BorderSizePixel = 0
+rejoinBtn.Text = "Rejoin"
+rejoinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+rejoinBtn.TextSize = 14
+rejoinBtn.Font = Enum.Font.GothamBold
+rejoinBtn.Parent = main
+Instance.new("UICorner", rejoinBtn).CornerRadius = UDim.new(0, 8)
+
+local newServerBtn = Instance.new("TextButton")
+newServerBtn.Size = UDim2.new(0.48, -6, 0, 36)
+newServerBtn.Position = UDim2.new(0.52, 6, 0, joinY + 22)
+newServerBtn.BackgroundColor3 = Color3.fromRGB(45, 130, 75)
+newServerBtn.BorderSizePixel = 0
+newServerBtn.Text = "New server"
+newServerBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+newServerBtn.TextSize = 14
+newServerBtn.Font = Enum.Font.GothamBold
+newServerBtn.Parent = main
+Instance.new("UICorner", newServerBtn).CornerRadius = UDim.new(0, 8)
+
+-- Hint
+local hint = Instance.new("TextLabel")
+hint.Size = UDim2.new(1, -24, 0, 32)
+hint.Position = UDim2.new(0, 16, 0, main.AbsoluteSize.Y - 50)
+hint.BackgroundTransparency = 1
+hint.Text = "Press J to toggle • High rarity = better"
+hint.TextColor3 = Color3.fromRGB(100, 110, 130)
+hint.TextSize = 11
+hint.Font = Enum.Font.Gotham
+hint.TextXAlignment = Enum.TextXAlignment.Left
+hint.TextWrapped = true
+hint.Parent = main
+
+main.Visible = false
+
+local function rarityColor(rarity)
+	return RARITY_COLORS[rarity] or RARITY_COLORS.Unknown
+end
+
+local function buildListEntry(data)
+	local row = Instance.new("Frame")
+	row.Size = UDim2.new(1, -8, 0, 32)
+	row.BackgroundColor3 = Color3.fromRGB(28, 30, 38)
+	row.BorderSizePixel = 0
+	Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
+
+	local pill = Instance.new("TextLabel")
+	pill.Size = UDim2.new(0, 0, 0, 20)
+	pill.Position = UDim2.new(0, 8, 0.5, -10)
+	pill.BackgroundColor3 = rarityColor(data.rarity)
+	pill.BorderSizePixel = 0
+	pill.Text = " " .. data.rarity .. " "
+	pill.TextColor3 = Color3.fromRGB(255, 255, 255)
+	pill.TextSize = 11
+	pill.Font = Enum.Font.GothamBold
+	pill.TextXAlignment = Enum.TextXAlignment.Left
+	pill.Parent = row
+	Instance.new("UICorner", pill).CornerRadius = UDim.new(1, 0)
+	local pillPadding = Instance.new("UIPadding", pill)
+	pillPadding.PaddingLeft = UDim.new(0, 6)
+	pillPadding.PaddingRight = UDim.new(0, 6)
+	pill.AutomaticSize = Enum.AutomaticSize.X
+
+	local nameLabel = Instance.new("TextLabel")
+	nameLabel.Size = UDim2.new(1, -100, 0, 28)
+	nameLabel.Position = UDim2.new(0, 90, 0, 2)
+	nameLabel.BackgroundTransparency = 1
+	nameLabel.Text = data.displayName
+	nameLabel.TextColor3 = Color3.fromRGB(230, 232, 240)
+	nameLabel.TextSize = 13
+	nameLabel.Font = Enum.Font.Gotham
+	nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+	nameLabel.TextTruncate = Enum.TextTruncate.AtEnd
+	nameLabel.Parent = row
+
+	return row
+end
+
+local function refreshBrainrotList()
+	if isPrivateServer() then
+		privateMsg.Visible = true
+		scroll.Visible = false
+		countLabel.Text = "Private server — join a public server to scan"
+		for _, child in ipairs(scroll:GetChildren()) do
+			if child:IsA("Frame") then child:Destroy() end
+		end
+		return
+	end
+
+	privateMsg.Visible = false
+	scroll.Visible = true
+	local found = scanWorkspaceForBrainrots()
+	countLabel.Text = #found .. " brainrot" .. (#found == 1 and "" or "s") .. " on server"
+
+	for _, child in ipairs(scroll:GetChildren()) do
+		if child:IsA("Frame") then child:Destroy() end
+	end
+
+	for i, data in ipairs(found) do
+		local row = buildListEntry(data)
+		row.LayoutOrder = i
+		row.Parent = scroll
+	end
+end
+
+local panelOpen = false
+local function setPanelOpen(open)
+	panelOpen = open
+	main.Visible = open
+	if open then
+		refreshBrainrotList()
+		toggleBtn.Text = "✕"
+	else
+		toggleBtn.Text = "🧠"
+	end
+end
+
+toggleBtn.MouseButton1Click:Connect(function()
+	setPanelOpen(not panelOpen)
+end)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.J then
+		setPanelOpen(not panelOpen)
+	end
+end)
+
+rejoinBtn.MouseButton1Click:Connect(function()
+	pcall(function()
+		TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId)
+	end)
+end)
+
+newServerBtn.MouseButton1Click:Connect(function()
+	pcall(function()
+		TeleportService:Teleport(game.PlaceId)
+	end)
+end)
+
+-- Popup when high-priority brainrot appears
+local popup = Instance.new("Frame")
+popup.Size = UDim2.new(0, 300, 0, 70)
+popup.Position = UDim2.new(1, -316, 0, 20)
+popup.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
+popup.BorderSizePixel = 0
+popup.Visible = false
+popup.Parent = sg
+Instance.new("UICorner", popup).CornerRadius = UDim.new(0, 12)
+local popStroke = Instance.new("UIStroke")
+popStroke.Thickness = 2
+popStroke.Parent = popup
+local popTitle = Instance.new("TextLabel")
+popTitle.Size = UDim2.new(1, -16, 0, 24)
+popTitle.Position = UDim2.new(0, 10, 0, 8)
+popTitle.BackgroundTransparency = 1
+popTitle.Text = "Brainrot on server!"
+popTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+popTitle.TextSize = 16
+popTitle.Font = Enum.Font.GothamBold
+popTitle.TextXAlignment = Enum.TextXAlignment.Left
+popTitle.Parent = popup
+local popDesc = Instance.new("TextLabel")
+popDesc.Size = UDim2.new(1, -16, 0, 36)
+popDesc.Position = UDim2.new(0, 10, 0, 32)
+popDesc.BackgroundTransparency = 1
+popDesc.Text = ""
+popDesc.TextColor3 = Color3.fromRGB(180, 190, 210)
+popDesc.TextSize = 13
+popDesc.Font = Enum.Font.Gotham
+popDesc.TextXAlignment = Enum.TextXAlignment.Left
+popDesc.TextWrapped = true
+popDesc.Parent = popup
+
+local function showPopup(displayName, rarity)
+	popTitle.Text = (rarity == "OG" or rarity == "Secret") and "High value!" or "Brainrot on server!"
+	popDesc.Text = displayName .. " • " .. rarity
+	popStroke.Color = rarityColor(rarity)
+	popup.Visible = true
+	popup.Position = UDim2.new(1, 20, 0, 20)
+	local tweenIn = TweenService:Create(popup, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Position = UDim2.new(1, -316, 0, 20) })
+	tweenIn:Play()
+	task.delay(4, function()
+		local tweenOut = TweenService:Create(popup, TweenInfo.new(0.2), { Position = UDim2.new(1, 20, 0, 20) })
+		tweenOut:Play()
+		tweenOut.Completed:Connect(function()
+			popup.Visible = false
+		end)
+	end)
+end
+
+-- Background scan: task.wait (no Heartbeat = no FPS drop). Only runs on public servers.
+local lastNotifyTime = 0
+task.spawn(function()
+	while true do
+		task.wait(CHECK_INTERVAL)
+		if isPrivateServer() then continue end
+		local found = scanWorkspaceForBrainrots()
+		if panelOpen then refreshBrainrotList() end
+		if #found > 0 then
+			local best = found[1]
+			local now = tick()
+			if best.order >= RARITY_ORDER.Secret and (now - lastNotifyTime) >= NOTIFY_COOLDOWN then
+				lastNotifyTime = now
+				showPopup(best.displayName, best.rarity)
+			end
+		end
+	end
+end)
+
+print("[Steal a Brainrot Notifier] Loaded. Press J to see brainrots on this server.")
