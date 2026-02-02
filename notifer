@@ -1,0 +1,113 @@
+-- ============ Join Server UI ============
+local joinGui = Instance.new("ScreenGui")
+joinGui.Name = "JoinServerGui"
+joinGui.ResetOnSpawn = false
+joinGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+joinGui.Parent = playerGui
+
+local joinFrame = Instance.new("Frame")
+joinFrame.Name = "JoinFrame"
+joinFrame.Size = UDim2.new(0, 200, 0, 140)
+joinFrame.Position = UDim2.new(0, 20, 0.5, -70)
+joinFrame.AnchorPoint = Vector2.new(0, 0.5)
+joinFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+joinFrame.BorderSizePixel = 0
+joinFrame.Parent = joinGui
+
+local joinCorner = Instance.new("UICorner")
+joinCorner.CornerRadius = UDim.new(0, 12)
+joinCorner.Parent = joinFrame
+
+local joinStroke = Instance.new("UIStroke")
+joinStroke.Color = Color3.fromRGB(80, 180, 255)
+joinStroke.Thickness = 2
+joinStroke.Parent = joinFrame
+
+local joinTitle = Instance.new("TextLabel")
+joinTitle.Size = UDim2.new(1, -16, 0, 28)
+joinTitle.Position = UDim2.new(0, 8, 0, 8)
+joinTitle.BackgroundTransparency = 1
+joinTitle.Text = "Join Server"
+joinTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+joinTitle.TextSize = 16
+joinTitle.Font = Enum.Font.GothamBold
+joinTitle.TextXAlignment = Enum.TextXAlignment.Left
+joinTitle.Parent = joinFrame
+
+local rejoinBtn = Instance.new("TextButton")
+rejoinBtn.Name = "RejoinBtn"
+rejoinBtn.Size = UDim2.new(1, -16, 0, 32)
+rejoinBtn.Position = UDim2.new(0, 8, 0, 38)
+rejoinBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 180)
+rejoinBtn.BorderSizePixel = 0
+rejoinBtn.Text = "Rejoin this server"
+rejoinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+rejoinBtn.TextSize = 14
+rejoinBtn.Font = Enum.Font.Gotham
+rejoinBtn.Parent = joinFrame
+Instance.new("UICorner", rejoinBtn).CornerRadius = UDim.new(0, 6)
+
+local newServerBtn = Instance.new("TextButton")
+newServerBtn.Name = "NewServerBtn"
+newServerBtn.Size = UDim2.new(1, -16, 0, 32)
+newServerBtn.Position = UDim2.new(0, 8, 0, 76)
+newServerBtn.BackgroundColor3 = Color3.fromRGB(60, 140, 80)
+newServerBtn.BorderSizePixel = 0
+newServerBtn.Text = "Join new server"
+newServerBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+newServerBtn.TextSize = 14
+newServerBtn.Font = Enum.Font.Gotham
+newServerBtn.Parent = joinFrame
+Instance.new("UICorner", newServerBtn).CornerRadius = UDim.new(0, 6)
+
+local toggleJoinBtn = Instance.new("TextButton")
+toggleJoinBtn.Name = "ToggleJoin"
+toggleJoinBtn.Size = UDim2.new(0, 100, 0, 28)
+toggleJoinBtn.Position = UDim2.new(0, 20, 0, 20)
+toggleJoinBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+toggleJoinBtn.BorderSizePixel = 0
+toggleJoinBtn.Text = "Join Server (J)"
+toggleJoinBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+toggleJoinBtn.TextSize = 12
+toggleJoinBtn.Font = Enum.Font.Gotham
+toggleJoinBtn.Parent = joinGui
+Instance.new("UICorner", toggleJoinBtn).CornerRadius = UDim.new(0, 6)
+joinFrame.Visible = false
+
+local function rejoinThisServer()
+	local ok, err = pcall(function()
+		TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId)
+	end)
+	if not ok then
+		warn("[Join Server] Rejoin failed:", err)
+	end
+end
+
+local function joinNewServer()
+	local ok, err = pcall(function()
+		TeleportService:Teleport(game.PlaceId)
+	end)
+	if not ok then
+		warn("[Join Server] Join new failed:", err)
+	end
+end
+
+rejoinBtn.MouseButton1Click:Connect(rejoinThisServer)
+newServerBtn.MouseButton1Click:Connect(joinNewServer)
+
+local joinPanelVisible = false
+local function toggleJoinPanel()
+	joinPanelVisible = not joinPanelVisible
+	joinFrame.Visible = joinPanelVisible
+end
+
+toggleJoinBtn.MouseButton1Click:Connect(toggleJoinPanel)
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.J then
+		toggleJoinPanel()
+	end
+end)
+-- =========================================
+
+local function getPriority(name)
