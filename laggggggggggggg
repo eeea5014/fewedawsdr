@@ -1,0 +1,51 @@
+local ui = require(script.Parent.Parent.ui)
+
+local x, y = ui.X, ui.Y
+
+local function create_buttons()
+    local function on_click(button)
+        if button.Name == "Start" then
+            -- Start the lagger
+        elseif button.Name == "Stop" then
+            -- Stop the lagger
+        end
+    end
+
+    local buttons = {
+        {
+            Name = "Start",
+            Text = "Start",
+            Position = UDim2.new(0, 100, 0, 50),
+            Size = UDim2.new(1, -20, 1, -20),
+            ZIndex = 1,
+            OnClick = on_click,
+            MouseButton1Click = on_click,
+        },
+        {
+            Name = "Stop",
+            Text = "Stop",
+            Position = UDim2.new(0, 100, 0, 10),
+            Size = UDim2.new(1, -20, 1, -20),
+            ZIndex = 1,
+            OnClick = on_click,
+            MouseButton1Click = on_click,
+        },
+    }
+
+    for _, button in ipairs(buttons) do
+        ui.CreateButton(button.Name, button.Position, button.Size, button.ZIndex, button.Text, button.OnClick, button.MouseButton1Click)
+    end
+end
+
+local function start_lagger()
+    -- Start the lagger
+end
+
+local function stop_lagger()
+    -- Stop the lagger
+end
+
+ui.CreateButton("Start", UDim2.new(0, 100, 0, 50), UDim2.new(1, -20, 1, -20), 1, "Start", function() start_lagger() end)
+ui.CreateButton("Stop", UDim2.new(0, 100, 0, 10), UDim2.new(1, -20, 1, -20), 1, "Stop", function() stop_lagger() end)
+
+create_buttons
