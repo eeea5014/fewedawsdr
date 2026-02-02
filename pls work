@@ -1,0 +1,408 @@
+-- XYZ PAID - Brainrot Stealer Script (FIXED TELEPORT)
+-- Fixed teleportation system using proper methods
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+local LocalPlayer = Players.LocalPlayer
+
+-- Wait for character
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+local Humanoid = Character:WaitForChild("Humanoid")
+
+-- Configuration
+local Config = {
+    Enabled = true,
+    TeleportEnabled = true,
+    SavedPosition = nil,
+    StealKey = Enum.KeyCode.E,
+    SetPositionKey = Enum.KeyCode.T,
+    ToggleTeleportKey = Enum.KeyCode.Y,
+    StealDistance = 50,
+    StealDelay = 0.2
+}
+
+-- UI Setup
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "XYZ_PAID_GUI"
+ScreenGui.Parent = game:GetService("CoreGui")
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 300, 0, 200)
+MainFrame.Position = UDim2.new(0.05, 0, 0.3, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = MainFrame
+
+-- Title Bar
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 35)
+TitleBar.BackgroundColor3 = Color3.fromRGB(147, 0, 211)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 10)
+TitleCorner.Parent = TitleBar
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 1, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "🔥 XYZ PAID BRAINROT STEALER 🔥"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBlack
+Title.TextSize = 16
+Title.Parent = TitleBar
+
+-- Status Frame
+local StatusFrame = Instance.new("Frame")
+StatusFrame.Size = UDim2.new(1, -20, 0, 120)
+StatusFrame.Position = UDim2.new(0, 10, 0, 45)
+StatusFrame.BackgroundTransparency = 1
+StatusFrame.Parent = MainFrame
+
+local PositionLabel = Instance.new("TextLabel")
+PositionLabel.Size = UDim2.new(1, 0, 0, 25)
+PositionLabel.BackgroundTransparency = 1
+PositionLabel.Text = "📍 Position: NOT SET"
+PositionLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+PositionLabel.Font = Enum.Font.GothamBold
+PositionLabel.TextSize = 14
+PositionLabel.TextXAlignment = Enum.TextXAlignment.Left
+PositionLabel.Parent = StatusFrame
+
+local TeleportStatus = Instance.new("TextLabel")
+TeleportStatus.Size = UDim2.new(1, 0, 0, 25)
+TeleportStatus.Position = UDim2.new(0, 0, 0, 30)
+TeleportStatus.BackgroundTransparency = 1
+TeleportStatus.Text = "🌀 Auto-Return: ON"
+TeleportStatus.TextColor3 = Color3.fromRGB(80, 255, 80)
+TeleportStatus.Font = Enum.Font.GothamBold
+TeleportStatus.TextSize = 14
+TeleportStatus.TextXAlignment = Enum.TextXAlignment.Left
+TeleportStatus.Parent = StatusFrame
+
+local CarpetStatus = Instance.new("TextLabel")
+CarpetStatus.Size = UDim2.new(1, 0, 0, 25)
+CarpetStatus.Position = UDim2.new(0, 0, 0, 60)
+CarpetStatus.BackgroundTransparency = 1
+CarpetStatus.Text = "🧶 Carpet: Checking..."
+CarpetStatus.TextColor3 = Color3.fromRGB(255, 255, 100)
+CarpetStatus.Font = Enum.Font.GothamBold
+CarpetStatus.TextSize = 14
+CarpetStatus.TextXAlignment = Enum.TextXAlignment.Left
+CarpetStatus.Parent = StatusFrame
+
+local Instructions = Instance.new("TextLabel")
+Instructions.Size = UDim2.new(1, 0, 0, 30)
+Instructions.Position = UDim2.new(0, 0, 0, 90)
+Instructions.BackgroundTransparency = 1
+Instructions.Text = "[T] Set  [Y] Toggle  [E] Steal"
+Instructions.TextColor3 = Color3.fromRGB(200, 200, 200)
+Instructions.Font = Enum.Font.Gotham
+Instructions.TextSize = 12
+Instructions.TextXAlignment = Enum.TextXAlignment.Center
+Instructions.Parent = StatusFrame
+
+-- Action Button
+local StealButton = Instance.new("TextButton")
+StealButton.Size = UDim2.new(1, -20, 0, 30)
+StealButton.Position = UDim2.new(0, 10, 0, 170)
+StealButton.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+StealButton.Text = "STEAL BRAINROT"
+StealButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+StealButton.Font = Enum.Font.GothamBlack
+StealButton.TextSize = 14
+StealButton.Parent = MainFrame
+
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0, 8)
+ButtonCorner.Parent = StealButton
+
+-- Notification System
+local function Notify(text, color)
+    local notif = Instance.new("TextLabel")
+    notif.Size = UDim2.new(0, 250, 0, 35)
+    notif.Position = UDim2.new(0.5, -125, 0.1, -50)
+    notif.BackgroundColor3 = color or Color3.fromRGB(50, 50, 50)
+    notif.Text = text
+    notif.TextColor3 = Color3.fromRGB(255, 255, 255)
+    notif.Font = Enum.Font.GothamBold
+    notif.TextSize = 14
+    notif.Parent = ScreenGui
+    
+    local nc = Instance.new("UICorner")
+    nc.CornerRadius = UDim.new(0, 8)
+    nc.Parent = notif
+    
+    TweenService:Create(notif, TweenInfo.new(0.3), {Position = UDim2.new(0.5, -125, 0.1, 0)}):Play()
+    wait(2)
+    TweenService:Create(notif, TweenInfo.new(0.3), {Position = UDim2.new(0.5, -125, 0.1, -50)}):Play()
+    wait(0.3)
+    notif:Destroy()
+end
+
+-- FIXED TELEPORT FUNCTION
+local function SafeTeleport(targetCFrame)
+    if not HumanoidRootPart then return false end
+    
+    -- Method 1: Direct CFrame setting (most reliable)
+    local success = pcall(function()
+        HumanoidRootPart.CFrame = targetCFrame
+    end)
+    
+    if not success then
+        -- Method 2: If that fails, try with velocity reset
+        pcall(function()
+            HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+            HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
+            HumanoidRootPart.CFrame = targetCFrame
+        end)
+    end
+    
+    return success
+end
+
+-- Check if holding carpet
+local function IsHoldingCarpet()
+    if not Character then return false end
+    
+    for _, item in pairs(Character:GetChildren()) do
+        if item:IsA("Tool") then
+            local name = item.Name:lower()
+            if name:find("carpet") or name:find("magic") or name:find("fly") or name:find("rug") then
+                return true, item
+            end
+        end
+    end
+    return false, nil
+end
+
+-- Find targets with brainrot
+local function FindTargets()
+    local targets = {}
+    if not HumanoidRootPart then return targets end
+    
+    local myPos = HumanoidRootPart.Position
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local targetChar = player.Character
+            local targetHRP = targetChar:FindFirstChild("HumanoidRootPart")
+            local targetHumanoid = targetChar:FindFirstChild("Humanoid")
+            
+            if targetHRP and targetHumanoid and targetHumanoid.Health > 0 then
+                local distance = (targetHRP.Position - myPos).Magnitude
+                
+                if distance <= Config.StealDistance then
+                    -- Check for brainrot items
+                    local hasBrainrot = false
+                    for _, item in pairs(targetChar:GetChildren()) do
+                        if item:IsA("Tool") or item:IsA("Accessory") then
+                            local name = item.Name:lower()
+                            if name:find("brainrot") or name:find("skibidi") or name:find("sigma") or 
+                               name:find("ohio") or name:find("rizz") or name:find("fanum") or
+                               name:find("gyatt") or name:find("kai cenat") then
+                                hasBrainrot = true
+                                break
+                            end
+                        end
+                    end
+                    
+                    table.insert(targets, {
+                        Player = player,
+                        Character = targetChar,
+                        HRP = targetHRP,
+                        Distance = distance,
+                        HasBrainrot = hasBrainrot,
+                        Position = targetHRP.Position
+                    })
+                end
+            end
+        end
+    end
+    
+    table.sort(targets, function(a, b) return a.Distance < b.Distance end)
+    return targets
+end
+
+-- MAIN STEAL FUNCTION
+local function ExecuteSteal()
+    if not Config.Enabled then
+        Notify("Stealer is Disabled!", Color3.fromRGB(255, 50, 50))
+        return
+    end
+    
+    if not Config.SavedPosition then
+        Notify("Set Position First! Press [T]", Color3.fromRGB(255, 100, 0))
+        return
+    end
+    
+    local hasCarpet, carpetTool = IsHoldingCarpet()
+    if not hasCarpet then
+        Notify("Equip Carpet First!", Color3.fromRGB(255, 50, 50))
+        CarpetStatus.Text = "🧶 Carpet: ❌ MISSING"
+        CarpetStatus.TextColor3 = Color3.fromRGB(255, 50, 50)
+        return
+    end
+    
+    local targets = FindTargets()
+    if #targets == 0 then
+        Notify("No Targets Nearby!", Color3.fromRGB(255, 100, 0))
+        return
+    end
+    
+    -- Get the closest target
+    local target = targets[1]
+    Notify("Stealing from: " .. target.Player.Name, Color3.fromRGB(0, 150, 255))
+    
+    -- Save current position if we want to return
+    local originalCFrame = HumanoidRootPart.CFrame
+    
+    -- TELEPORT TO TARGET (BEHIND THEM)
+    local targetPos = target.HRP.Position
+    local targetLook = target.HRP.CFrame.LookVector
+    local stealPos = targetPos - (targetLook * 5) + Vector3.new(0, 2, 0) -- 5 studs behind, 2 up
+    
+    local stealCFrame = CFrame.new(stealPos, targetPos) -- Look at target
+    
+    -- Perform teleport
+    SafeTeleport(stealCFrame)
+    wait(0.1)
+    
+    -- Activate carpet/stool for steal
+    pcall(function()
+        if carpetTool then
+            carpetTool:Activate()
+            -- Try to fire any remote events
+            for _, obj in pairs(carpetTool:GetDescendants()) do
+                if obj:IsA("RemoteEvent") then
+                    obj:FireServer(target.Player)
+                elseif obj:IsA("BindableEvent") then
+                    obj:Fire(target.Player)
+                end
+            end
+        end
+    end)
+    
+    -- Try to steal using character
+    pcall(function()
+        -- Common steal methods
+        local tool = Character:FindFirstChildOfClass("Tool")
+        if tool then
+            tool:Activate()
+            wait(0.1)
+            tool:Activate()
+        end
+        
+        -- Try backpack steal if game supports it
+        local backpack = LocalPlayer:FindFirstChild("Backpack")
+        if backpack then
+            for _, item in pairs(backpack:GetChildren()) do
+                if item:IsA("Tool") then
+                    item.Parent = Character
+                    wait(0.1)
+                    item:Activate()
+                    break
+                end
+            end
+        end
+    end)
+    
+    wait(Config.StealDelay)
+    
+    -- TELEPORT BACK if enabled
+    if Config.TeleportEnabled and Config.SavedPosition then
+        SafeTeleport(Config.SavedPosition)
+        Notify("Returned to Safe Position!", Color3.fromRGB(50, 255, 50))
+    else
+        Notify("Stole Successfully! (No Return)", Color3.fromRGB(255, 200, 50))
+    end
+end
+
+-- Set Position
+local function SetPosition()
+    if not HumanoidRootPart then
+        Notify("Character not loaded!", Color3.fromRGB(255, 50, 50))
+        return
+    end
+    
+    Config.SavedPosition = HumanoidRootPart.CFrame
+    local pos = Config.SavedPosition.Position
+    PositionLabel.Text = string.format("📍 Position: %.0f, %.0f, %.0f", pos.X, pos.Y, pos.Z)
+    PositionLabel.TextColor3 = Color3.fromRGB(80, 255, 80)
+    Notify("Position Saved!", Color3.fromRGB(50, 255, 50))
+end
+
+-- Toggle Teleport
+local function ToggleTeleport()
+    Config.TeleportEnabled = not Config.TeleportEnabled
+    if Config.TeleportEnabled then
+        TeleportStatus.Text = "🌀 Auto-Return: ON"
+        TeleportStatus.TextColor3 = Color3.fromRGB(80, 255, 80)
+        Notify("Auto-Return: ON", Color3.fromRGB(50, 255, 50))
+    else
+        TeleportStatus.Text = "🌀 Auto-Return: OFF"
+        TeleportStatus.TextColor3 = Color3.fromRGB(255, 80, 80)
+        Notify("Auto-Return: OFF", Color3.fromRGB(255, 100, 100))
+    end
+end
+
+-- Input Handling
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Config.SetPositionKey then
+        SetPosition()
+    elseif input.KeyCode == Config.ToggleTeleportKey then
+        ToggleTeleport()
+    elseif input.KeyCode == Config.StealKey then
+        ExecuteSteal()
+    end
+end)
+
+StealButton.MouseButton1Click:Connect(ExecuteSteal)
+
+-- Update carpet status loop
+spawn(function()
+    while wait(0.3) do
+        local hasCarpet = IsHoldingCarpet()
+        if hasCarpet then
+            CarpetStatus.Text = "🧶 Carpet: ✅ EQUIPPED"
+            CarpetStatus.TextColor3 = Color3.fromRGB(80, 255, 80)
+        else
+            CarpetStatus.Text = "🧶 Carpet: ❌ NOT EQUIPPED"
+            CarpetStatus.TextColor3 = Color3.fromRGB(255, 80, 80)
+        end
+    end
+end)
+
+-- Character respawn handler
+LocalPlayer.CharacterAdded:Connect(function(newChar)
+    Character = newChar
+    HumanoidRootPart = newChar:WaitForChild("HumanoidRootPart")
+    Humanoid = newChar:WaitForChild("Humanoid")
+    Notify("Character Respawned - Rejoining...", Color3.fromRGB(150, 150, 255))
+end)
+
+-- Button hover effects
+StealButton.MouseEnter:Connect(function()
+    TweenService:Create(StealButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 200, 255)}):Play()
+end)
+
+StealButton.MouseLeave:Connect(function()
+    TweenService:Create(StealButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 150, 255)}):Play()
+end)
+
+Notify("XYZ PAID Loaded! Press [T] to set position", Color3.fromRGB(147, 0, 211))
+print("🔥 XYZ PAID BRAINROT STEALER LOADED 🔥")
+print("Fixed teleportation system active")
