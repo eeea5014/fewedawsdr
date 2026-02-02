@@ -1,0 +1,478 @@
+--[[
+    STEAL A BRAINROT - BASE FINDER & ESP v4.0
+    Scans player bases for rare brainrots like Garama, secrets, etc.
+    NO WEBHOOK - Just pure detection and ESP
+    WORKS IN PUBLIC SERVERS - Finds rares in other players' bases
+]]
+
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+local camera = Workspace.CurrentCamera
+
+-- ═══════════════════════════════════════════════════════════════
+-- CONFIGURATION
+-- ═══════════════════════════════════════════════════════════════
+
+local ESP_ENABLED = true
+local BOX_ESP = true
+local NAME_ESP = true
+local DISTANCE_ESP = true
+
+-- What to highlight (set to true to enable ESP for that tier)
+local TRACK_OG = true        -- Strawberry Elephant, Skibidi Toilet, Meowl
+local TRACK_SECRET = true    -- Garama, Lucky Block exclusives
+local TRACK_GOD = true       -- Tralalero Tralala, etc.
+local TRACK_MYTHIC = true    -- Bombardiro Crocodilo, etc.
+local TRACK_LEGENDARY = false -- Sigma Boy, etc.
+local TRACK_EPIC = false
+local TRACK_RARE = false
+local TRACK_COMMON = false
+
+-- Scan settings
+local SCAN_INTERVAL = 1      -- Scan every 1 second
+local MAX_DISTANCE = 500     -- Max distance to show ESP
+
+-- ═══════════════════════════════════════════════════════════════
+-- BRAINROT DATABASE (300+ brainrots)
+-- ═══════════════════════════════════════════════════════════════
+
+local BRAINROTS = {
+    -- OG TIER (Worth $1000+ IRL)
+    ["Strawberry Elephant"] = {tier = "OG", color = Color3.fromRGB(255, 215, 0)},
+    ["Skibidi Toilet"] = {tier = "OG", color = Color3.fromRGB(255, 215, 0)},
+    ["Meowl"] = {tier = "OG", color = Color3.fromRGB(255, 215, 0)},
+    
+    -- SECRET TIER (Lucky Blocks, Events - INCLUDES GARAMA)
+    ["Garama"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Garama Garama"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Nuclearo Dinossauro"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["La Grande Combinasion"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Los 67"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Money Money Puggy"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Chillin Chili"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["La Extinct Grande"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Los Tacoritas"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Los Tortus"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Blackhole Goat"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Nooo My Hotspot"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Sammyini Spyderini"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Spaghetti Tualetti"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["67"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Los Noo My Hotspotsitos"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Celularcini Viciosini"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Tralaledon"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Tictac Sahur"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["La Supreme Combinasion"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Ketupat Kepat"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Ketchuru and Musturu"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Burguro and Fryuro"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Please my Present"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["La Grande"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["La Vacca Prese Presente"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Ho Ho Ho Sahur"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Chicleteira Noelteira"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Cooki and Milki"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["La Jolly Grande"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Capitano Moby"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Cerberus"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Las Sis"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["La Vacca Staturno Saturnita"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Chimpanzini Spiderini"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Extinct Tralalero"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Extinct Matteo"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Los Tralaleritos"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["La Karkerkar Combinasion"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Karker Sahur"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Las Tralaleritas"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Job Job Job Sahur"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Los Spyderrinis"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Perrito Burrito"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Graipuss Medussi"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    ["Los Jobcitos"] = {tier = "Secret", color = Color3.fromRGB(138, 43, 226)},
+    
+    -- BRAINROT GOD TIER
+    ["Tralalero Tralala"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Ballerina Cappuccina"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Coco Elefanto"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Girafa Celestre"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Gattatino Nyanino"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Chihuanini Taconini"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Matteo"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Espresso Signora"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Odin Din Din Dun"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Statutino Libertino"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Trenostruzzo Turbo 3000"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Ballerino Lololo"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Los Orcalitos"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Dug dug dug"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Tralalita Tralala"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Urubini Flamenguini"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Los Bombinitos"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Pop pop Sahur"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Ballerina Peppermintina"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Yeti Claus"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Ginger Globo"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Frio Ninja"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Ginger Cisterna"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Cacasito Satalito"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Aquanaut"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Tartaruga Cisterna"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Antonio"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    ["Cocofanto Elefanto"] = {tier = "Brainrot God", color = Color3.fromRGB(255, 69, 0)},
+    
+    -- MYTHIC TIER
+    ["Frigo Camelo"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Orangutini Ananassini"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Rhino Toasterino"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Bombardiro Crocodilo"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Bombombini Gusini"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Cavallo Virtuso"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Gorillo Watermelondrillo"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Avocadorilla"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Tob Tobi Tobi"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Ganganzelli Trulala"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Cachorrito Melonito"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Elefanto Frigo"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Toiletto Focaccino"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Te Te Te Sahur"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Tracoducotulu Delapeladustuz"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Lerulerulerule"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Jingle Jingle Sahur"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Tree Tree Tree Sahur"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Carloo"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Spioniro Golubiro"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Zibra Zubra Zibralini"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Tigrilini Watermelini"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Carrotini Brainini"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Bananito Bandito"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Brutto Gialutto"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Gorillo Subwoofero"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Rhino Helicopterino"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Magi Ribbitini"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Los Noobinis"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Jacko Spaventosa"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    ["Centrucci Nuclucci"] = {tier = "Mythic", color = Color3.fromRGB(255, 0, 255)},
+    
+    -- LEGENDARY TIER
+    ["Burbaloni Loliloli"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Chimpazini Bananini"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Chef Crabracadabra"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Lionel Cactuseli"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Glorbo Fruttodrillo"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Blueberrini Octopusini"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Strawberelli Flamingelli"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Pandaccini Bananini"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Cocosini Mama"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Sigma Boy"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Sigma Girl"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Pi Pi Watermelon"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Chocco Bunny"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Sealo Regalo"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Buho de Fuego"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Puffaball"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Caramello Filtrello"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Pipi Potato"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Quackula"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+    ["Signore Carapace"] = {tier = "Legendary", color = Color3.fromRGB(255, 165, 0)},
+}
+
+-- ═══════════════════════════════════════════════════════════════
+-- ESP SYSTEM
+-- ═══════════════════════════════════════════════════════════════
+
+local espObjects = {}
+
+local function createESP(object, name, tier, color)
+    -- Remove existing ESP
+    if espObjects[object] then
+        for _, v in pairs(espObjects[object]) do
+            if v then v:Remove() end
+        end
+    end
+    
+    local esp = {}
+    
+    -- Box ESP
+    if BOX_ESP then
+        local box = Drawing.new("Square")
+        box.Visible = false
+        box.Color = color
+        box.Thickness = 2
+        box.Filled = false
+        box.Transparency = 1
+        esp.Box = box
+    end
+    
+    -- Name ESP
+    if NAME_ESP then
+        local nameTag = Drawing.new("Text")
+        nameTag.Visible = false
+        nameTag.Color = color
+        nameTag.Size = 14
+        nameTag.Center = true
+        nameTag.Outline = true
+        nameTag.OutlineColor = Color3.fromRGB(0, 0, 0)
+        nameTag.Text = string.format("[%s] %s", tier, name)
+        esp.Name = nameTag
+    end
+    
+    -- Distance ESP
+    if DISTANCE_ESP then
+        local distTag = Drawing.new("Text")
+        distTag.Visible = false
+        distTag.Color = Color3.fromRGB(255, 255, 255)
+        distTag.Size = 12
+        distTag.Center = true
+        distTag.Outline = true
+        distTag.OutlineColor = Color3.fromRGB(0, 0, 0)
+        esp.Distance = distTag
+    end
+    
+    esp.Target = object
+    esp.Tier = tier
+    esp.Color = color
+    espObjects[object] = esp
+    
+    return esp
+end
+
+local function updateESP()
+    for object, esp in pairs(espObjects) do
+        if not object or not object.Parent then
+            -- Clean up deleted objects
+            for _, v in pairs(esp) do
+                if typeof(v) == "table" and v.Remove then
+                    v:Remove()
+                end
+            end
+            espObjects[object] = nil
+            continue
+        end
+        
+        local pos = nil
+        if object:IsA("Model") then
+            if object.PrimaryPart then
+                pos = object.PrimaryPart.Position
+            else
+                local part = object:FindFirstChildWhichIsA("BasePart")
+                if part then pos = part.Position end
+            end
+        elseif object:IsA("BasePart") then
+            pos = object.Position
+        end
+        
+        if pos then
+            local screenPos, onScreen = camera:WorldToViewportPoint(pos)
+            local distance = (pos - camera.CFrame.Position).Magnitude
+            
+            if onScreen and distance <= MAX_DISTANCE then
+                local scale = math.clamp(1000 / distance, 0.5, 3)
+                
+                if esp.Box then
+                    esp.Box.Size = Vector2.new(50 * scale, 50 * scale)
+                    esp.Box.Position = Vector2.new(screenPos.X - 25 * scale, screenPos.Y - 25 * scale)
+                    esp.Box.Visible = true
+                end
+                
+                if esp.Name then
+                    esp.Name.Position = Vector2.new(screenPos.X, screenPos.Y - 30 * scale)
+                    esp.Name.Visible = true
+                end
+                
+                if esp.Distance then
+                    esp.Distance.Text = string.format("[%dm]", math.floor(distance))
+                    esp.Distance.Position = Vector2.new(screenPos.X, screenPos.Y + 30 * scale)
+                    esp.Distance.Visible = true
+                end
+            else
+                if esp.Box then esp.Box.Visible = false end
+                if esp.Name then esp.Name.Visible = false end
+                if esp.Distance then esp.Distance.Visible = false end
+            end
+        end
+    end
+end
+
+-- ═══════════════════════════════════════════════════════════════
+-- SCANNING SYSTEM - FINDS BRAINROTS IN BASES
+-- ═══════════════════════════════════════════════════════════════
+
+local trackedObjects = {}
+
+local function shouldTrack(tier)
+    if tier == "OG" and TRACK_OG then return true end
+    if tier == "Secret" and TRACK_SECRET then return true end
+    if tier == "Brainrot God" and TRACK_GOD then return true end
+    if tier == "Mythic" and TRACK_MYTHIC then return true end
+    if tier == "Legendary" and TRACK_LEGENDARY then return true end
+    if tier == "Epic" and TRACK_EPIC then return true end
+    if tier == "Rare" and TRACK_RARE then return true end
+    if tier == "Common" and TRACK_COMMON then return true end
+    return false
+end
+
+local function scanObject(obj, location)
+    if not obj or not obj.Parent then return end
+    if trackedObjects[obj] then return end
+    
+    local name = obj.Name
+    local data = BRAINROTS[name]
+    
+    if not data then
+        -- Try to find name in descendants (for models with nametags)
+        for _, child in pairs(obj:GetDescendants()) do
+            if child:IsA("TextLabel") or child:IsA("TextBox") then
+                if child.Text and #child.Text > 0 then
+                    data = BRAINROTS[child.Text]
+                    if data then 
+                        name = child.Text
+                        break 
+                    end
+                end
+            end
+        end
+    end
+    
+    if data and shouldTrack(data.tier) then
+        trackedObjects[obj] = true
+        createESP(obj, name, data.tier, data.color)
+        print(string.format("🎯 FOUND: %s (%s) at %s", name, data.tier, location))
+    end
+end
+
+local function fullScan()
+    -- Scan all player bases
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= player then
+            -- Look for base with various naming patterns
+            local baseNames = {
+                p.Name .. "_Base",
+                p.Name .. "Base",
+                p.Name .. "_Plot",
+                p.Name .. "Plot",
+                p.Name .. "_Island",
+                p.Name .. "Island",
+                p.Name
+            }
+            
+            for _, baseName in pairs(baseNames) do
+                local base = Workspace:FindFirstChild(baseName)
+                if base and (base:IsA("Model") or base:IsA("Folder")) then
+                    for _, obj in pairs(base:GetDescendants()) do
+                        if obj:IsA("Model") or obj:IsA("BasePart") then
+                            scanObject(obj, p.Name .. "'s Base")
+                        end
+                    end
+                end
+            end
+            
+            -- Scan character
+            local char = p.Character
+            if char then
+                for _, obj in pairs(char:GetDescendants()) do
+                    if obj:IsA("Tool") or obj:IsA("Model") then
+                        scanObject(obj, p.Name .. " (Inventory)")
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Scan conveyor belt
+    local conveyorNames = {"Conveyor", "ConveyorBelt", "Belt", "SpawnConveyor", "MainConveyor", "RedConveyor"}
+    for _, name in pairs(conveyorNames) do
+        local conveyor = Workspace:FindFirstChild(name)
+        if conveyor then
+            for _, obj in pairs(conveyor:GetDescendants()) do
+                scanObject(obj, "Conveyor Belt")
+            end
+        end
+    end
+    
+    -- Scan workspace for loose brainrots
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        if obj:IsA("Model") or obj:IsA("BasePart") then
+            -- Check if it's a brainrot by name
+            if BRAINROTS[obj.Name] then
+                scanObject(obj, "Workspace")
+            end
+        end
+    end
+end
+
+-- ═══════════════════════════════════════════════════════════════
+-- GUI
+-- ═══════════════════════════════════════════════════════════════
+
+local function createGUI()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "BrainrotFinder"
+    gui.ResetOnSpawn = false
+    
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 250, 0, 120)
+    frame.Position = UDim2.new(0, 10, 0.5, -60)
+    frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    frame.BorderSizePixel = 0
+    frame.Parent = gui
+    
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+    
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 25)
+    title.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    title.Text = "🧠 BRAINROT FINDER"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 14
+    title.Parent = frame
+    Instance.new("UICorner", title).CornerRadius = UDim.new(0, 8)
+    
+    local status = Instance.new("TextLabel")
+    status.Name = "Status"
+    status.Size = UDim2.new(1, -10, 0, 80)
+    status.Position = UDim2.new(0, 5, 0, 30)
+    status.BackgroundTransparency = 1
+    status.Text = "Scanning..."
+    status.TextColor3 = Color3.fromRGB(0, 255, 0)
+    status.Font = Enum.Font.Code
+    status.TextSize = 11
+    status.TextWrapped = true
+    status.TextXAlignment = Enum.TextXAlignment.Left
+    status.TextYAlignment = Enum.TextYAlignment.Top
+    status.Parent = frame
+    
+    gui.Parent = player:WaitForChild("PlayerGui")
+    return status
+end
+
+local statusLabel = createGUI()
+
+-- ═══════════════════════════════════════════════════════════════
+-- MAIN LOOP
+-- ═══════════════════════════════════════════════════════════════
+
+local scanCount = 0
+local foundCount = 0
+
+RunService.RenderStepped:Connect(function()
+    updateESP()
+end)
+
+while true do
+    fullScan()
+    scanCount = scanCount + 1
+    
+    -- Count active ESP objects
+    foundCount = 0
+    for _ in pairs(espObjects) do foundCount = foundCount + 1 end
+    
+    statusLabel.Text = string.format(
+        "Scans: %d\nFound: %d brainrots\nTracking: OG Secret God Mythic",
+        scanCount, foundCount
+    )
+    
+    wait(SCAN_INTERVAL)
+end
