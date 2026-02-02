@@ -1,0 +1,377 @@
+-- XYZ PAID - Brainrot Stealer Script
+-- Features: Set Position, Teleport Toggle, Auto-Steal with Carpet
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- Configuration
+local Config = {
+    Enabled = false,
+    TeleportEnabled = true,
+    SavedPosition = nil,
+    StealKey = Enum.KeyCode.E,
+    SetPositionKey = Enum.KeyCode.T,
+    ToggleTeleportKey = Enum.KeyCode.Y,
+    StealDistance = 15,
+    TeleportOffset = CFrame.new(0, 3, 0)
+}
+
+-- UI Setup
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "XYZ_PAID_GUI"
+ScreenGui.Parent = game:GetService("CoreGui")
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 280, 0, 180)
+MainFrame.Position = UDim2.new(0.05, 0, 0.3, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+-- Title
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.BackgroundColor3 = Color3.fromRGB(147, 112, 219)
+Title.Text = "🔥 XYZ PAID BRAINROT STEALER 🔥"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 14
+Title.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 8)
+TitleCorner.Parent = Title
+
+-- Status Labels
+local StatusFrame = Instance.new("Frame")
+StatusFrame.Size = UDim2.new(1, -20, 0, 100)
+StatusFrame.Position = UDim2.new(0, 10, 0, 40)
+StatusFrame.BackgroundTransparency = 1
+StatusFrame.Parent = MainFrame
+
+local PositionLabel = Instance.new("TextLabel")
+PositionLabel.Size = UDim2.new(1, 0, 0, 20)
+PositionLabel.Position = UDim2.new(0, 0, 0, 0)
+PositionLabel.BackgroundTransparency = 1
+PositionLabel.Text = "📍 Position: NOT SET"
+PositionLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+PositionLabel.Font = Enum.Font.Gotham
+PositionLabel.TextSize = 12
+PositionLabel.TextXAlignment = Enum.TextXAlignment.Left
+PositionLabel.Parent = StatusFrame
+
+local TeleportLabel = Instance.new("TextLabel")
+TeleportLabel.Size = UDim2.new(1, 0, 0, 20)
+TeleportLabel.Position = UDim2.new(0, 0, 0, 25)
+TeleportLabel.BackgroundTransparency = 1
+TeleportLabel.Text = "🌀 Teleport: ON"
+TeleportLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+TeleportLabel.Font = Enum.Font.Gotham
+TeleportLabel.TextSize = 12
+TeleportLabel.TextXAlignment = Enum.TextXAlignment.Left
+TeleportLabel.Parent = StatusFrame
+
+local CarpetLabel = Instance.new("TextLabel")
+CarpetLabel.Size = UDim2.new(1, 0, 0, 20)
+CarpetLabel.Position = UDim2.new(0, 0, 0, 50)
+CarpetLabel.BackgroundTransparency = 1
+CarpetLabel.Text = "🧶 Carpet: NOT EQUIPPED"
+CarpetLabel.TextColor3 = Color3.fromRGB(255, 255, 100)
+CarpetLabel.Font = Enum.Font.Gotham
+CarpetLabel.TextSize = 12
+CarpetLabel.TextXAlignment = Enum.TextXAlignment.Left
+CarpetLabel.Parent = StatusFrame
+
+-- Keybinds Info
+local KeybindsLabel = Instance.new("TextLabel")
+KeybindsLabel.Size = UDim2.new(1, 0, 0, 40)
+KeybindsLabel.Position = UDim2.new(0, 0, 0, 75)
+KeybindsLabel.BackgroundTransparency = 1
+KeybindsLabel.Text = "[T] Set Pos | [Y] Toggle TP | [E] Steal"
+KeybindsLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+KeybindsLabel.Font = Enum.Font.Gotham
+KeybindsLabel.TextSize = 10
+KeybindsLabel.TextXAlignment = Enum.TextXAlignment.Left
+KeybindsLabel.Parent = StatusFrame
+
+-- Toggle Button
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(1, -20, 0, 25)
+ToggleButton.Position = UDim2.new(0, 10, 0, 145)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+ToggleButton.Text = "STEALER: OFF"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.TextSize = 12
+ToggleButton.Parent = MainFrame
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 6)
+ToggleCorner.Parent = ToggleButton
+
+-- Dragging functionality
+local dragging, dragInput, dragStart, startPos
+
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+    end
+end)
+
+MainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+MainFrame.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- Functions
+local function UpdateUI()
+    if Config.SavedPosition then
+        local pos = Config.SavedPosition
+        PositionLabel.Text = string.format("📍 Position: %.1f, %.1f, %.1f", pos.X, pos.Y, pos.Z)
+        PositionLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+    else
+        PositionLabel.Text = "📍 Position: NOT SET"
+        PositionLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+    end
+    
+    if Config.TeleportEnabled then
+        TeleportLabel.Text = "🌀 Teleport: ON"
+        TeleportLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+    else
+        TeleportLabel.Text = "🌀 Teleport: OFF"
+        TeleportLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+    end
+    
+    if Config.Enabled then
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+        ToggleButton.Text = "STEALER: ON"
+    else
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+        ToggleButton.Text = "STEALER: OFF"
+    end
+end
+
+local function IsHoldingCarpet()
+    local backpack = LocalPlayer:FindFirstChild("Backpack")
+    local character = LocalPlayer.Character
+    if not character then return false end
+    
+    -- Check if carpet is equipped (in character)
+    for _, item in pairs(character:GetChildren()) do
+        if item:IsA("Tool") and (item.Name:lower():find("carpet") or item.Name:lower():find("magic")) then
+            return true
+        end
+    end
+    
+    -- Alternative: Check if specific carpet tool exists
+    if backpack then
+        for _, item in pairs(backpack:GetChildren()) do
+            if item:IsA("Tool") and item.Parent == character then
+                if item.Name:lower():find("carpet") or item.Name:lower():find("fly") or item.Name:lower():find("magic") then
+                    return true
+                end
+            end
+        end
+    end
+    
+    return false
+end
+
+local function FindBrainrotTargets()
+    local targets = {}
+    local myPos = HumanoidRootPart.Position
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local targetHRP = player.Character:FindFirstChild("HumanoidRootPart")
+            local targetHumanoid = player.Character:FindFirstChild("Humanoid")
+            
+            if targetHRP and targetHumanoid and targetHumanoid.Health > 0 then
+                local distance = (targetHRP.Position - myPos).Magnitude
+                if distance <= Config.StealDistance then
+                    -- Check if they have "brainrot" or valuable items
+                    local hasItem = false
+                    for _, item in pairs(player.Character:GetChildren()) do
+                        if item:IsA("Tool") or item:IsA("Accessory") then
+                            -- Look for valuable items (adjust based on game)
+                            if item.Name:lower():find("brainrot") or 
+                               item.Name:lower():find("rare") or 
+                               item.Name:lower():find("legendary") or
+                               item.Name:lower():find("exclusive") then
+                                hasItem = true
+                                break
+                            end
+                        end
+                    end
+                    
+                    if hasItem or distance <= 5 then -- Close range or has item
+                        table.insert(targets, {
+                            Player = player,
+                            Distance = distance,
+                            Position = targetHRP.Position
+                        })
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Sort by distance
+    table.sort(targets, function(a, b) return a.Distance < b.Distance end)
+    return targets
+end
+
+local function StealBrainrot()
+    if not Config.Enabled then return end
+    if not Config.SavedPosition then
+        warn("Set a position first! Press [T]")
+        return
+    end
+    
+    local targets = FindBrainrotTargets()
+    if #targets == 0 then
+        warn("No brainrot targets nearby!")
+        return
+    end
+    
+    local originalPosition = HumanoidRootPart.CFrame
+    
+    -- Teleport to target if enabled
+    for _, target in pairs(targets) do
+        -- Teleport to target
+        local targetCFrame = CFrame.new(target.Position + Vector3.new(0, 3, 0))
+        HumanoidRootPart.CFrame = targetCFrame
+        
+        wait(0.1)
+        
+        -- Attempt steal (game-specific, usually requires tool activation)
+        local character = LocalPlayer.Character
+        for _, tool in pairs(character:GetChildren()) do
+            if tool:IsA("Tool") then
+                -- Try to activate steal
+                pcall(function()
+                    tool:Activate()
+                    if tool:FindFirstChild("RemoteEvent") then
+                        tool.RemoteEvent:FireServer(target.Player)
+                    end
+                end)
+            end
+        end
+        
+        wait(0.2)
+        
+        -- Teleport back if enabled
+        if Config.TeleportEnabled then
+            HumanoidRootPart.CFrame = Config.SavedPosition * Config.TeleportOffset
+        end
+        
+        break -- Steal from one target at a time
+    end
+end
+
+local function SetPosition()
+    Config.SavedPosition = HumanoidRootPart.CFrame
+    UpdateUI()
+    
+    -- Visual feedback
+    local notification = Instance.new("TextLabel")
+    notification.Size = UDim2.new(0, 200, 0, 30)
+    notification.Position = UDim2.new(0.5, -100, 0.1, 0)
+    notification.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+    notification.Text = "📍 POSITION SAVED!"
+    notification.TextColor3 = Color3.fromRGB(255, 255, 255)
+    notification.Font = Enum.Font.GothamBold
+    notification.TextSize = 14
+    notification.Parent = ScreenGui
+    
+    local notifCorner = Instance.new("UICorner")
+    notifCorner.CornerRadius = UDim.new(0, 8)
+    notifCorner.Parent = notification
+    
+    game:GetService("TweenService"):Create(notification, TweenInfo.new(0.5), {Position = UDim2.new(0.5, -100, 0.15, 0)}):Play()
+    wait(1.5)
+    game:GetService("TweenService"):Create(notification, TweenInfo.new(0.5), {Position = UDim2.new(0.5, -100, 0.1, -50)}):Play()
+    wait(0.5)
+    notification:Destroy()
+end
+
+local function ToggleTeleport()
+    Config.TeleportEnabled = not Config.TeleportEnabled
+    UpdateUI()
+end
+
+local function ToggleStealer()
+    Config.Enabled = not Config.Enabled
+    UpdateUI()
+end
+
+-- Input Handling
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Config.SetPositionKey then
+        SetPosition()
+    elseif input.KeyCode == Config.ToggleTeleportKey then
+        ToggleTeleport()
+    elseif input.KeyCode == Config.StealKey then
+        if IsHoldingCarpet() then
+            StealBrainrot()
+        else
+            CarpetLabel.Text = "🧶 Carpet: REQUIRED!"
+            CarpetLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+            wait(1)
+            CarpetLabel.Text = "🧶 Carpet: NOT EQUIPPED"
+            CarpetLabel.TextColor3 = Color3.fromRGB(255, 255, 100)
+        end
+    end
+end)
+
+ToggleButton.MouseButton1Click:Connect(ToggleStealer)
+
+-- Loop to check carpet status
+spawn(function()
+    while wait(0.5) do
+        if IsHoldingCarpet() then
+            CarpetLabel.Text = "🧶 Carpet: EQUIPPED ✓"
+            CarpetLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+        else
+            CarpetLabel.Text = "🧶 Carpet: NOT EQUIPPED"
+            CarpetLabel.TextColor3 = Color3.fromRGB(255, 255, 100)
+        end
+    end
+end)
+
+-- Character respawn handler
+LocalPlayer.CharacterAdded:Connect(function(newChar)
+    Character = newChar
+    HumanoidRootPart = newChar:WaitForChild("HumanoidRootPart")
+end)
+
+UpdateUI()
+print("🔥 XYZ PAID BRAINROT STEALER LOADED 🔥")
+print("Controls: [T] Set Position | [Y] Toggle Teleport | [E] Steal (with carpet)")
