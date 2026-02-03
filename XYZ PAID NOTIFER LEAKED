@@ -1,0 +1,573 @@
+-- ========================================
+-- XYZ PAID NOTIFIER
+-- Scans for Secrets & OGs only
+-- ========================================
+
+local HttpService = game:GetService("HttpService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+-- ========================================
+-- CONFIGURATION
+-- ========================================
+
+local Config = {
+    GAME_ID = 124311897657957,
+    SCAN_INTERVAL = 3,
+    NOTIFICATION_ENABLED = true,
+    NOTIFICATION_DURATION = 10,
+    SOUND_ENABLED = true,
+    VIBRATION_ENABLED = true,
+    SCAN_PUBLIC_SERVERS = true,
+    SCAN_PLAYER_BASES = true,
+    PLAYER_BASE_KEYWORD = "Base",
+    DEBUG_MODE = true,
+    MAX_NOTIFICATIONS_PER_MINUTE = 20,
+    MIN_TIME_BETWEEN_SAME_BRAINROT = 15,
+    
+    -- SECRETS & OGs ONLY
+    NEEDED_BRAINROTS =
+        "Secret Brainrot",
+        "OG Brainrot",
+        "Legendary Secret",
+        "Mythic OG",
+        "Ancient Secret",
+        "Celestial OG",
+        "Divine Secret",
+        "Eternal OG"
+    }
+}
+
+-- ========================================
+-- MAIN NOTIFIER
+-- ========================================
+
+local XYZNotifier = {}
+XYZNotifier.isRunning = false
+XYZNotifier.foundBrainrots = {}
+XYZNotifier.notifications = {}
+XYZNotifier.notificationCount = 0
+XYZNotifier.lastNotificationTime = 0
+XYZNotifier.rateLimitCounter = 0
+XYZNotifier.gui = nil
+
+-- ========================================
+-- GUI CREATION
+-- ========================================
+
+function XYZNotifier:CreateGui()
+    print("[XYZ] Creating GUI...")
+    
+    local playerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "XYZNotifierGui"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = playerGui
+    
+    -- Main Panel
+    local mainPanel = Instance.new("Frame")
+    mainPanel.Name = "MainPanel"
+    mainPanel.Size = UDim2.new(0, 450, 0, 600)
+    mainPanel.Position = UDim2.new(1, -470, 0, 20)
+    mainPanel.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    mainPanel.BorderSizePixel = 0
+    mainPanel.Parent = screenGui
+    
+    -- Corner radius
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = mainPanel
+    
+    -- Title Bar
+    local titleBar = Instance.new("Frame")
+    titleBar.Name = "TitleBar"
+    titleBar.Size = UDim2.new(1, 0, 0, 60)
+    titleBar.BackgroundColor3 = Color3.fromRGB(200, 50, 200)
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = mainPanel
+    
+    local titleCorner = Instance.new("UICorner")
+    titleCorner.CornerRadius = UDim.new(0, 12)
+    titleCorner.Parent = titleBar
+    
+    -- Title Text
+    local titleText = Instance.new("TextLabel")
+    titleText.Name = "TitleText"
+    titleText.Size = UDim2.new(1, -20, 1, 0)
+    titleText.Position = UDim2.new(0, 10, 0, 0)
+    titleText.BackgroundTransparency = 1
+    titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleText.TextSize = 18
+    titleText.Font = Enum.Font.GothamBold
+    titleText.Text = "🔥 XYZ PAID NOTIFIER 🔥"
+    titleText.TextXAlignment = Enum.TextXAlignment.Left
+    titleText.Parent = titleBar
+    
+    -- Status Indicator
+    local statusLight = Instance.new("Frame")
+    statusLight.Name = "StatusLight"
+    statusLight.Size = UDim2.new(0, 12, 0, 12)
+    statusLight.Position = UDim2.new(1, -25, 0.5, -6)
+    statusLight.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    statusLight.BorderSizePixel = 0
+    statusLight.Parent = titleBar
+    
+    local statusCorner = Instance.new("UICorner")
+    statusCorner.CornerRadius = UDim.new(0, 6)
+    statusCorner.Parent = statusLight
+    
+    self.statusLight = statusLight
+    
+    -- Content Frame
+    local contentFrame = Instance.new("Frame")
+    contentFrame.Name = "ContentFrame"
+    contentFrame.Size = UDim2.new(1, -20, 1, -100)
+    contentFrame.Position = UDim2.new(0, 10, 0, 70)
+    contentFrame.BackgroundTransparency = 1
+    contentFrame.Parent = mainPanel
+    
+    -- Scrolling List
+    local scrollingFrame = Instance.new("ScrollingFrame")
+    scrollingFrame.Name = "ScrollingFrame"
+    scrollingFrame.Size = UDim2.new(1, 0, 1, -60)
+    scrollingFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    scrollingFrame.BorderSizePixel = 0
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scrollingFrame.ScrollBarThickness = 6
+    scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(200, 50, 200)
+    scrollingFrame.Parent = contentFrame
+    
+    local scrollCorner = Instance.new("UICorner")
+    scrollCorner.CornerRadius = UDim.new(0, 8)
+    scrollCorner.Parent = scrollingFrame
+    
+    -- List Layout
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.Padding = UDim.new(0, 8)
+    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    listLayout.Parent = scrollingFrame
+    
+    self.scrollingFrame = scrollingFrame
+    self.listLayout = listLayout
+    
+    -- Stats Panel
+    local statsPanel = Instance.new("Frame")
+    statsPanel.Name = "StatsPanel"
+    statsPanel.Size = UDim2.new(1, 0, 0, 55)
+    statsPanel.Position = UDim2.new(0, 0, 1, -55)
+    statsPanel.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    statsPanel.BorderSizePixel = 0
+    statsPanel.Parent = contentFrame
+    
+    -- Stats Text
+    local statsText = Instance.new("TextLabel")
+    statsText.Name = "StatsText"
+    statsText.Size = UDim2.new(1, -10, 1, 0)
+    statsText.Position = UDim2.new(0, 5, 0, 0)
+    statsText.BackgroundTransparency = 1
+    statsText.TextColor3 = Color3.fromRGB(100, 255, 100)
+    statsText.TextSize = 12
+    statsText.Font = Enum.Font.Gotham
+    statsText.TextWrapped = true
+    statsText.TextXAlignment = Enum.TextXAlignment.Left
+    statsText.Text = "Found: 0 | Scanning: OFF"
+    statsText.Parent = statsPanel
+    
+    self.statsText = statsText
+    
+    -- Control Buttons
+    local buttonFrame = Instance.new("Frame")
+    buttonFrame.Name = "ButtonFrame"
+    buttonFrame.Size = UDim2.new(1, 0, 0, 35)
+    buttonFrame.Position = UDim2.new(0, 0, 1, -35)
+    buttonFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    buttonFrame.BorderSizePixel = 0
+    buttonFrame.Parent = mainPanel
+    
+    -- Start Button
+    local startButton = Instance.new("TextButton")
+    startButton.Name = "StartButton"
+    startButton.Size = UDim2.new(0.48, 0, 1, 0)
+    startButton.Position = UDim2.new(0, 5, 0, 0)
+    startButton.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+    startButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    startButton.TextSize = 14
+    startButton.Font = Enum.Font.GothamBold
+    startButton.Text = "▶ START"
+    startButton.BorderSizePixel = 0
+    startButton.Parent = buttonFrame
+    
+    local startCorner = Instance.new("UICorner")
+    startCorner.CornerRadius = UDim.new(0, 6)
+    startCorner.Parent = startButton
+    
+    -- Stop Button
+    local stopButton = Instance.new("TextButton")
+    stopButton.Name = "StopButton"
+    stopButton.Size = UDim2.new(0.48, 0, 1, 0)
+    stopButton.Position = UDim2.new(0.52, 0, 0, 0)
+    stopButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    stopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    stopButton.TextSize = 14
+    stopButton.Font = Enum.Font.GothamBold
+    stopButton.Text = "⏹ STOP"
+    stopButton.BorderSizePixel = 0
+    stopButton.Parent = buttonFrame
+    
+    local stopCorner = Instance.new("UICorner")
+    stopCorner.CornerRadius = UDim.new(0, 6)
+    stopCorner.Parent = stopButton
+    
+    -- Button Connections
+    startButton.MouseButton1Click:Connect(function()
+        self:Start()
+    end)
+    
+    stopButton.MouseButton1Click:Connect(function()
+        self:Stop()
+    end)
+    
+    self.gui = screenGui
+    self.mainPanel = mainPanel
+    print("[XYZ] GUI created successfully")
+end
+
+-- ========================================
+-- NOTIFICATION DISPLAY
+-- ========================================
+
+function XYZNotifier:DisplayNotification(brainrotName, player, serverName)
+    if not Config.NOTIFICATION_ENABLED then
+        return
+    end
+    
+    if not self.scrollingFrame then
+        return
+    end
+    
+    -- Create notification item
+    local notificationItem = Instance.new("Frame")
+    notificationItem.Name = "NotificationItem"
+    notificationItem.Size = UDim2.new(1, 0, 0, 60)
+    notificationItem.BackgroundColor3 = Color3.fromRGB(60, 20, 80)
+    notificationItem.BorderSizePixel = 0
+    notificationItem.Parent = self.scrollingFrame
+    
+    local itemCorner = Instance.new("UICorner")
+    itemCorner.CornerRadius = UDim.new(0, 8)
+    itemCorner.Parent = notificationItem
+    
+    -- Icon
+    local icon = Instance.new("TextLabel")
+    icon.Name = "Icon"
+    icon.Size = UDim2.new(0, 30, 1, 0)
+    icon.Position = UDim2.new(0, 5, 0, 0)
+    icon.BackgroundTransparency = 1
+    icon.TextColor3 = Color3.fromRGB(255, 200, 0)
+    icon.TextSize = 20
+    icon.Font = Enum.Font.GothamBold
+    icon.Text = "⭐"
+    icon.Parent = notificationItem
+    
+    -- Info Text
+    local infoText = Instance.new("TextLabel")
+    infoText.Name = "InfoText"
+    infoText.Size = UDim2.new(1, -50, 0.5, 0)
+    infoText.Position = UDim2.new(0, 40, 0, 5)
+    infoText.BackgroundTransparency = 1
+    infoText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    infoText.TextSize = 12
+    infoText.Font = Enum.Font.GothamBold
+    infoText.TextWrapped = true
+    infoText.TextXAlignment = Enum.TextXAlignment.Left
+    infoText.Text = brainrotName
+    infoText.Parent = notificationItem
+    
+    -- Detail Text
+    local detailText = Instance.new("TextLabel")
+    detailText.Name = "DetailText"
+    detailText.Size = UDim2.new(1, -50, 0.5, 0)
+    detailText.Position = UDim2.new(0, 40, 0.5, 0)
+    detailText.BackgroundTransparency = 1
+    detailText.TextColor3 = Color3.fromRGB(150, 150, 150)
+    detailText.TextSize = 10
+    detailText.Font = Enum.Font.Gotham
+    detailText.TextWrapped = true
+    detailText.TextXAlignment = Enum.TextXAlignment.Left
+    detailText.Text = player .. " @ " .. serverName
+    detailText.Parent = notificationItem
+    
+    -- Update canvas size
+    self.listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        self.scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.listLayout.AbsoluteContentSize.Y)
+    end)
+    
+    -- Auto-remove after duration
+    game:GetService("Debris"):AddItem(notificationItem, Config.NOTIFICATION_DURATION)
+    
+    -- Play sound
+    if Config.SOUND_ENABLED then
+        self:PlaySound()
+    end
+    
+    -- Vibration
+    if Config.VIBRATION_ENABLED then
+        self:TriggerVibration()
+    end
+    
+    -- Update stats
+    self:UpdateStats()
+end
+
+-- ========================================
+-- SOUND & VIBRATION
+-- ========================================
+
+function XYZNotifier:PlaySound()
+    local sound = Instance.new("Sound")
+    sound.SoundId = "rbxassetid://6062677789"
+    sound.Volume = 1
+    sound.Parent = workspace
+    sound:Play()
+    game:GetService("Debris"):AddItem(sound, 2)
+end
+
+function XYZNotifier:TriggerVibration()
+    pcall(function()
+        game:GetService("HapticFeedbackService"):SetMotor(Enum.UserInputType.Gamepad1, Enum.VibrationMotor.Large, 0.8)
+        wait(0.1)
+        game:GetService("HapticFeedbackService"):SetMotor(Enum.UserInputType.Gamepad1, Enum.VibrationMotor.Large, 0)
+    end)
+end
+
+-- ========================================
+-- STATS MANAGEMENT
+-- ========================================
+
+function XYZNotifier:UpdateStats()
+    if not self.statsText then
+        return
+    end
+    
+    local totalFound = 0
+    for _ in pairs(self.foundBrainrots) do
+        totalFound = totalFound + 1
+    end
+    
+    local status = self.isRunning and "ON" or "OFF"
+    self.statsText.Text = "Found: " .. totalFound .. " | Scanning: " .. status
+end
+
+-- ========================================
+-- SERVER SCANNING
+-- ========================================
+
+function XYZNotifier:GetPublicServers()
+    local servers = {}
+    local gameId = Config.GAME_ID
+    
+    local success, response = pcall(function()
+        return HttpService:GetAsync(
+            "https://www.roblox.com/games/getgameinstances?placeId=" .. tostring(gameId),
+            true
+        )
+    end)
+    
+    if success then
+        local decoded = HttpService:JSONDecode(response)
+        if decoded and decoded.collection then
+            for _, server in ipairs(decoded.collection) do
+                table.insert(servers, {
+                    id = server.id,
+                    name = server.name or "Public Server",
+                    players = server.players or {},
+                    maxPlayers = server.maxPlayers or 50
+                })
+            end
+        end
+    end
+    
+    return servers
+end
+
+function XYZNotifier:GetPlayerBases()
+    local bases = {}
+    local gameId = Config.GAME_ID
+    
+    local success, response = pcall(function()
+        return HttpService:GetAsync(
+            "https://www.roblox.com/games/servers?placeId=" .. tostring(gameId) .. "&sortOrder=Asc&pageNumber=1",
+            true
+        )
+    end)
+    
+    if success then
+        local decoded = HttpService:JSONDecode(response)
+        if decoded and decoded.data then
+            for _, server in ipairs(decoded.data) do
+                if string.find(string.lower(server.name), string.lower(Config.PLAYER_BASE_KEYWORD)) then
+                    table.insert(bases, {
+                        id = server.id,
+                        name = server.name,
+                        players = server.players or {},
+                        maxPlayers = server.maxPlayers or 50
+                    })
+                end
+            end
+        end
+    end
+    
+    return bases
+end
+
+function XYZNotifier:GetPlayerBrainrots(player)
+    local brainrots = {}
+    
+    if player:FindFirstChild("Inventory") then
+        local inventory = player.Inventory
+        for _, item in ipairs(inventory:GetChildren()) do
+            if item:FindFirstChild("IsBrainrot") and item.IsBrainrot.Value then
+                table.insert(brainrots, {
+                    name = item.Name,
+                    rarity = item:FindFirstChild("Rarity") and item.Rarity.Value or "Unknown"
+                })
+            end
+        end
+    end
+    
+    return brainrots
+end
+
+function XYZNotifier:IsNeededBrainrot(brainrotName)
+    for _, needed in ipairs(Config.NEEDED_BRAINROTS) do
+        if string.lower(brainrotName) == string.lower(needed) then
+            return true
+        end
+    end
+    return false
+end
+
+-- ========================================
+-- MAIN SCANNING LOOP
+-- ========================================
+
+function XYZNotifier:ScanCycle()
+    if not self.isRunning then
+        return
+    end
+    
+    print("[XYZ] Scan cycle started")
+    
+    -- Get servers
+    local publicServers = Config.SCAN_PUBLIC_SERVERS and self:GetPublicServers() or {}
+    local playerBases = Config.SCAN_PLAYER_BASES and self:GetPlayerBases() or {}
+    
+    print("[XYZ] Found " .. #publicServers .. " public servers, " .. #playerBases .. " player bases")
+    
+    -- Combine servers
+    local allServers = {}
+    for _, server in ipairs(publicServers) do
+        table.insert(allServers, server)
+    end
+    for _, base in ipairs(playerBases) do
+        table.insert(allServers, base)
+    end
+    
+    -- Scan each server
+    for _, server in ipairs(allServers) do
+        if self.isRunning then
+            local brainrotsFound = false
+            
+            for _, player in ipairs(server.players) do
+                local playerObj = game.Players:FindFirstChild(player)
+                if playerObj then
+                    local brainrots = self:GetPlayerBrainrots(playerObj)
+                    for _, brainrot in ipairs(brainrots) do
+                        if self:IsNeededBrainrot(brainrot.name) then
+                            print("[XYZ] FOUND: " .. brainrot.name .. " owned by " .. player .. " in " .. server.name)
+                            
+                            self.foundBrainrots[brainrot.name] = (self.foundBrainrots[brainrot.name] or 0) + 1
+                            self:DisplayNotification(brainrot.name, player, server.name)
+                            brainrotsFound = true
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    print("[XYZ] Scan cycle completed")
+end
+
+-- ========================================
+-- MAIN CONTROL FUNCTIONS
+-- ========================================
+
+function XYZNotifier:Start()
+    if self.isRunning then
+        return
+    end
+    
+    print("[XYZ] Starting notifier...")
+    self.isRunning = true
+    
+    if self.statusLight then
+        self.statusLight.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+    end
+    
+    self:UpdateStats()
+    
+    -- Main loop
+    while self.isRunning do
+        local success, error = pcall(function()
+            self:ScanCycle()
+        end)
+        
+        if not success then
+            print("[XYZ ERROR] " .. tostring(error))
+        end
+        
+        wait(Config.SCAN_INTERVAL)
+    end
+end
+
+function XYZNotifier:Stop()
+    print("[XYZ] Stopping notifier...")
+    self.isRunning = false
+    
+    if self.statusLight then
+        self.statusLight.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    end
+    
+    self:UpdateStats()
+end
+
+-- ========================================
+-- INITIALIZATION
+-- ========================================
+
+print("[XYZ] Initializing XYZ Paid Notifier...")
+
+-- Create GUI
+XYZNotifier:CreateGui()
+
+-- Setup keyboard shortcuts
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then
+        return
+    end
+    
+    if input.KeyCode == Enum.KeyCode.F1 then
+        XYZNotifier:Start()
+    elseif input.KeyCode == Enum.KeyCode.F2 then
+        XYZNotifier:Stop()
+    elseif input.KeyCode == Enum.KeyCode.F3 then
+        if XYZNotifier.gui then
+            XYZNotifier.gui.Enabled = not XYZNotifier.gui.Enabled
+        end
+    end
+end)
+
+print("[XYZ] Ready! Press F1 to start, F2 to stop, F3 to toggle GUI")
+
+return XYZNotifier
