@@ -1,0 +1,209 @@
+-- Teleport Script with Carpet & GUI
+-- Place this as a LocalScript in StarterPlayer > StarterCharacterScripts
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- Settings
+local CARPET_NAME = "Carpet" -- Name of the carpet tool
+
+local teleportPoint = nil
+
+-- Function to check if player is holding carpet
+local function isPlayerHoldingCarpet()
+	local tool = player.Character:FindFirstChild(CARPET_NAME)
+	return tool ~= nil and tool:IsA("Tool")
+end
+
+-- Function to set teleport point
+local function setTeleportPoint()
+	if isPlayerHoldingCarpet() then
+		teleportPoint = humanoidRootPart.Position
+		updateGUI()
+	end
+end
+
+-- Function to teleport to point
+local function teleportToPoint()
+	if not isPlayerHoldingCarpet() then
+		return
+	end
+	
+	if teleportPoint == nil then
+		return
+	end
+	
+	humanoidRootPart.CFrame = CFrame.new(teleportPoint + Vector3.new(0, 3, 0))
+end
+
+-- Create GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "TeleportGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 280, 0, 200)
+mainFrame.Position = UDim2.new(0, 20, 0, 20)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+-- Add Stroke/Border
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8)
+corner.Parent = mainFrame
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(0, 150, 255)
+stroke.Thickness = 2
+stroke.Parent = mainFrame
+
+-- Title Label
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "Title"
+titleLabel.Size = UDim2.new(1, 0, 0, 40)
+titleLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+titleLabel.TextColor3 = Color3.fromRGB(0, 150, 255)
+titleLabel.TextSize = 18
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.Text = "🧞 Carpet Teleport"
+titleLabel.BorderSizePixel = 0
+titleLabel.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 8)
+titleCorner.Parent = titleLabel
+
+-- Status Label
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Name = "Status"
+statusLabel.Size = UDim2.new(1, -20, 0, 30)
+statusLabel.Position = UDim2.new(0, 10, 0, 50)
+statusLabel.BackgroundTransparency = 1
+statusLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+statusLabel.TextSize = 12
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+statusLabel.Text = "No point set"
+statusLabel.Parent = mainFrame
+
+-- Set Point Button
+local setPointBtn = Instance.new("TextButton")
+setPointBtn.Name = "SetPointBtn"
+setPointBtn.Size = UDim2.new(0.5, -7, 0, 35)
+setPointBtn.Position = UDim2.new(0, 10, 0, 90)
+setPointBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
+setPointBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+setPointBtn.TextSize = 13
+setPointBtn.Font = Enum.Font.GothamBold
+setPointBtn.Text = "Set Point [E]"
+setPointBtn.BorderSizePixel = 0
+setPointBtn.Parent = mainFrame
+
+local setPointCorner = Instance.new("UICorner")
+setPointCorner.CornerRadius = UDim.new(0, 6)
+setPointCorner.Parent = setPointBtn
+
+-- Teleport Button
+local teleportBtn = Instance.new("TextButton")
+teleportBtn.Name = "TeleportBtn"
+teleportBtn.Size = UDim2.new(0.5, -7, 0, 35)
+teleportBtn.Position = UDim2.new(0.5, 4, 0, 90)
+teleportBtn.BackgroundColor3 = Color3.fromRGB(0, 160, 100)
+teleportBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+teleportBtn.TextSize = 13
+teleportBtn.Font = Enum.Font.GothamBold
+teleportBtn.Text = "Teleport [R]"
+teleportBtn.BorderSizePixel = 0
+teleportBtn.Parent = mainFrame
+
+local teleportCorner = Instance.new("UICorner")
+teleportCorner.CornerRadius = UDim.new(0, 6)
+teleportCorner.Parent = teleportBtn
+
+-- Clear Point Button
+local clearBtn = Instance.new("TextButton")
+clearBtn.Name = "ClearBtn"
+clearBtn.Size = UDim2.new(1, -20, 0, 25)
+clearBtn.Position = UDim2.new(0, 10, 0, 135)
+clearBtn.BackgroundColor3 = Color3.fromRGB(100, 30, 30)
+clearBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+clearBtn.TextSize = 11
+clearBtn.Font = Enum.Font.Gotham
+clearBtn.Text = "Clear Point"
+clearBtn.BorderSizePixel = 0
+clearBtn.Parent = mainFrame
+
+local clearCorner = Instance.new("UICorner")
+clearCorner.CornerRadius = UDim.new(0, 6)
+clearCorner.Parent = clearBtn
+
+-- Function to update GUI
+function updateGUI()
+	if teleportPoint then
+		statusLabel.Text = "✓ Point set | " .. string.format("(%.0f, %.0f, %.0f)", teleportPoint.X, teleportPoint.Y, teleportPoint.Z)
+	else
+		statusLabel.Text = "✗ No point set"
+	end
+end
+
+-- Button interactions
+setPointBtn.MouseButton1Click:Connect(function()
+	setTeleportPoint()
+end)
+
+teleportBtn.MouseButton1Click:Connect(function()
+	teleportToPoint()
+end)
+
+clearBtn.MouseButton1Click:Connect(function()
+	teleportPoint = nil
+	updateGUI()
+end)
+
+-- Hover effects
+local function setupHoverEffect(button, originalColor)
+	button.MouseEnter:Connect(function()
+		button.BackgroundColor3 = Color3.fromRGB(
+			math.min(originalColor.R + 0.2, 1) * 255,
+			math.min(originalColor.G + 0.2, 1) * 255,
+			math.min(originalColor.B + 0.2, 1) * 255
+		)
+	end)
+	
+	button.MouseLeave:Connect(function()
+		button.BackgroundColor3 = originalColor
+	end)
+end
+
+setupHoverEffect(setPointBtn, Color3.fromRGB(0, 120, 200))
+setupHoverEffect(teleportBtn, Color3.fromRGB(0, 160, 100))
+setupHoverEffect(clearBtn, Color3.fromRGB(100, 30, 30))
+
+-- Keyboard shortcuts
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	
+	if input.KeyCode == Enum.KeyCode.E then
+		setTeleportPoint()
+	elseif input.KeyCode == Enum.KeyCode.R then
+		teleportToPoint()
+	end
+end)
+
+-- Update character reference when respawning
+player.CharacterAdded:Connect(function(newCharacter)
+	character = newCharacter
+	humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+	teleportPoint = nil
+	updateGUI()
+end)
+
+updateGUI()
