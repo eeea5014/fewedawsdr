@@ -1,0 +1,406 @@
+--// FIXED TELEPORTATION SYSTEM
+--// Issues resolved: Mouse targeting, character updates, proper raycasting
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local mouse = player:GetMouse()
+
+--// CONFIGURATION
+local CONFIG = {
+    tweenDuration = 0.3,
+    tweenStyle = Enum.EasingStyle.Quad,
+    tweenDirection = Enum.EasingDirection.Out,
+    maxSavedLocations = 6,
+    teleportKey = Enum.KeyCode.T,
+    setPosKey = Enum.KeyCode.P,
+    toggleMouseKey = Enum.KeyCode.LeftShift,
+}
+
+--// STATE
+local savedLocations = {}
+local currentSetPosition = nil
+local mouseEnabled = false
+local character, humanoidRootPart
+
+--// CHARACTER SETUP
+local function setupCharacter()
+    character = player.Character or player.CharacterAdded:Wait()
+    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+    print("Character setup complete")
+end
+
+setupCharacter()
+player.CharacterAdded:Connect(setupCharacter)
+
+--// CREATE GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "TeleportGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 300, 0, 400)
+mainFrame.Position = UDim2.new(0, 20, 0.5, -200)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = mainFrame
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(1, 0, 0, 45)
+title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+title.BorderSizePixel = 0
+title.Text = "⚡ TELEPORT SYSTEM"
+title.TextColor3 = Color3.fromRGB(0, 255, 255)
+title.TextSize = 20
+title.Font = Enum.Font.GothamBold
+title.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 10)
+titleCorner.Parent = title
+
+-- Content
+local content = Instance.new("Frame")
+content.Name = "Content"
+content.Size = UDim2.new(1, -20, 1, -55)
+content.Position = UDim2.new(0, 10, 0, 50)
+content.BackgroundTransparency = 1
+content.Parent = mainFrame
+
+-- Status Display
+local statusFrame = Instance.new("Frame")
+statusFrame.Size = UDim2.new(1, 0, 0, 70)
+statusFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+statusFrame.BorderSizePixel = 0
+statusFrame.Parent = content
+
+local statusCorner = Instance.new("UICorner")
+statusCorner.CornerRadius = UDim.new(0, 8)
+statusCorner.Parent = statusFrame
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1, -10, 0, 20)
+statusLabel.Position = UDim2.new(0, 5, 0, 5)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "📍 CURRENT POSITION"
+statusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+statusLabel.TextSize = 12
+statusLabel.Font = Enum.Font.GothamBold
+statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+statusLabel.Parent = statusFrame
+
+local posText = Instance.new("TextLabel")
+posText.Size = UDim2.new(1, -10, 0, 25)
+posText.Position = UDim2.new(0, 5, 0, 28)
+posText.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+posText.Text = "Waiting..."
+posText.TextColor3 = Color3.fromRGB(0, 255, 150)
+posText.TextSize = 14
+posText.Font = Enum.Font.Code
+posText.Parent = statusFrame
+
+local posTextCorner = Instance.new("UICorner")
+posTextCorner.CornerRadius = UDim.new(0, 6)
+posTextCorner.Parent = posText
+
+local setPosText = Instance.new("TextLabel")
+setPosText.Size = UDim2.new(1, -10, 0, 15)
+setPosText.Position = UDim2.new(0, 5, 0, 55)
+setPosText.BackgroundTransparency = 1
+setPosText.Text = "Set Pos: None"
+setPosText.TextColor3 = Color3.fromRGB(255, 200, 100)
+setPosText.TextSize = 11
+setPosText.Font = Enum.Font.Gotham
+setPosText.TextXAlignment = Enum.TextXAlignment.Left
+setPosText.Parent = statusFrame
+
+-- Update position
+RunService.RenderStepped:Connect(function()
+    if humanoidRootPart then
+        local pos = humanoidRootPart.Position
+        posText.Text = string.format("X: %.0f  Y: %.0f  Z: %.0f", pos.X, pos.Y, pos.Z)
+    end
+end)
+
+--// BUTTON CREATOR
+local function createButton(name, text, pos, color, parent)
+    local btn = Instance.new("TextButton")
+    btn.Name = name
+    btn.Size = UDim2.new(1, 0, 0, 40)
+    btn.Position = pos
+    btn.BackgroundColor3 = color
+    btn.BorderSizePixel = 0
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextSize = 16
+    btn.Font = Enum.Font.GothamBold
+    btn.Parent = parent
+    
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 8)
+    btnCorner.Parent = btn
+    
+    -- Hover effects
+    btn.MouseEnter:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = color:Lerp(Color3.fromRGB(255,255,255), 0.3)}):Play()
+    end)
+    btn.MouseLeave:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = color}):Play()
+    end)
+    
+    return btn
+end
+
+-- Main Buttons
+local btnSet = createButton("Set", "📌 SET POSITION (P)", UDim2.new(0, 0, 0, 80), Color3.fromRGB(0, 100, 255), content)
+local btnGoto = createButton("Goto", "🚀 GO TO SET", UDim2.new(0, 0, 0, 125), Color3.fromRGB(255, 100, 0), content)
+local btnSave = createButton("Save", "💾 SAVE LOCATION", UDim2.new(0, 0, 0, 170), Color3.fromRGB(150, 0, 255), content)
+local btnMouse = createButton("Mouse", "🖱️ TP TO MOUSE (T)", UDim2.new(0, 0, 0, 215), Color3.fromRGB(0, 180, 100), content)
+
+-- Saved locations list
+local savedLabel = Instance.new("TextLabel")
+savedLabel.Size = UDim2.new(1, 0, 0, 20)
+savedLabel.Position = UDim2.new(0, 0, 0, 265)
+savedLabel.BackgroundTransparency = 1
+savedLabel.Text = "💾 SAVED LOCATIONS (Click to TP, Right-click to delete)"
+savedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+savedLabel.TextSize = 11
+savedLabel.Font = Enum.Font.GothamSemibold
+savedLabel.TextXAlignment = Enum.TextXAlignment.Left
+savedLabel.Parent = content
+
+local savedFrame = Instance.new("ScrollingFrame")
+savedFrame.Size = UDim2.new(1, 0, 0, 90)
+savedFrame.Position = UDim2.new(0, 0, 0, 285)
+savedFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+savedFrame.BorderSizePixel = 0
+savedFrame.ScrollBarThickness = 4
+savedFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+savedFrame.Parent = content
+
+local savedCorner = Instance.new("UICorner")
+savedCorner.CornerRadius = UDim.new(0, 8)
+savedCorner.Parent = savedFrame
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.Padding = UDim.new(0, 5)
+listLayout.Parent = savedFrame
+
+--// NOTIFICATION
+local notif = Instance.new("TextLabel")
+notif.Size = UDim2.new(0, 250, 0, 40)
+notif.Position = UDim2.new(0.5, -125, 0, -50)
+notif.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+notif.BorderSizePixel = 0
+notif.Text = ""
+notif.TextColor3 = Color3.fromRGB(255, 255, 255)
+notif.TextSize = 14
+notif.Font = Enum.Font.GothamBold
+notif.Parent = screenGui
+
+local notifCorner = Instance.new("UICorner")
+notifCorner.CornerRadius = UDim.new(0, 10)
+notifCorner.Parent = notif
+
+local function notify(msg, color)
+    notif.Text = msg
+    notif.BackgroundColor3 = color or Color3.fromRGB(40, 40, 40)
+    
+    TweenService:Create(notif, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Position = UDim2.new(0.5, -125, 0, 20)}):Play()
+    task.delay(2, function()
+        TweenService:Create(notif, TweenInfo.new(0.3), {Position = UDim2.new(0.5, -125, 0, -50)}):Play()
+    end)
+end
+
+--// TELEPORT FUNCTIONS
+local function doTeleport(targetCFrame)
+    if not humanoidRootPart then
+        notify("❌ Character not found!", Color3.fromRGB(255, 50, 50))
+        return false
+    end
+    
+    -- Effect
+    local effect = Instance.new("Part")
+    effect.Shape = Enum.PartType.Ball
+    effect.Anchored = true
+    effect.CanCollide = false
+    effect.Size = Vector3.new(1, 1, 1)
+    effect.Position = humanoidRootPart.Position
+    effect.Color = Color3.fromRGB(0, 255, 255)
+    effect.Material = Enum.Material.Neon
+    effect.Transparency = 0.3
+    effect.Parent = workspace
+    
+    TweenService:Create(effect, TweenInfo.new(0.5), {Size = Vector3.new(12, 12, 12), Transparency = 1}):Play()
+    game:GetService("Debris"):AddItem(effect, 0.5)
+    
+    -- Teleport with offset to prevent getting stuck
+    local targetPos = targetCFrame.Position + Vector3.new(0, 5, 0)
+    local newCFrame = CFrame.new(targetPos) * (targetCFrame - targetCFrame.Position)
+    
+    -- Tween
+    local tween = TweenService:Create(humanoidRootPart, TweenInfo.new(CONFIG.tweenDuration, CONFIG.tweenStyle, CONFIG.tweenDirection), {
+        CFrame = newCFrame
+    })
+    tween:Play()
+    
+    notify("✅ Teleported!", Color3.fromRGB(0, 255, 100))
+    return true
+end
+
+local function teleportToMouse()
+    if not mouse then 
+        notify("❌ Mouse not found", Color3.fromRGB(255, 50, 50))
+        return 
+    end
+    
+    -- Raycast from camera through mouse position
+    local camera = workspace.CurrentCamera
+    local mousePos = UserInputService:GetMouseLocation()
+    local ray = camera:ViewportPointToRay(mousePos.X, mousePos.Y)
+    
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterDescendantsInstances = {character}
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    
+    local result = workspace:Raycast(ray.Origin, ray.Direction * 1000, raycastParams)
+    
+    if result then
+        doTeleport(CFrame.new(result.Position))
+    else
+        -- If no hit, teleport 100 studs in direction
+        doTeleport(CFrame.new(ray.Origin + ray.Direction * 100))
+    end
+end
+
+--// BUTTON ACTIONS
+btnSet.MouseButton1Click:Connect(function()
+    if not humanoidRootPart then return end
+    currentSetPosition = humanoidRootPart.CFrame
+    setPosText.Text = string.format("Set Pos: X:%.0f Y:%.0f Z:%.0f", 
+        currentSetPosition.X, currentSetPosition.Y, currentSetPosition.Z)
+    notify("📌 Position Set!", Color3.fromRGB(0, 150, 255))
+end)
+
+btnGoto.MouseButton1Click:Connect(function()
+    if currentSetPosition then
+        doTeleport(currentSetPosition)
+    else
+        notify("❌ No position set! Press SET first", Color3.fromRGB(255, 100, 0))
+    end
+end)
+
+btnSave.MouseButton1Click:Connect(function()
+    if not humanoidRootPart then return end
+    if #savedLocations >= CONFIG.maxSavedLocations then
+        notify("❌ Max 6 locations!", Color3.fromRGB(255, 50, 50))
+        return
+    end
+    
+    local locData = {
+        cframe = humanoidRootPart.CFrame,
+        name = "Loc " .. (#savedLocations + 1),
+        pos = humanoidRootPart.Position
+    }
+    table.insert(savedLocations, locData)
+    
+    -- Create button
+    local locBtn = Instance.new("TextButton")
+    locBtn.Size = UDim2.new(1, -10, 0, 35)
+    locBtn.Position = UDim2.new(0, 5, 0, 0)
+    locBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    locBtn.BorderSizePixel = 0
+    locBtn.Text = string.format("📍 %s (%.0f, %.0f, %.0f)", locData.name, locData.pos.X, locData.pos.Y, locData.pos.Z)
+    locBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    locBtn.TextSize = 12
+    locBtn.Font = Enum.Font.Gotham
+    locBtn.Parent = savedFrame
+    
+    local locCorner = Instance.new("UICorner")
+    locCorner.CornerRadius = UDim.new(0, 6)
+    locCorner.Parent = locBtn
+    
+    -- Click to teleport
+    local index = #savedLocations
+    locBtn.MouseButton1Click:Connect(function()
+        if savedLocations[index] then
+            doTeleport(savedLocations[index].cframe)
+        end
+    end)
+    
+    -- Right click to delete
+    locBtn.MouseButton2Click:Connect(function()
+        locBtn:Destroy()
+        savedLocations[index] = nil
+        notify("🗑️ Deleted " .. locData.name, Color3.fromRGB(255, 100, 100))
+    end)
+    
+    -- Update canvas size
+    savedFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+    notify("💾 Saved " .. locData.name, Color3.fromRGB(150, 50, 255))
+end)
+
+btnMouse.MouseButton1Click:Connect(function()
+    teleportToMouse()
+end)
+
+--// KEYBOARD SHORTCUTS
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == CONFIG.teleportKey then
+        teleportToMouse()
+    elseif input.KeyCode == CONFIG.setPosKey then
+        if humanoidRootPart then
+            currentSetPosition = humanoidRootPart.CFrame
+            setPosText.Text = string.format("Set Pos: X:%.0f Y:%.0f Z:%.0f", 
+                currentSetPosition.X, currentSetPosition.Y, currentSetPosition.Z)
+            notify("📌 Quick Set!", Color3.fromRGB(0, 150, 255))
+        end
+    elseif input.KeyCode == CONFIG.toggleMouseKey then
+        mouseEnabled = true
+        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+        UserInputService.MouseIconEnabled = true
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.KeyCode == CONFIG.toggleMouseKey then
+        mouseEnabled = false
+        -- Only lock if not hovering over GUI
+        if not mainFrame:IsMouseOver() then
+            UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+        end
+    end
+end)
+
+-- Keep mouse unlocked when over GUI
+mainFrame.MouseEnter:Connect(function()
+    UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+    UserInputService.MouseIconEnabled = true
+end)
+
+mainFrame.MouseLeave:Connect(function()
+    if not mouseEnabled then
+        UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+    end
+end)
+
+--// INITIALIZE
+notify("⚡ Teleport System Ready!", Color3.fromRGB(0, 200, 255))
+print("Teleport System Loaded | T=TP to Mouse | P=Set Position | LeftShift=Free Mouse")
