@@ -1,0 +1,171 @@
+-- Auto Teleport on Grab Script
+-- Place this as a LocalScript in StarterPlayer > StarterCharacterScripts
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- Settings
+local TOOL_NAME = "brainrot" -- Name of the tool to detect
+local TELEPORT_OFFSET = Vector3.new(0, 5, 0) -- How high to teleport above the point
+
+local teleportPoint = nil
+local lastTeleportTime = 0
+local TELEPORT_COOLDOWN = 0.5 -- Prevent spam teleports
+
+-- Create simple GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AutoTeleportGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 250, 0, 120)
+mainFrame.Position = UDim2.new(0, 20, 0, 20)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = mainFrame
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(100, 200, 255)
+stroke.Thickness = 2
+stroke.Parent = mainFrame
+
+-- Title
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "Title"
+titleLabel.Size = UDim2.new(1, 0, 0, 35)
+titleLabel.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+titleLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
+titleLabel.TextSize = 16
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.Text = "⚡ Auto Teleport"
+titleLabel.BorderSizePixel = 0
+titleLabel.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 10)
+titleCorner.Parent = titleLabel
+
+-- Status Label
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Name = "Status"
+statusLabel.Size = UDim2.new(1, -20, 0, 25)
+statusLabel.Position = UDim2.new(0, 10, 0, 40)
+statusLabel.BackgroundTransparency = 1
+statusLabel.TextColor3 = Color3.fromRGB(150, 200, 100)
+statusLabel.TextSize = 11
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+statusLabel.Text = "✓ Waiting for grab..."
+statusLabel.Parent = mainFrame
+
+-- Set Point Button
+local setPointBtn = Instance.new("TextButton")
+setPointBtn.Name = "SetPointBtn"
+setPointBtn.Size = UDim2.new(1, -20, 0, 30)
+setPointBtn.Position = UDim2.new(0, 10, 0, 70)
+setPointBtn.BackgroundColor3 = Color3.fromRGB(0, 140, 200)
+setPointBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+setPointBtn.TextSize = 12
+setPointBtn.Font = Enum.Font.GothamBold
+setPointBtn.Text = "Set Point [T]"
+setPointBtn.BorderSizePixel = 0
+setPointBtn.Parent = mainFrame
+
+local setPointCorner = Instance.new("UICorner")
+setPointCorner.CornerRadius = UDim.new(0, 6)
+setPointCorner.Parent = setPointBtn
+
+-- Function to set teleport point
+local function setTeleportPoint()
+	teleportPoint = humanoidRootPart.Position
+	statusLabel.Text = "✓ Point set | Grab " .. TOOL_NAME .. " to teleport!"
+	statusLabel.TextColor3 = Color3.fromRGB(150, 200, 100)
+	print("[AUTO TELEPORT] Point set at: " .. tostring(teleportPoint))
+end
+
+-- Function to teleport
+local function doTeleport()
+	if teleportPoint == nil then
+		statusLabel.Text = "✗ No point set! Press T first"
+		statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+		return
+	end
+	
+	local currentTime = tick()
+	if currentTime - lastTeleportTime < TELEPORT_COOLDOWN then
+		return -- Prevent spam
+	end
+	
+	lastTeleportTime = currentTime
+	humanoidRootPart.CFrame = CFrame.new(teleportPoint + TELEPORT_OFFSET)
+	statusLabel.Text = "✓ Teleported! Grab again to auto-teleport"
+	statusLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
+	print("[AUTO TELEPORT] Teleported to point!")
+end
+
+-- Detect when tool is equipped
+local function onToolEquipped(tool)
+	if tool.Name:lower() == TOOL_NAME:lower() then
+		doTeleport()
+	end
+end
+
+-- Set point button click
+setPointBtn.MouseButton1Click:Connect(function()
+	setTeleportPoint()
+end)
+
+-- Keyboard shortcut for setting point
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.T then
+		setTeleportPoint()
+	end
+end)
+
+-- Watch for tool equips
+local humanoid = character:WaitForChild("Humanoid")
+
+humanoid.ChildAdded:Connect(function(child)
+	if child:IsA("Tool") then
+		onToolEquipped(child)
+	end
+end)
+
+-- Also check for tools already in character
+for _, tool in pairs(character:GetChildren()) do
+	if tool:IsA("Tool") then
+		onToolEquipped(tool)
+	end
+end
+
+-- Handle character respawn
+player.CharacterAdded:Connect(function(newCharacter)
+	character = newCharacter
+	humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+	humanoid = character:WaitForChild("Humanoid")
+	
+	-- Reconnect tool detection
+	humanoid.ChildAdded:Connect(function(child)
+		if child:IsA("Tool") then
+			onToolEquipped(child)
+		end
+	end)
+	
+	statusLabel.Text = "✓ Respawned | Set point with [T]"
+	statusLabel.TextColor3 = Color3.fromRGB(150, 200, 100)
+end)
+
+print("[AUTO TELEPORT] Script loaded! Press T to set point, then grab " .. TOOL_NAME .. " to auto-teleport")
+setPointBtn:TweenSize(UDim2.new(1, -20, 0, 30), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
