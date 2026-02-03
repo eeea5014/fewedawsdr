@@ -1,0 +1,73 @@
+-- Teleport Script with Carpet
+-- Place this as a LocalScript in StarterPlayer > StarterPlayerScripts
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- Settings
+local CARPET_NAME = "Carpet" -- Name of the carpet tool
+local SET_POINT_KEY = Enum.KeyCode.E -- Press E to set teleport point
+local TELEPORT_KEY = Enum.KeyCode.R -- Press R to teleport
+local TELEPORT_RANGE = 5 -- Distance to detect if holding carpet
+
+local teleportPoint = nil
+local isHoldingCarpet = false
+
+-- Function to check if player is holding carpet
+local function isPlayerHoldingCarpet()
+	local tool = player.Character:FindFirstChild(CARPET_NAME)
+	return tool ~= nil and tool:IsA("Tool")
+end
+
+-- Function to set teleport point
+local function setTeleportPoint()
+	if isPlayerHoldingCarpet() then
+		teleportPoint = humanoidRootPart.Position
+		print("✓ Teleport point set at: " .. tostring(teleportPoint))
+	else
+		print("✗ You must be holding the carpet to set a teleport point!")
+	end
+end
+
+-- Function to teleport to point
+local function teleportToPoint()
+	if not isPlayerHoldingCarpet() then
+		print("✗ You must be holding the carpet to teleport!")
+		return
+	end
+	
+	if teleportPoint == nil then
+		print("✗ No teleport point set! Press E while holding the carpet to set one.")
+		return
+	end
+	
+	humanoidRootPart.CFrame = CFrame.new(teleportPoint + Vector3.new(0, 3, 0))
+	print("✓ Teleported!")
+end
+
+-- Input detection
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	
+	if input.KeyCode == SET_POINT_KEY then
+		setTeleportPoint()
+	elseif input.KeyCode == TELEPORT_KEY then
+		teleportToPoint()
+	end
+end)
+
+-- Update character reference when respawning
+player.CharacterAdded:Connect(function(newCharacter)
+	character = newCharacter
+	humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+	teleportPoint = nil
+	print("Character respawned. Teleport point reset.")
+end)
+
+print("Teleport script loaded!")
+print("E = Set teleport point (while holding carpet)")
+print("R = Teleport to point (while holding carpet)")
