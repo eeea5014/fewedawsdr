@@ -1,0 +1,100 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local userInputService = game:GetService("UserInputService")
+local teleportService = game:GetService("TeleportService")
+local runService = game:GetService("RunService")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+
+local point = Vector3.new(0, 0, 0) -- Default teleport point
+local isDesyncEnabled = false
+local isTeleporting = false
+
+-- Create a screen GUI for the visual representation
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0.2, 0, 0.1, 0)
+frame.Position = UDim2.new(0.4, 0, 0.45, 0)
+frame.BackgroundColor3 = Color3.fromRGB(128, 0, 128) -- Purple
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+
+local outline = Instance.new("Frame")
+outline.Size = UDim2.new(1, 0, 1, 0)
+outline.Position = UDim2.new(0, 0, 0, 0)
+outline.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- White outline
+outline.BorderSizePixel = 0
+outline.Parent = frame
+
+local textLabel = Instance.new("TextLabel")
+textLabel.Size = UDim2.new(1, 0, 1, 0)
+textLabel.Position = UDim2.new(0, 0, 0, 0)
+textLabel.BackgroundTransparency = 1
+textLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text
+textLabel.Text = "Desync: OFF\nTeleporting: OFF\nPress [E] to Toggle Desync\nPress [T] to Teleport"
+textLabel.Parent = frame
+
+-- Function to update the GUI text
+local function updateText()
+    textLabel.Text = "Desync: " .. (isDesyncEnabled and "ON" or "OFF") ..
+                     "\nTeleporting: " .. (isTeleporting and "ON" or "OFF")
+end
+
+-- Enable or disable desync
+local function toggleDesync()
+    isDesyncEnabled = not isDesyncEnabled
+    updateText()
+
+    if isDesyncEnabled then
+        local originalPosition = character.HumanoidRootPart.Position
+        
+        -- Loop to desync the character's position
+        while isDesyncEnabled do
+            character.HumanoidRootPart.Position = originalPosition
+            wait(0.1) -- Adjust frequency as necessary
+        end
+    end
+end
+
+-- Function to teleport to designated point
+local function teleport()
+    if not isTeleporting then
+        isTeleporting = true
+        character.HumanoidRootPart.CFrame = CFrame.new(point)
+        wait(0.1) -- Wait briefly for position to settle
+        isTeleporting = false
+    end
+    updateText()
+end
+
+-- Input handling for toggling desync and teleporting
+userInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.E then
+        toggleDesync()
+    elseif input.KeyCode == Enum.KeyCode.T then
+        teleport()
+    end
+end)
+
+-- Function to set the teleport point
+function setTeleportPoint(newPoint)
+    if typeof(newPoint) == "Vector3" then
+        point = newPoint
+        print("Teleport point set to:", point)
+    else
+        warn("Invalid teleport point. Must be a Vector3.")
+    end
+end
+
+-- Expose the set point function for external use
+replicatedStorage:SetAttribute("SetTeleportPoint", setTeleportPoint) 
+
+-- Cleanup before the character is removed
+player.CharacterRemoving:Connect(function(removedCharacter)
+    isDesyncEnabled = false
+    isTeleporting = false
+    screenGui:Destroy()
+end)
