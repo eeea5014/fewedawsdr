@@ -1,0 +1,115 @@
+local Player = game.Players.LocalPlayer
+local Character = workspace.Player.Character
+local PlayerGui = Player.PlayerGui
+local Humans = {}
+
+-- Function to get the player's character
+local function GetCharacter(player)
+return player.Character or player.CharacterAdded:Wait()
+end
+
+-- Create a GUI for the user
+local GUI = Instance.new("ScreenGui")
+GUI.Parent = PlayerGui
+
+-- Create the main frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 300, 0, 400)
+MainFrame.Position = UDim2.new(0, 100, 0, 100)
+MainFrame.BackgroundTransparency = 1
+MainFrame.Parent = GUI
+
+-- Create the title
+local Title = Instance.new("TextLabel")
+Title.Text = "Steal a Brainrot Script"
+Title.Size = UDim2.new(0, 200, 0, 20)
+Title.Position = UDim2.new(0, 10, 0, 10)
+Title.Font = Enum.Font.SourceSans
+Title.FontSize = Enum.FontSize.Size14
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Parent = MainFrame
+
+-- Create the teleport button
+local TeleportButton = Instance.new("TextButton")
+TeleportButton.Text = "Teleport"
+TeleportButton.Size = UDim2.new(0, 100, 0, 20)
+TeleportButton.Position = UDim2.new(0, 10, 0, 50)
+TeleportButton.Font = Enum.Font.SourceSans
+TeleportButton.FontSize = Enum.FontSize.Size14
+TeleportButton.TextColor3 = Color3.new(1, 1, 1)
+TeleportButton.Parent = MainFrame
+
+-- Create the desync toggle
+local DesyncToggle = Instance.new("TextButton")
+DesyncToggle.Text = "Desync"
+DesyncToggle.Size = UDim2.new(0, 100, 0, 20)
+DesyncToggle.Position = UDim2.new(0, 10, 0, 80)
+DesyncToggle.Font = Enum.Font.SourceSans
+DesyncToggle.FontSize = Enum.FontSize.Size14
+DesyncToggle.TextColor3 = Color3.new(1, 1, 1)
+DesyncToggle.Parent = MainFrame
+
+-- Create the label for the Brainrot info
+local BrainrotLabel = Instance.new("TextLabel")
+BrainrotLabel.Text = "Brainrot: Unknown"
+BrainrotLabel.Size = UDim2.new(0, 200, 0, 20)
+BrainrotLabel.Position = UDim2.new(0, 10, 0, 110)
+BrainrotLabel.Font = Enum.Font.SourceSans
+BrainrotLabel.FontSize = Enum.FontSize.Size14
+BrainrotLabel.TextColor3 = Color3.new(1, 1, 1)
+BrainrotLabel.Parent = MainFrame
+
+-- Get all players
+for _, player in pairs(game.Players:GetPlayers()) do
+if player.Name ~= Player.Name then
+table.insert(Humans, player)
+end
+end
+
+-- Function to get the Brainrot's mutation
+local function GetMutation(Brainrot)
+for _, descendant in pairs(Brainrot:GetDescendants()) do
+if descendant:IsA("StringValue") and descendant.Name == "Mutation" then
+return descendant.Value
+end
+end
+end
+
+-- Teleport to halfway between the Brainrot and the player's base when the button is clicked
+TeleportButton.Activated:Connect(function()
+-- Find the Brainrot
+for _, player in pairs(Humans) do
+local Character = GetCharacter(player)
+for _, child in pairs(Character:GetDescendants()) do
+if child:IsA("Model") and child.Name == "Brainrot" then
+-- Get the Brainrot's position
+local brainrotPosition = child.HumanoidRootPart.Position
+-- Calculate the midpoint between the Brainrot and the player's base
+local midpoint = (brainrotPosition + Character.HumanoidRootPart.Position) / 2
+-- Teleport the player to the midpoint
+Character.HumanoidRootPart.CFrame = CFrame.new(midpoint)
+-- Update the Brainrot label
+BrainrotLabel.Text = "Brainrot: " .. GetMutation(child)
+return
+end
+end
+end
+end)
+
+-- Toggle the desync on and off
+DesyncToggle.Activated:Connect(function()
+if DesyncToggle.Text == "Desync" then
+DesyncToggle.Text = "Disable Desync"
+-- Start the desync loop
+while true do
+wait()
+Character.HumanoidRootPart.CFrame = Character.HumanoidRootPart.CFrame + Vector3.new(0.1, 0, 0.1)
+wait()
+Character.HumanoidRootPart.CFrame = Character.HumanoidRootPart.CFrame - Vector3.new(0.1, 0, 0.1)
+end
+else
+DesyncToggle.Text = "Desync"
+-- Stop the desync loop
+task.wait()
+end
+end)
