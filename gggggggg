@@ -1,0 +1,392 @@
+
+-- XYZ Paid TP Script - Complete All-in-One
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- Variables
+local currentPage = 1
+local savedPosition = Vector3.new(0, 0, 0)
+local autoGrabActive = false
+local dragging = false
+local dragStart = Vector2.new(0, 0)
+local startPos = UDim2.new(0, 0, 0, 0)
+
+-- Create Main GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "XYZPaidTP"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Main Container with White Outline
+local mainContainer = Instance.new("Frame")
+mainContainer.Name = "MainContainer"
+mainContainer.Size = UDim2.new(0, 500, 0, 400)
+mainContainer.Position = UDim2.new(0.5, -250, 0.5, -200)
+mainContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+mainContainer.BorderSizePixel = 0
+mainContainer.Parent = screenGui
+
+-- White Outline
+local outline = Instance.new("UIStroke")
+outline.Color = Color3.fromRGB(255, 255, 255)
+outline.Thickness = 3
+outline.Parent = mainContainer
+
+-- Title Label (Also serves as drag handle)
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "Title"
+titleLabel.Size = UDim2.new(1, 0, 0, 50)
+titleLabel.Position = UDim2.new(0, 0, 0, 0)
+titleLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+titleLabel.BorderSizePixel = 0
+titleLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+titleLabel.TextSize = 24
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.Text = "XYZ PAID TP"
+titleLabel.Parent = mainContainer
+
+-- Title Outline
+local titleOutline = Instance.new("UIStroke")
+titleOutline.Color = Color3.fromRGB(255, 255, 255)
+titleOutline.Thickness = 2
+titleOutline.Parent = titleLabel
+
+-- Page Buttons Container
+local pageButtonsContainer = Instance.new("Frame")
+pageButtonsContainer.Name = "PageButtons"
+pageButtonsContainer.Size = UDim2.new(1, 0, 0, 60)
+pageButtonsContainer.Position = UDim2.new(0, 0, 0, 50)
+pageButtonsContainer.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+pageButtonsContainer.BorderSizePixel = 0
+pageButtonsContainer.Parent = mainContainer
+
+-- Page 1 Button
+local page1Button = Instance.new("TextButton")
+page1Button.Name = "Page1Button"
+page1Button.Size = UDim2.new(0.5, -5, 1, 0)
+page1Button.Position = UDim2.new(0, 5, 0, 0)
+page1Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+page1Button.TextColor3 = Color3.fromRGB(200, 200, 200)
+page1Button.TextSize = 16
+page1Button.Font = Enum.Font.GothamBold
+page1Button.Text = "1 - TP"
+page1Button.BorderSizePixel = 0
+page1Button.Parent = pageButtonsContainer
+
+-- Page 1 Outline
+local page1Outline = Instance.new("UIStroke")
+page1Outline.Color = Color3.fromRGB(255, 255, 255)
+page1Outline.Thickness = 2
+page1Outline.Parent = page1Button
+
+-- Page 2 Button
+local page2Button = Instance.new("TextButton")
+page2Button.Name = "Page2Button"
+page2Button.Size = UDim2.new(0.5, -5, 1, 0)
+page2Button.Position = UDim2.new(0.5, 0, 0, 0)
+page2Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+page2Button.TextColor3 = Color3.fromRGB(200, 200, 200)
+page2Button.TextSize = 16
+page2Button.Font = Enum.Font.GothamBold
+page2Button.Text = "2 - HELPERS"
+page2Button.BorderSizePixel = 0
+page2Button.Parent = pageButtonsContainer
+
+-- Page 2 Outline
+local page2Outline = Instance.new("UIStroke")
+page2Outline.Color = Color3.fromRGB(255, 255, 255)
+page2Outline.Thickness = 2
+page2Outline.Parent = page2Button
+
+-- Content Area
+local contentArea = Instance.new("Frame")
+contentArea.Name = "ContentArea"
+contentArea.Size = UDim2.new(1, 0, 0, 290)
+contentArea.Position = UDim2.new(0, 0, 0, 110)
+contentArea.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+contentArea.BorderSizePixel = 0
+contentArea.Parent = mainContainer
+
+-- ==================== PAGE 1 - TP ====================
+local page1Content = Instance.new("Frame")
+page1Content.Name = "Page1"
+page1Content.Size = UDim2.new(1, 0, 1, 0)
+page1Content.Position = UDim2.new(0, 0, 0, 0)
+page1Content.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+page1Content.BorderSizePixel = 0
+page1Content.Visible = true
+page1Content.Parent = contentArea
+
+-- Set Position Label
+local setPositionLabel = Instance.new("TextLabel")
+setPositionLabel.Name = "SetPositionLabel"
+setPositionLabel.Size = UDim2.new(1, -20, 0, 40)
+setPositionLabel.Position = UDim2.new(0, 10, 0, 10)
+setPositionLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+setPositionLabel.BorderSizePixel = 0
+setPositionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+setPositionLabel.TextSize = 14
+setPositionLabel.Font = Enum.Font.Gotham
+setPositionLabel.Text = "Current Position: X: 0 | Y: 0 | Z: 0"
+setPositionLabel.TextXAlignment = Enum.TextXAlignment.Left
+setPositionLabel.TextWrapped = true
+setPositionLabel.Parent = page1Content
+
+-- Set Position Button
+local setPositionButton = Instance.new("TextButton")
+setPositionButton.Name = "SetPositionButton"
+setPositionButton.Size = UDim2.new(0.9, 0, 0, 50)
+setPositionButton.Position = UDim2.new(0.05, 0, 0, 60)
+setPositionButton.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
+setPositionButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+setPositionButton.TextSize = 16
+setPositionButton.Font = Enum.Font.GothamBold
+setPositionButton.Text = "SET POSITION"
+setPositionButton.BorderSizePixel = 0
+setPositionButton.Parent = page1Content
+
+-- Set Position Button Outline
+local setPositionOutline = Instance.new("UIStroke")
+setPositionOutline.Color = Color3.fromRGB(255, 255, 255)
+setPositionOutline.Thickness = 2
+setPositionOutline.Parent = setPositionButton
+
+-- Teleport Button
+local teleportButton = Instance.new("TextButton")
+teleportButton.Name = "TeleportButton"
+teleportButton.Size = UDim2.new(0.9, 0, 0, 50)
+teleportButton.Position = UDim2.new(0.05, 0, 0, 130)
+teleportButton.BackgroundColor3 = Color3.fromRGB(100, 150, 200)
+teleportButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+teleportButton.TextSize = 16
+teleportButton.Font = Enum.Font.GothamBold
+teleportButton.Text = "TELEPORT"
+teleportButton.BorderSizePixel = 0
+teleportButton.Parent = page1Content
+
+-- Teleport Button Outline
+local teleportOutline = Instance.new("UIStroke")
+teleportOutline.Color = Color3.fromRGB(255, 255, 255)
+teleportOutline.Thickness = 2
+teleportOutline.Parent = teleportButton
+
+-- Saved Position Info
+local savedPositionInfo = Instance.new("TextLabel")
+savedPositionInfo.Name = "SavedPositionInfo"
+savedPositionInfo.Size = UDim2.new(0.9, 0, 0, 80)
+savedPositionInfo.Position = UDim2.new(0.05, 0, 0, 200)
+savedPositionInfo.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+savedPositionInfo.BorderSizePixel = 0
+savedPositionInfo.TextColor3 = Color3.fromRGB(200, 200, 200)
+savedPositionInfo.TextSize = 12
+savedPositionInfo.Font = Enum.Font.Gotham
+savedPositionInfo.Text = "Saved Position:\nX: 0 | Y: 0 | Z: 0"
+savedPositionInfo.TextXAlignment = Enum.TextXAlignment.Center
+savedPositionInfo.TextYAlignment = Enum.TextYAlignment.Center
+savedPositionInfo.TextWrapped = true
+savedPositionInfo.Parent = page1Content
+
+-- Saved Position Outline
+local savedPositionOutline = Instance.new("UIStroke")
+savedPositionOutline.Color = Color3.fromRGB(255, 255, 255)
+savedPositionOutline.Thickness = 2
+savedPositionOutline.Parent = savedPositionInfo
+
+-- ==================== PAGE 2 - HELPERS ====================
+local page2Content = Instance.new("Frame")
+page2Content.Name = "Page2"
+page2Content.Size = UDim2.new(1, 0, 1, 0)
+page2Content.Position = UDim2.new(0, 0, 0, 0)
+page2Content.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+page2Content.BorderSizePixel = 0
+page2Content.Visible = false
+page2Content.Parent = contentArea
+
+-- Helper Title
+local helperTitle = Instance.new("TextLabel")
+helperTitle.Name = "HelperTitle"
+helperTitle.Size = UDim2.new(1, -20, 0, 40)
+helperTitle.Position = UDim2.new(0, 10, 0, 10)
+helperTitle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+helperTitle.BorderSizePixel = 0
+helperTitle.TextColor3 = Color3.fromRGB(200, 200, 200)
+helperTitle.TextSize = 16
+helperTitle.Font = Enum.Font.GothamBold
+helperTitle.Text = "HELPER TOOLS"
+helperTitle.TextXAlignment = Enum.TextXAlignment.Left
+helperTitle.Parent = page2Content
+
+-- Auto Grab Helper Container
+local autoGrabContainer = Instance.new("Frame")
+autoGrabContainer.Name = "AutoGrabContainer"
+autoGrabContainer.Size = UDim2.new(0.9, 0, 0, 100)
+autoGrabContainer.Position = UDim2.new(0.05, 0, 0, 60)
+autoGrabContainer.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+autoGrabContainer.BorderSizePixel = 0
+autoGrabContainer.Parent = page2Content
+
+-- Auto Grab Outline
+local autoGrabOutline = Instance.new("UIStroke")
+autoGrabOutline.Color = Color3.fromRGB(255, 255, 255)
+autoGrabOutline.Thickness = 2
+autoGrabOutline.Parent = autoGrabContainer
+
+-- Auto Grab Label
+local autoGrabLabel = Instance.new("TextLabel")
+autoGrabLabel.Name = "AutoGrabLabel"
+autoGrabLabel.Size = UDim2.new(1, -10, 0, 30)
+autoGrabLabel.Position = UDim2.new(0, 5, 0, 5)
+autoGrabLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+autoGrabLabel.BorderSizePixel = 0
+autoGrabLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+autoGrabLabel.TextSize = 14
+autoGrabLabel.Font = Enum.Font.GothamBold
+autoGrabLabel.Text = "AUTO GRAB (Click to toggle)"
+autoGrabLabel.TextXAlignment = Enum.TextXAlignment.Left
+autoGrabLabel.Parent = autoGrabContainer
+
+-- Auto Grab Button
+local autoGrabButton = Instance.new("TextButton")
+autoGrabButton.Name = "AutoGrabButton"
+autoGrabButton.Size = UDim2.new(0.9, 0, 0, 40)
+autoGrabButton.Position = UDim2.new(0.05, 0, 0, 40)
+autoGrabButton.BackgroundColor3 = Color3.fromRGB(200, 100, 100)
+autoGrabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+autoGrabButton.TextSize = 12
+autoGrabButton.Font = Enum.Font.GothamBold
+autoGrabButton.Text = "Click to START holding E"
+autoGrabButton.BorderSizePixel = 0
+autoGrabButton.Parent = autoGrabContainer
+
+-- ==================== DRAG FUNCTIONALITY ====================
+
+titleLabel.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = Vector2.new(mouse.X, mouse.Y)
+		startPos = mainContainer.Position
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input, gameProcessed)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = false
+	end
+end)
+
+RunService.RenderStepped:Connect(function()
+	if dragging then
+		local delta = Vector2.new(mouse.X - dragStart.X, mouse.Y - dragStart.Y)
+		mainContainer.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+end)
+
+-- ==================== FUNCTIONS ====================
+
+-- Function to update current position label
+local function updateCurrentPositionLabel()
+	local pos = humanoidRootPart.Position
+	setPositionLabel.Text = string.format("Current Position: X: %.1f | Y: %.1f | Z: %.1f", pos.X, pos.Y, pos.Z)
+end
+
+-- Function to update saved position label
+local function updateSavedPositionLabel()
+	savedPositionInfo.Text = string.format("Saved Position:\nX: %.1f | Y: %.1f | Z: %.1f", savedPosition.X, savedPosition.Y, savedPosition.Z)
+end
+
+-- Set Position Button Function
+setPositionButton.MouseButton1Click:Connect(function()
+	savedPosition = humanoidRootPart.Position
+	updateSavedPositionLabel()
+	setPositionButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+	wait(0.3)
+	setPositionButton.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
+end)
+
+-- Teleport Button Function
+teleportButton.MouseButton1Click:Connect(function()
+	if savedPosition ~= Vector3.new(0, 0, 0) then
+		humanoidRootPart.CFrame = CFrame.new(savedPosition + Vector3.new(0, 3, 0))
+		teleportButton.BackgroundColor3 = Color3.fromRGB(150, 200, 150)
+		wait(0.3)
+		teleportButton.BackgroundColor3 = Color3.fromRGB(100, 150, 200)
+	else
+		teleportButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+		wait(0.3)
+		teleportButton.BackgroundColor3 = Color3.fromRGB(100, 150, 200)
+	end
+end)
+
+-- Page 1 Button Click
+page1Button.MouseButton1Click:Connect(function()
+	currentPage = 1
+	page1Content.Visible = true
+	page2Content.Visible = false
+	page1Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	page2Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+end)
+
+-- Page 2 Button Click
+page2Button.MouseButton1Click:Connect(function()
+	currentPage = 2
+	page1Content.Visible = false
+	page2Content.Visible = true
+	page1Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	page2Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+end)
+
+-- Auto Grab Function (Toggle on click, auto teleports when E stops)
+autoGrabButton.MouseButton1Click:Connect(function()
+	autoGrabActive = not autoGrabActive
+	
+	if autoGrabActive then
+		autoGrabButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+		autoGrabButton.Text = "AUTO GRAB ACTIVE - Click to STOP"
+		
+		-- Hold E key
+		local eHeld = true
+		while autoGrabActive and eHeld do
+			game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.E, false, game)
+			wait(0.05)
+		end
+		
+		-- Release E key
+		game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.E, false, game)
+		wait(0.1)
+		
+		-- Teleport to saved position automatically
+		if savedPosition ~= Vector3.new(0, 0, 0) then
+			humanoidRootPart.CFrame = CFrame.new(savedPosition + Vector3.new(0, 3, 0))
+		end
+		
+		autoGrabActive = false
+		autoGrabButton.BackgroundColor3 = Color3.fromRGB(200, 100, 100)
+		autoGrabButton.Text = "Click to START holding E"
+	end
+end)
+
+-- Update position every frame
+RunService.RenderStepped:Connect(function()
+	if humanoidRootPart then
+		character = player.Character
+		if character then
+			humanoidRootPart = character:FindFirstChild("HumanoidRootPart") or humanoidRootPart
+			updateCurrentPositionLabel()
+		end
+	end
+end)
+
+-- Handle character respawn
+player.CharacterAdded:Connect(function(newCharacter)
+	character = newCharacter
+	humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+end)
+
+print("XYZ Paid TP Script loaded successfully!")
