@@ -1,0 +1,125 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local Character = workspace.player.Character
+local Humans = {}
+
+for _, player in pairs(Players:GetPlayers()) do
+if player.Name ~= game.Players.LocalPlayer.Name then
+table.insert(Humans, player)
+end
+end
+
+-- Function to get the player's character
+local function GetCharacter(player)
+return player.Character or player.CharacterAdded:Wait()
+end
+
+-- Create a GUI for the user
+local GUI = Instance.new("ScreenGui")
+GUI.Parent = game.CoreGui
+
+-- Create the main frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 300, 0, 400)
+MainFrame.Position = UDim2.new(0, 100, 0, 100)
+MainFrame.BackgroundTransparency = 1
+MainFrame.Parent = GUI
+
+-- Create the title
+local Title = Instance.new("TextLabel")
+Title.Text = "Steal a Brainrot FPS Lagger"
+Title.Size = UDim2.new(0, 200, 0, 20)
+Title.Position = UDim2.new(0, 10, 0, 10)
+Title.Font = Enum.Font.SourceSans
+Title.FontSize = Enum.FontSize.Size14
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Parent = MainFrame
+
+-- Create the slider for lag amount
+local Slider = Instance.new("Slider")
+Slider.Position = UDim2.new(0, 10, 0, 50)
+Slider.Size = UDim2.new(0, 200, 0, 20)
+Slider.Minimum = 0
+Slider.Maximum = 100
+Slider.Value = 50
+Slider.Parent = MainFrame
+
+-- Create the toggle for enabling/disabling lag
+local Toggle = Instance.new("TextButton")
+Toggle.Text = "Enable Lag"
+Toggle.Size = UDim2.new(0, 100, 0, 20)
+Toggle.Position = UDim2.new(0, 10, 0, 80)
+Toggle.Font = Enum.Font.SourceSans
+Toggle.FontSize = Enum.FontSize.Size14
+Toggle.TextColor3 = Color3.new(1, 1, 1)
+Toggle.Parent = MainFrame
+
+-- Create the label for the FPS indicator
+local FPSLabel = Instance.new("TextLabel")
+FPSLabel.Text = "FPS: "
+FPSLabel.Size = UDim2.new(0, 200, 0, 20)
+FPSLabel.Position = UDim2.new(0, 10, 0, 110)
+FPSLabel.Font = Enum.Font.SourceSans
+FPSLabel.FontSize = Enum.FontSize.Size14
+FPSLabel.TextColor3 = Color3.new(1, 1, 1)
+FPSLabel.Parent = MainFrame
+
+-- Create the slider for stealth amount
+local StealthSlider = Instance.new("Slider")
+StealthSlider.Position = UDim2.new(0, 10, 0, 150)
+StealthSlider.Size = UDim2.new(0, 200, 0, 20)
+StealthSlider.Minimum = 0
+StealthSlider.Maximum = 100
+StealthSlider.Value = 50
+StealthSlider.Parent = MainFrame
+
+-- Create the toggle for enabling/disabling stealth
+local StealthToggle = Instance.new("TextButton")
+StealthToggle.Text = "Enable Stealth"
+StealthToggle.Size = UDim2.new(0, 100, 0, 20)
+StealthToggle.Position = UDim2.new(0, 10, 0, 180)
+StealthToggle.Font = Enum.Font.SourceSans
+StealthToggle.FontSize = Enum.FontSize.Size14
+StealthToggle.TextColor3 = Color3.new(1, 1, 1)
+StealthToggle.Parent = MainFrame
+
+-- Update the FPS indicator every second
+while true do
+wait(1)
+local fps = math.floor(game:GetService("Stats").Network.ServerStatsItem"ClientFramesPerSecond".Value)
+FPSLabel.Text = "FPS: " .. tostring(fps)
+end
+
+-- Toggle the lag on and off
+Toggle.Activated:Connect(function()
+if Toggle.Text == "Enable Lag" then
+Toggle.Text = "Disable Lag"
+for _, player in pairs(Humans) do
+GetCharacter(player).Humanoid.WalkSpeed = Slider.Value
+end
+else
+Toggle.Text = "Enable Lag"
+for _, player in pairs(Humans) do
+GetCharacter(player).Humanoid.WalkSpeed = 16
+end
+end
+end)
+
+-- Toggle the stealth on and off
+StealthToggle.Activated:Connect(function()
+if StealthToggle.Text == "Enable Stealth" then
+StealthToggle.Text = "Disable Stealth"
+for _, player in pairs(Humans) do
+local Character = GetCharacter(player)
+Character.Humanoid.WalkSpeed = StealthSlider.Value
+Character.Humanoid.JumpPower = 0
+end
+else
+StealthToggle.Text = "Enable Stealth"
+for _, player in pairs(Humans) do
+local Character = GetCharacter(player)
+Character.Humanoid.WalkSpeed = 16
+Character.Humanoid.JumpPower = 50
+end
+end
+end)
