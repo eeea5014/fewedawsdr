@@ -1,0 +1,117 @@
+-- Legit Teleport GUI (LocalScript in StarterPlayerScripts)
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local gui = Instance.new("ScreenGui")
+gui.Name = "TeleportGUI"
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Main Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 200)
+frame.Position = UDim2.new(0, 10, 0.5, -100)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+frame.BorderSizePixel = 0
+frame.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim2.new(0, 12, 0, 12)
+corner.Parent = frame
+
+-- Toggle Button
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(1, 0, 0, 40)
+toggleBtn.Position = UDim2.new(0, 0, 0, 0)
+toggleBtn.Text = "Toggle GUI (F)"
+toggleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+toggleBtn.TextColor3 = Color3.new(1,1,1)
+toggleBtn.Parent = frame
+
+-- Teleport Buttons
+local tpToBase = Instance.new("TextButton")
+tpToBase.Size = UDim2.new(1, -20, 0, 35)
+tpToBase.Position = UDim2.new(0, 10, 0, 50)
+tpToBase.Text = "TP to My Base"
+tpToBase.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+tpToBase.Parent = frame
+
+local tpHalfway = Instance.new("TextButton")
+tpHalfway.Size = UDim2.new(1, -20, 0, 35)
+tpHalfway.Position = UDim2.new(0, 10, 0, 95)
+tpHalfway.Text = "TP Halfway"
+tpHalfway.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
+tpHalfway.Parent = frame
+
+-- Save/Load Positions
+local savePos = Instance.new("TextButton")
+savePos.Size = UDim2.new(0.48, -10, 0, 35)
+savePos.Position = UDim2.new(0, 10, 0, 140)
+savePos.Text = "Save Pos"
+savePos.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+savePos.Parent = frame
+
+local loadPos = Instance.new("TextButton")
+loadPos.Size = UDim2.new(0.48, -10, 0, 35)
+loadPos.Position = UDim2.new(0.52, 0, 0, 140)
+loadPos.Text = "Load Pos"
+loadPos.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+loadPos.Parent = frame
+
+-- Variables
+local visible = false
+local savedPos = nil
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- Functions
+local function toggleVisibility()
+    visible = not visible
+    frame.Visible = visible
+end
+
+local function teleportTo(position)
+    if humanoidRootPart then
+        humanoidRootPart.CFrame = CFrame.new(position)
+    end
+end
+
+-- Events
+toggleBtn.MouseButton1Click:Connect(toggleVisibility)
+
+tpToBase.MouseButton1Click:Connect(function()
+    -- Replace with your base position
+    teleportTo(Vector3.new(0, 50, 0))
+end)
+
+tpHalfway.MouseButton1Click:Connect(function()
+    -- Replace with halfway position
+    teleportTo(Vector3.new(100, 50, 100))
+end)
+
+savePos.MouseButton1Click:Connect(function()
+    savedPos = humanoidRootPart.CFrame.Position
+    savePos.Text = "Saved!"
+    wait(1)
+    savePos.Text = "Save Pos"
+end)
+
+loadPos.MouseButton1Click:Connect(function()
+    if savedPos then
+        teleportTo(savedPos)
+    end
+end)
+
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.F then
+        toggleVisibility()
+    end
+end)
+
+-- Update character reference
+player.CharacterAdded:Connect(function(newChar)
+    character = newChar
+    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+end)
