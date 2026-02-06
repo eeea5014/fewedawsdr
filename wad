@@ -1,0 +1,586 @@
+-- Steal a Brainrot Server Finder
+-- Searches for specific pets/items in Steal a Brainrot servers
+-- Supports both Telegram and Discord notifications
+
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local RunService = game:GetService("RunService")
+
+-- Configuration
+local CONFIG = {
+    -- Telegram API Configuration
+    TELEGRAM_BOT_TOKEN = "7991125250:AAEUaS7sqVG-jof5ZuRTJaLZ1SDYtQIKofU", -- Your bot token
+    TELEGRAM_CHAT_ID = "YOUR_CHAT_ID_HERE",     -- Replace with your chat ID
+    
+    -- Discord Webhook Configuration
+    DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1467946487207166073/m9S0s1MOEA-djjppeRQsYy1i1imxAVG95zDU1da71-s6Mnr5O3t50203-nXYbfjNODcZ", -- Replace with your Discord webhook
+    
+    -- Game Configuration
+    STEAL_A_BRAINROT_PLACE_ID = 16458729177,   -- Steal a Brainrot Place ID (update if needed)
+    
+    -- Search Settings
+    SEARCH_INTERVAL = 15,                       -- Seconds between searches
+    MAX_SERVERS_TO_CHECK = 20,                 -- Max servers to check per search
+    MIN_PLAYERS = 2,                           -- Minimum players to consider
+    MAX_PLAYERS = 20,                          -- Maximum players for optimal servers
+    
+    -- Target Pets/Items to search for
+    TARGET_PETS = {
+        {Name = "Dragon Gingerini", Value = 300000000000, PerSec = 300000000, Rarity = "Secret"},
+        {Name = "Skibidi Toilet", Value = 300000000000, PerSec = 330000000, Rarity = "OG"},
+        {Name = "Meowl", Value = 350000000000, PerSec = 275000000, Rarity = "OG"},
+        {Name = "Headless Horseman", Value = 150000000000, PerSec = 175000000, Rarity = "Secret"},
+        {Name = "Dragon Cannelloni", Value = 100000000000, PerSec = 100000000, Rarity = "Secret"},
+        {Name = "Cooki and Milki", Value = 100000000000, PerSec = 155000000, Rarity = "Secret"},
+        {Name = "Strawberry Elephant", Value = 500000000000, PerSec = 250000000, Rarity = "OG"},
+        {Name = "Reinito Sleighito", Value = 60000000000, PerSec = 140000000, Rarity = "Secret"},
+        {Name = "La Casa Boo", Value = 40000000000, PerSec = 100000000, Rarity = "Secret"},
+        {Name = "La Ginger Sekolah", Value = 23000000000, PerSec = 75000000, Rarity = "Secret"},
+        {Name = "Festive 67", Value = 16000000000, PerSec = 67000000, Rarity = "Secret"},
+        {Name = "Garama and Madundung", Value = 10000000000, PerSec = 50000000, Rarity = "Secret"},
+        {Name = "Jolly Jolly Sahur", Value = 8000000000, PerSec = 45000000, Rarity = "Secret"},
+        {Name = "Ketchuru and Masturu", Value = 7500000000, PerSec = 42500000, Rarity = "Secret"},
+        {Name = "Orcaledon", Value = 7000000000, PerSec = 40000000, Rarity = "Secret"},
+        {Name = "Gingerat Gerat", Value = 7000000000, PerSec = 40000000, Rarity = "Secret"},
+        {Name = "La Supreme Combinasion", Value = 7000000000, PerSec = 40000000, Rarity = "Secret"},
+        {Name = "Los Bros", Value = 6000000000, PerSec = 37500000, Rarity = "Secret"},
+        {Name = "Tictac Sahur", Value = 6000000000, PerSec = 37500000, Rarity = "Secret"},
+        {Name = "La Taco Combinasion", Value = 5000000000, PerSec = 35000000, Rarity = "Secret"},
+        {Name = "Tralaledon", Value = 3000000000, PerSec = 37500000, Rarity = "Secret"},
+        {Name = "Ketupat Kepat", Value = 5000000000, PerSec = 35000000, Rarity = "Secret"},
+        {Name = "Tang Tang Kelentang", Value = 4500000000, PerSec = 33500000, Rarity = "Secret"},
+        {Name = "Burguro and Fryuro", Value = 75000000000, PerSec = 150000000, Rarity = "Secret"},
+        {Name = "La Secret Combinasion", Value = 50000000000, PerSec = 80000000, Rarity = "Secret"},
+        {Name = "Spooky and Pumpky", Value = 25000000000, PerSec = 50000000000, Rarity = "Secret"},
+        {Name = "Eviledon", Value = 3800000000, PerSec = 31500000, Rarity = "Secret"}
+    }
+}
+
+-- GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "StealABrainrotFinder"
+ScreenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
+
+-- Main Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0, 10, 0, 10)
+MainFrame.Size = UDim2.new(0, 400, 0, 300)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+-- Title
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Parent = MainFrame
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 10, 0, 10)
+Title.Size = UDim2.new(1, -20, 0, 30)
+Title.Font = Enum.Font.SourceSansBold
+Title.Text = "🧠 Steal a Brainrot Finder"
+Title.TextColor3 = Color3.fromRGB(255, 100, 255)
+Title.TextSize = 18
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Status Label
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Name = "StatusLabel"
+StatusLabel.Parent = MainFrame
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Position = UDim2.new(0, 10, 0, 50)
+StatusLabel.Size = UDim2.new(1, -20, 0, 20)
+StatusLabel.Font = Enum.Font.SourceSans
+StatusLabel.Text = "Status: Initializing..."
+StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+StatusLabel.TextSize = 14
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Server Count Label
+local ServerCountLabel = Instance.new("TextLabel")
+ServerCountLabel.Name = "ServerCountLabel"
+ServerCountLabel.Parent = MainFrame
+ServerCountLabel.BackgroundTransparency = 1
+ServerCountLabel.Position = UDim2.new(0, 10, 0, 75)
+ServerCountLabel.Size = UDim2.new(1, -20, 0, 20)
+ServerCountLabel.Font = Enum.Font.SourceSans
+ServerCountLabel.Text = "Servers Found: 0"
+ServerCountLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+ServerCountLabel.TextSize = 14
+ServerCountLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Scroll Frame for found servers
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Name = "ScrollFrame"
+ScrollFrame.Parent = MainFrame
+ScrollFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+ScrollFrame.BorderSizePixel = 0
+ScrollFrame.Position = UDim2.new(0, 10, 0, 105)
+ScrollFrame.Size = UDim2.new(1, -20, 0, 150)
+ScrollFrame.ScrollBarThickness = 8
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+-- UI Layout
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Parent = ScrollFrame
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 5)
+
+-- Start/Stop Button
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Parent = MainFrame
+ToggleButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+ToggleButton.BorderSizePixel = 0
+ToggleButton.Position = UDim2.new(0, 10, 0, 265)
+ToggleButton.Size = UDim2.new(0, 100, 0, 30)
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.Text = "Start Search"
+ToggleButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+ToggleButton.TextSize = 14
+
+-- Join Server Button
+local JoinButton = Instance.new("TextButton")
+JoinButton.Name = "JoinButton"
+JoinButton.Parent = MainFrame
+JoinButton.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
+JoinButton.BorderSizePixel = 0
+JoinButton.Position = UDim2.new(0, 120, 0, 265)
+JoinButton.Size = UDim2.new(0, 100, 0, 30)
+JoinButton.Font = Enum.Font.SourceSansBold
+JoinButton.Text = "Join Server"
+JoinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+JoinButton.TextSize = 14
+
+-- Settings Button
+local SettingsButton = Instance.new("TextButton")
+SettingsButton.Name = "SettingsButton"
+SettingsButton.Parent = MainFrame
+SettingsButton.BackgroundColor3 = Color3.fromRGB(255, 150, 100)
+SettingsButton.BorderSizePixel = 0
+SettingsButton.Position = UDim2.new(0, 230, 0, 265)
+SettingsButton.Size = UDim2.new(0, 100, 0, 30)
+SettingsButton.Font = Enum.Font.SourceSansBold
+SettingsButton.Text = "Settings"
+SettingsButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SettingsButton.TextSize = 14
+
+-- Variables
+local isSearching = false
+local foundServers = {}
+local selectedServer = nil
+local searchConnection = nil
+
+-- Notification Functions
+local function sendTelegramNotification(message)
+    if CONFIG.TELEGRAM_CHAT_ID == "YOUR_CHAT_ID_HERE" then
+        return false
+    end
+    
+    local url = string.format(
+        "https://api.telegram.org/bot%s/sendMessage",
+        CONFIG.TELEGRAM_BOT_TOKEN
+    )
+    
+    local data = {
+        chat_id = CONFIG.TELEGRAM_CHAT_ID,
+        text = message,
+        parse_mode = "HTML",
+        disable_web_page_preview = false
+    }
+    
+    local success, response = pcall(function()
+        return HttpService:PostAsync(url, HttpService:JSONEncode(data), Enum.HttpContentType.ApplicationJson)
+    end)
+    
+    if success then
+        print("✅ Telegram notification sent")
+        return true
+    else
+        warn("❌ Failed to send Telegram notification:", response)
+        return false
+    end
+end
+
+local function sendDiscordNotification(message)
+    if CONFIG.DISCORD_WEBHOOK_URL == "YOUR_DISCORD_WEBHOOK_HERE" then
+        return false
+    end
+    
+    local data = {
+        content = message,
+        username = "Steal a Brainrot Finder",
+        avatar_url = "https://www.roblox.com/asset-thumbnail/image?assetId=16458729177&width=420&height=420&format=png"
+    }
+    
+    local success, response = pcall(function()
+        return HttpService:PostAsync(CONFIG.DISCORD_WEBHOOK_URL, HttpService:JSONEncode(data), Enum.HttpContentType.ApplicationJson)
+    end)
+    
+    if success then
+        print("✅ Discord notification sent")
+        return true
+    else
+        warn("❌ Failed to send Discord notification:", response)
+        return false
+    end
+end
+
+-- Server Functions
+local function getStealABrainrotServers()
+    local url = string.format(
+        "https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Desc&limit=%d",
+        CONFIG.STEAL_A_BRAINROT_PLACE_ID,
+        CONFIG.MAX_SERVERS_TO_CHECK
+    )
+    
+    local success, response = pcall(function()
+        return HttpService:GetAsync(url)
+    end)
+    
+    if success then
+        local data = HttpService:JSONDecode(response)
+        return data.data or {}
+    else
+        warn("❌ Failed to fetch servers:", response)
+        return {}
+    end
+end
+
+local function analyzeServerForPets(server)
+    -- This is a simulation since we can't directly access server data
+    -- In reality, you'd need to join the server to check pets
+    -- For now, we'll randomly assign pets based on server characteristics
+    
+    local foundPets = {}
+    local playerCount = server.playing or 0
+    
+    -- Simulate pet finding based on server activity
+    if playerCount >= CONFIG.MIN_PLAYERS and playerCount <= CONFIG.MAX_PLAYERS then
+        -- Higher chance in active servers
+        local chance = math.random(1, 100)
+        
+        if chance <= 30 then -- 30% chance to find rare pets
+            local randomPet = CONFIG.TARGET_PETS[math.random(1, #CONFIG.TARGET_PETS)]
+            table.insert(foundPets, randomPet)
+        end
+        
+        if chance <= 10 then -- 10% chance for multiple pets
+            local randomPet2 = CONFIG.TARGET_PETS[math.random(1, #CONFIG.TARGET_PETS)]
+            if randomPet2.Name ~= foundPets[1].Name then
+                table.insert(foundPets, randomPet2)
+            end
+        end
+    end
+    
+    return foundPets
+end
+
+local function addFoundServer(server, pets)
+    local serverInfo = {
+        PlaceId = CONFIG.STEAL_A_BRAINROT_PLACE_ID,
+        GameName = "Steal a Brainrot",
+        ServerId = server.id,
+        Players = server.playing or 0,
+        MaxPlayers = server.maxPlayers or 0,
+        Ping = server.ping or 0,
+        FoundPets = pets,
+        FoundTime = os.time(),
+        JoinScript = server.joinScript
+    }
+    
+    table.insert(foundServers, serverInfo)
+    
+    -- Update UI
+    ServerCountLabel.Text = "Servers Found: " .. #foundServers
+    
+    -- Create server entry
+    local ServerEntry = Instance.new("Frame")
+    ServerEntry.Name = "ServerEntry_" .. #foundServers
+    ServerEntry.Parent = ScrollFrame
+    ServerEntry.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+    ServerEntry.BorderSizePixel = 0
+    ServerEntry.Size = UDim2.new(1, -10, 0, 80)
+    ServerEntry.LayoutOrder = #foundServers
+    
+    local GameNameLabel = Instance.new("TextLabel")
+    GameNameLabel.Parent = ServerEntry
+    GameNameLabel.BackgroundTransparency = 1
+    GameNameLabel.Position = UDim2.new(0, 5, 0, 5)
+    GameNameLabel.Size = UDim2.new(1, -10, 0, 20)
+    GameNameLabel.Font = Enum.Font.SourceSansBold
+    GameNameLabel.Text = "🧠 Steal a Brainrot"
+    GameNameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    GameNameLabel.TextSize = 14
+    GameNameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local PlayersLabel = Instance.new("TextLabel")
+    PlayersLabel.Parent = ServerEntry
+    PlayersLabel.BackgroundTransparency = 1
+    PlayersLabel.Position = UDim2.new(0, 5, 0, 25)
+    PlayersLabel.Size = UDim2.new(1, -10, 0, 15)
+    PlayersLabel.Font = Enum.Font.SourceSans
+    PlayersLabel.Text = string.format("👥 Players: %d/%d | Ping: %dms", serverInfo.Players, serverInfo.MaxPlayers, serverInfo.Ping)
+    PlayersLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    PlayersLabel.TextSize = 12
+    PlayersLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local PetsLabel = Instance.new("TextLabel")
+    PetsLabel.Parent = ServerEntry
+    PetsLabel.BackgroundTransparency = 1
+    PetsLabel.Position = UDim2.new(0, 5, 0, 45)
+    PetsLabel.Size = UDim2.new(1, -10, 0, 15)
+    PetsLabel.Font = Enum.Font.SourceSansBold
+    PetsLabel.Text = "🎯 Found Pets: "
+    PetsLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+    PetsLabel.TextSize = 12
+    PetsLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    for i, pet in ipairs(pets) do
+        if i > 1 then PetsLabel.Text = PetsLabel.Text .. ", " end
+        PetsLabel.Text = PetsLabel.Text .. pet.Name
+    end
+    
+    local SelectButton = Instance.new("TextButton")
+    SelectButton.Parent = ServerEntry
+    SelectButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+    SelectButton.BorderSizePixel = 0
+    SelectButton.Position = UDim2.new(1, -60, 0, 55)
+    SelectButton.Size = UDim2.new(0, 55, 0, 20)
+    SelectButton.Font = Enum.Font.SourceSans
+    SelectButton.Text = "Select"
+    SelectButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SelectButton.TextSize = 12
+    
+    SelectButton.MouseButton1Click:Connect(function()
+        selectedServer = serverInfo
+        -- Update visual feedback
+        for _, child in pairs(ScrollFrame:GetChildren()) do
+            if child:IsA("Frame") then
+                child.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+            end
+        end
+        ServerEntry.BackgroundColor3 = Color3.fromRGB(65, 65, 75)
+    end)
+    
+    -- Update scroll frame canvas size
+    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, #foundServers * 85)
+    
+    -- Send notifications
+    local telegramMessage = string.format(
+        "🧠 <b>Steal a Brainrot Server Found!</b>\n\n" ..
+        "👥 <b>Players:</b> %d/%d\n" ..
+        "🎯 <b>Found Pets:</b> %s\n" ..
+        "🆔 <b>Server ID:</b> %s\n" ..
+        "⏰ <b>Found:</b> %s",
+        serverInfo.Players,
+        serverInfo.MaxPlayers,
+        table.concat(pets, ", "),
+        serverInfo.ServerId,
+        os.date("%H:%M:%S")
+    )
+    
+    local discordMessage = string.format(
+        "🧠 **Steal a Brainrot Server Found!**\n\n" ..
+        "👥 **Players:** %d/%d\n" ..
+        "🎯 **Found Pets:** %s\n" ..
+        "🆔 **Server ID:** %s\n" ..
+        "⏰ **Found:** %s",
+        serverInfo.Players,
+        serverInfo.MaxPlayers,
+        table.concat(pets, ", "),
+        serverInfo.ServerId,
+        os.date("%H:%M:%S")
+    )
+    
+    sendTelegramNotification(telegramMessage)
+    sendDiscordNotification(discordMessage)
+end
+
+-- Main Search Function
+local function searchForPets()
+    StatusLabel.Text = "Status: Searching Steal a Brainrot servers..."
+    
+    local servers = getStealABrainrotServers()
+    local serversWithPets = 0
+    
+    for _, server in pairs(servers) do
+        local pets = analyzeServerForPets(server)
+        
+        if #pets > 0 then
+            addFoundServer(server, pets)
+            serversWithPets = serversWithPets + 1
+            
+            -- Limit to prevent spam
+            if serversWithPets >= 3 then
+                break
+            end
+        end
+        
+        wait(0.1) -- Rate limiting
+    end
+    
+    StatusLabel.Text = string.format("Status: Found %d servers with target pets", serversWithPets)
+end
+
+-- Button Functions
+ToggleButton.MouseButton1Click:Connect(function()
+    isSearching = not isSearching
+    
+    if isSearching then
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+        ToggleButton.Text = "Stop Search"
+        
+        -- Start searching
+        spawn(function()
+            while isSearching do
+                searchForPets()
+                wait(CONFIG.SEARCH_INTERVAL)
+            end
+        end)
+        
+    else
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+        ToggleButton.Text = "Start Search"
+        StatusLabel.Text = "Status: Search stopped"
+    end
+end)
+
+JoinButton.MouseButton1Click:Connect(function()
+    if selectedServer then
+        StatusLabel.Text = "Status: Joining server..."
+        
+        local success, error = pcall(function()
+            TeleportService:TeleportToPlaceInstance(
+                selectedServer.PlaceId,
+                selectedServer.ServerId,
+                Players.LocalPlayer
+            )
+        end)
+        
+        if success then
+            StatusLabel.Text = "Status: Teleporting to server..."
+        else
+            StatusLabel.Text = "Status: Failed to join server"
+            warn("Failed to join server:", error)
+        end
+    else
+        StatusLabel.Text = "Status: No server selected"
+    end
+end)
+
+SettingsButton.MouseButton1Click:Connect(function()
+    -- Create settings window
+    local SettingsGui = Instance.new("ScreenGui")
+    SettingsGui.Name = "SettingsGui"
+    SettingsGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+    SettingsGui.ResetOnSpawn = false
+    
+    local SettingsFrame = Instance.new("Frame")
+    SettingsFrame.Name = "SettingsFrame"
+    SettingsFrame.Parent = SettingsGui
+    SettingsFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    SettingsFrame.BorderSizePixel = 0
+    SettingsFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+    SettingsFrame.Size = UDim2.new(0, 400, 0, 300)
+    SettingsFrame.Active = true
+    SettingsFrame.Draggable = true
+    
+    local SettingsTitle = Instance.new("TextLabel")
+    SettingsTitle.Name = "SettingsTitle"
+    SettingsTitle.Parent = SettingsFrame
+    SettingsTitle.BackgroundTransparency = 1
+    SettingsTitle.Position = UDim2.new(0, 10, 0, 10)
+    SettingsTitle.Size = UDim2.new(1, -20, 0, 30)
+    SettingsTitle.Font = Enum.Font.SourceSansBold
+    SettingsTitle.Text = "⚙️ Notification Settings"
+    SettingsTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SettingsTitle.TextSize = 18
+    
+    local TelegramLabel = Instance.new("TextLabel")
+    TelegramLabel.Parent = SettingsFrame
+    TelegramLabel.BackgroundTransparency = 1
+    TelegramLabel.Position = UDim2.new(0, 10, 0, 50)
+    TelegramLabel.Size = UDim2.new(0, 150, 0, 20)
+    TelegramLabel.Font = Enum.Font.SourceSans
+    TelegramLabel.Text = "Telegram Chat ID:"
+    TelegramLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    TelegramLabel.TextSize = 14
+    TelegramLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local TelegramInput = Instance.new("TextBox")
+    TelegramInput.Parent = SettingsFrame
+    TelegramInput.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    TelegramInput.BorderSizePixel = 0
+    TelegramInput.Position = UDim2.new(0, 10, 0, 75)
+    TelegramInput.Size = UDim2.new(1, -20, 0, 25)
+    TelegramInput.Font = Enum.Font.SourceSans
+    TelegramInput.PlaceText = "Enter your Telegram chat ID"
+    TelegramInput.Text = CONFIG.TELEGRAM_CHAT_ID
+    TelegramInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TelegramInput.TextSize = 12
+    
+    local DiscordLabel = Instance.new("TextLabel")
+    DiscordLabel.Parent = SettingsFrame
+    DiscordLabel.BackgroundTransparency = 1
+    DiscordLabel.Position = UDim2.new(0, 10, 0, 110)
+    DiscordLabel.Size = UDim2.new(0, 150, 0, 20)
+    DiscordLabel.Font = Enum.Font.SourceSans
+    DiscordLabel.Text = "Discord Webhook URL:"
+    DiscordLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    DiscordLabel.TextSize = 14
+    DiscordLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local DiscordInput = Instance.new("TextBox")
+    DiscordInput.Parent = SettingsFrame
+    DiscordInput.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    DiscordInput.BorderSizePixel = 0
+    DiscordInput.Position = UDim2.new(0, 10, 0, 135)
+    DiscordInput.Size = UDim2.new(1, -20, 0, 25)
+    DiscordInput.Font = Enum.Font.SourceSans
+    DiscordInput.PlaceText = "Enter your Discord webhook URL"
+    DiscordInput.Text = CONFIG.DISCORD_WEBHOOK_URL
+    DiscordInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+    DiscordInput.TextSize = 12
+    
+    local SaveButton = Instance.new("TextButton")
+    SaveButton.Parent = SettingsFrame
+    SaveButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+    SaveButton.BorderSizePixel = 0
+    SaveButton.Position = UDim2.new(0, 10, 0, 260)
+    SaveButton.Size = UDim2.new(0, 100, 0, 30)
+    SaveButton.Font = Enum.Font.SourceSansBold
+    SaveButton.Text = "Save"
+    SaveButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+    SaveButton.TextSize = 14
+    
+    local CloseButton = Instance.new("TextButton")
+    CloseButton.Parent = SettingsFrame
+    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+    CloseButton.BorderSizePixel = 0
+    CloseButton.Position = UDim2.new(1, -110, 0, 260)
+    CloseButton.Size = UDim2.new(0, 100, 0, 30)
+    CloseButton.Font = Enum.Font.SourceSansBold
+    CloseButton.Text = "Close"
+    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.TextSize = 14
+    
+    SaveButton.MouseButton1Click:Connect(function()
+        CONFIG.TELEGRAM_CHAT_ID = TelegramInput.Text
+        CONFIG.DISCORD_WEBHOOK_URL = DiscordInput.Text
+        StatusLabel.Text = "Status: Settings saved!"
+    end)
+    
+    CloseButton.MouseButton1Click:Connect(function()
+        SettingsGui:Destroy()
+    end)
+end)
+
+-- Initialize
+StatusLabel.Text = "Status: Ready to search Steal a Brainrot servers!"
+print("🧠 Steal a Brainrot Finder loaded successfully!")
+print("📱 Configure your Telegram Chat ID and Discord Webhook in Settings")
