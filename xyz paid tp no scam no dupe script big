@@ -1,0 +1,453 @@
+-- Roblox Teleportation System Script
+-- Created for contest with improved functionality
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "TeleportSystem"
+screenGui.Parent = playerGui
+screenGui.ResetOnSpawn = false
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Parent = screenGui
+mainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+mainFrame.BorderSizePixel = 0
+mainFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+mainFrame.Size = UDim2.new(0, 300, 0, 300)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Parent = mainFrame
+title.BackgroundTransparency = 1
+title.Position = UDim2.new(0, 0, 0, 10)
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Font = Enum.Font.SourceSansBold
+title.Text = "Teleport System"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 20
+title.TextScaled = true
+
+-- Activate to Work Toggle
+local activateButton = Instance.new("TextButton")
+activateButton.Name = "ActivateButton"
+activateButton.Parent = mainFrame
+activateButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+activateButton.BorderSizePixel = 0
+activateButton.Position = UDim2.new(0, 20, 0, 50)
+activateButton.Size = UDim2.new(0, 120, 0, 30)
+activateButton.Font = Enum.Font.SourceSans
+activateButton.Text = "Activate To Work"
+activateButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+activateButton.TextSize = 14
+
+local isActive = false
+activateButton.MouseButton1Click:Connect(function()
+    isActive = not isActive
+    if isActive then
+        activateButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+        activateButton.Text = "Deactivate"
+    else
+        activateButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+        activateButton.Text = "Activate To Work"
+    end
+end)
+
+-- Base 1 Teleport Button
+local base1Button = Instance.new("TextButton")
+base1Button.Name = "Base1Button"
+base1Button.Parent = mainFrame
+base1Button.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+base1Button.BorderSizePixel = 0
+base1Button.Position = UDim2.new(0, 20, 0, 100)
+base1Button.Size = UDim2.new(0, 120, 0, 40)
+base1Button.Font = Enum.Font.SourceSansBold
+base1Button.Text = "Base 1"
+base1Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+base1Button.TextSize = 16
+
+-- Base 2 Teleport Button
+local base2Button = Instance.new("TextButton")
+base2Button.Name = "Base2Button"
+base2Button.Parent = mainFrame
+base2Button.BackgroundColor3 = Color3.fromRGB(255, 100, 255)
+base2Button.BorderSizePixel = 0
+base2Button.Position = UDim2.new(0, 160, 0, 100)
+base2Button.Size = UDim2.new(0, 120, 0, 40)
+base2Button.Font = Enum.Font.SourceSansBold
+base2Button.Text = "Base 2"
+base2Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+base2Button.TextSize = 16
+
+-- Discord Link Button
+local discordButton = Instance.new("TextButton")
+discordButton.Name = "DiscordButton"
+discordButton.Parent = mainFrame
+discordButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+discordButton.BorderSizePixel = 0
+discordButton.Position = UDim2.new(0, 20, 0, 160)
+discordButton.Size = UDim2.new(0, 260, 0, 30)
+discordButton.Font = Enum.Font.SourceSans
+discordButton.Text = "Join Discord: discord.gg/yourserver"
+discordButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+discordButton.TextSize = 12
+
+-- Custom Position Frame
+local customFrame = Instance.new("Frame")
+customFrame.Name = "CustomFrame"
+customFrame.Parent = mainFrame
+customFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+customFrame.BorderSizePixel = 0
+customFrame.Position = UDim2.new(0, 20, 0, 200)
+customFrame.Size = UDim2.new(0, 260, 0, 80)
+customFrame.Visible = false
+
+-- Custom Position Title
+local customTitle = Instance.new("TextLabel")
+customTitle.Name = "CustomTitle"
+customTitle.Parent = customFrame
+customTitle.BackgroundTransparency = 1
+customTitle.Position = UDim2.new(0, 0, 0, 5)
+customTitle.Size = UDim2.new(1, 0, 0, 20)
+customTitle.Font = Enum.Font.SourceSansBold
+customTitle.Text = "Custom Position"
+customTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+customTitle.TextSize = 14
+customTitle.TextXAlignment = Enum.TextXAlignment.Center
+
+-- X Coordinate Input
+local xInput = Instance.new("TextBox")
+xInput.Name = "XInput"
+xInput.Parent = customFrame
+xInput.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+xInput.BorderSizePixel = 0
+xInput.Position = UDim2.new(0, 10, 0, 30)
+xInput.Size = UDim2.new(0, 70, 0, 20)
+xInput.Font = Enum.Font.SourceSans
+xInput.PlaceText = "X"
+xInput.Text = "0"
+xInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+xInput.TextSize = 12
+
+-- Y Coordinate Input
+local yInput = Instance.new("TextBox")
+yInput.Name = "YInput"
+yInput.Parent = customFrame
+yInput.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+yInput.BorderSizePixel = 0
+yInput.Position = UDim2.new(0, 90, 0, 30)
+yInput.Size = UDim2.new(0, 70, 0, 20)
+yInput.Font = Enum.Font.SourceSans
+yInput.PlaceText = "Y"
+yInput.Text = "10"
+yInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+yInput.TextSize = 12
+
+-- Z Coordinate Input
+local zInput = Instance.new("TextBox")
+zInput.Name = "ZInput"
+zInput.Parent = customFrame
+zInput.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+zInput.BorderSizePixel = 0
+zInput.Position = UDim2.new(0, 170, 0, 30)
+zInput.Size = UDim2.new(0, 70, 0, 20)
+zInput.Font = Enum.Font.SourceSans
+zInput.PlaceText = "Z"
+zInput.Text = "0"
+zInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+zInput.TextSize = 12
+
+-- Custom Teleport Button
+local customTeleportButton = Instance.new("TextButton")
+customTeleportButton.Name = "CustomTeleportButton"
+customTeleportButton.Parent = customFrame
+customTeleportButton.BackgroundColor3 = Color3.fromRGB(255, 200, 100)
+customTeleportButton.BorderSizePixel = 0
+customTeleportButton.Position = UDim2.new(0, 10, 0, 55)
+customTeleportButton.Size = UDim2.new(1, -20, 0, 20)
+customTeleportButton.Font = Enum.Font.SourceSansBold
+customTeleportButton.Text = "Teleport to Custom Position"
+customTeleportButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+customTeleportButton.TextSize = 12
+
+-- Toggle Custom Position Button
+local toggleCustomButton = Instance.new("TextButton")
+toggleCustomButton.Name = "ToggleCustomButton"
+toggleCustomButton.Parent = mainFrame
+toggleCustomButton.BackgroundColor3 = Color3.fromRGB(255, 150, 50)
+toggleCustomButton.BorderSizePixel = 0
+toggleCustomButton.Position = UDim2.new(0, 20, 0, 145)
+toggleCustomButton.Size = UDim2.new(0, 120, 0, 25)
+toggleCustomButton.Font = Enum.Font.SourceSansBold
+toggleCustomButton.Text = "Custom Position"
+toggleCustomButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleCustomButton.TextSize = 12
+
+-- Teleport locations (closer to middle as requested)
+-- These coordinates are more central and provide better teleportation distance
+local teleportLocations = {
+    ["Base1"] = Vector3.new(0, 10, 50),   -- Closer to center
+    ["Base2"] = Vector3.new(0, 10, -50)  -- Closer to center
+}
+
+-- Teleport function with smooth animation
+local function teleportTo(location)
+    if not isActive then
+        player:WaitForChild("PlayerGui"):WaitForChild("TeleportSystem"):WaitForChild("MainFrame"):WaitForChild("ActivateButton")
+        -- Visual feedback that activation is required
+        local flash = Instance.new("Frame")
+        flash.Parent = mainFrame
+        flash.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+        flash.BackgroundTransparency = 0
+        flash.BorderSizePixel = 0
+        flash.Size = UDim2.new(1, 0, 1, 0)
+        flash.Position = UDim2.new(0, 0, 0, 0)
+        flash.ZIndex = 10
+        
+        local tween = TweenService:Create(flash, TweenInfo.new(0.5), {BackgroundTransparency = 1})
+        tween:Play()
+        tween.Completed:Connect(function()
+            flash:Destroy()
+        end)
+        return
+    end
+    
+    local character = player.Character
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        local humanoidRootPart = character.HumanoidRootPart
+        
+        -- Create teleport effect
+        local effect = Instance.new("Part")
+        effect.Parent = workspace
+        effect.Anchored = true
+        effect.CanCollide = false
+        effect.Size = Vector3.new(1, 1, 1)
+        effect.Position = humanoidRootPart.Position
+        effect.BrickColor = BrickColor.new("Bright blue")
+        effect.Transparency = 0.5
+        
+        local mesh = Instance.new("SpecialMesh", effect)
+        mesh.MeshType = Enum.MeshType.Sphere
+        mesh.Scale = Vector3.new(0.1, 0.1, 0.1)
+        
+        local expandTween = TweenService:Create(mesh, TweenInfo.new(0.5), {Scale = Vector3.new(10, 10, 10)})
+        local fadeTween = TweenService:Create(effect, TweenInfo.new(0.5), {Transparency = 1})
+        
+        expandTween:Play()
+        fadeTween:Play()
+        
+        -- Teleport player
+        humanoidRootPart.CFrame = CFrame.new(location)
+        
+        -- Create arrival effect
+        local arrivalEffect = Instance.new("Part")
+        arrivalEffect.Parent = workspace
+        arrivalEffect.Anchored = true
+        arrivalEffect.CanCollide = false
+        arrivalEffect.Size = Vector3.new(1, 1, 1)
+        arrivalEffect.Position = location
+        arrivalEffect.BrickColor = BrickColor.new("Bright green")
+        arrivalEffect.Transparency = 0.5
+        
+        local arrivalMesh = Instance.new("SpecialMesh", arrivalEffect)
+        arrivalMesh.MeshType = Enum.MeshType.Sphere
+        arrivalMesh.Scale = Vector3.new(10, 10, 10)
+        
+        local shrinkTween = TweenService:Create(arrivalMesh, TweenInfo.new(0.5), {Scale = Vector3.new(0.1, 0.1, 0.1)})
+        local arrivalFadeTween = TweenService:Create(arrivalEffect, TweenInfo.new(0.5), {Transparency = 1})
+        
+        shrinkTween:Play()
+        arrivalFadeTween:Play()
+        
+        -- Clean up effects
+        fadeTween.Completed:Connect(function()
+            effect:Destroy()
+        end)
+        
+        arrivalFadeTween.Completed:Connect(function()
+            arrivalEffect:Destroy()
+        end)
+        
+        -- Notification
+        local notification = Instance.new("TextLabel")
+        notification.Parent = screenGui
+        notification.BackgroundTransparency = 0
+        notification.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+        notification.BorderSizePixel = 0
+        notification.Position = UDim2.new(0.5, -100, 0, 50)
+        notification.Size = UDim2.new(0, 200, 0, 30)
+        notification.Font = Enum.Font.SourceSansBold
+        notification.Text = "Teleported Successfully!"
+        notification.TextColor3 = Color3.fromRGB(255, 255, 255)
+        notification.TextSize = 16
+        
+        local moveTween = TweenService:Create(notification, TweenInfo.new(2), {Position = UDim2.new(0.5, -100, 0, 100)})
+        local fadeOutTween = TweenService:Create(notification, TweenInfo.new(2), {BackgroundTransparency = 1, TextTransparency = 1})
+        
+        moveTween:Play()
+        fadeOutTween:Play()
+        
+        fadeOutTween.Completed:Connect(function()
+            notification:Destroy()
+        end)
+    end
+end
+
+-- Button click handlers
+base1Button.MouseButton1Click:Connect(function()
+    teleportTo(teleportLocations["Base1"])
+end)
+
+base2Button.MouseButton1Click:Connect(function()
+    teleportTo(teleportLocations["Base2"])
+end)
+
+-- Toggle Custom Position Frame
+toggleCustomButton.MouseButton1Click:Connect(function()
+    customFrame.Visible = not customFrame.Visible
+    if customFrame.Visible then
+        toggleCustomButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+        toggleCustomButton.Text = "Hide Custom"
+    else
+        toggleCustomButton.BackgroundColor3 = Color3.fromRGB(255, 150, 50)
+        toggleCustomButton.Text = "Custom Position"
+    end
+end)
+
+-- Custom Position Teleport
+customTeleportButton.MouseButton1Click:Connect(function()
+    local x = tonumber(xInput.Text) or 0
+    local y = tonumber(yInput.Text) or 10
+    local z = tonumber(zInput.Text) or 0
+    
+    local customPosition = Vector3.new(x, y, z)
+    teleportTo(customPosition)
+    
+    -- Show position notification
+    local posNotification = Instance.new("TextLabel")
+    posNotification.Parent = screenGui
+    posNotification.BackgroundTransparency = 0
+    posNotification.BackgroundColor3 = Color3.fromRGB(255, 200, 100)
+    posNotification.BorderSizePixel = 0
+    posNotification.Position = UDim2.new(0.5, -100, 0, 120)
+    posNotification.Size = UDim2.new(0, 200, 0, 30)
+    posNotification.Font = Enum.Font.SourceSansBold
+    posNotification.Text = string.format("Teleported to (%d, %d, %d)", x, y, z)
+    posNotification.TextColor3 = Color3.fromRGB(0, 0, 0)
+    posNotification.TextSize = 14
+    
+    local moveTween = TweenService:Create(posNotification, TweenInfo.new(2), {Position = UDim2.new(0.5, -100, 0, 170)})
+    local fadeOutTween = TweenService:Create(posNotification, TweenInfo.new(2), {BackgroundTransparency = 1, TextTransparency = 1})
+    
+    moveTween:Play()
+    fadeOutTween:Play()
+    
+    fadeOutTween.Completed:Connect(function()
+        posNotification:Destroy()
+    end)
+end)
+
+-- Input validation for coordinates
+local function validateInput(input)
+    input.Changed:Connect(function()
+        local value = tonumber(input.Text)
+        if value == nil then
+            input.TextColor3 = Color3.fromRGB(255, 100, 100)
+        else
+            input.TextColor3 = Color3.fromRGB(255, 255, 255)
+        end
+    end)
+end
+
+validateInput(xInput)
+validateInput(yInput)
+validateInput(zInput)
+
+discordButton.MouseButton1Click:Connect(function()
+    -- Copy discord link to clipboard (if supported)
+    local success = pcall(function()
+        game:GetService("GuiService"):SelectTextBox(discordButton)
+    end)
+    
+    -- Visual feedback
+    discordButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+    wait(0.2)
+    discordButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+end)
+
+-- Make frame draggable
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+mainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+-- Create teleport zones in workspace (visual indicators)
+local function createTeleportZone(name, position, color)
+    local zone = Instance.new("Part")
+    zone.Name = name
+    zone.Parent = workspace
+    zone.Anchored = true
+    zone.CanCollide = false
+    zone.Size = Vector3.new(8, 0.2, 8)
+    zone.Position = position
+    zone.BrickColor = color
+    zone.Transparency = 0.3
+    
+    local sign = Instance.new("BillboardGui")
+    sign.Parent = zone
+    sign.Size = UDim2.new(0, 100, 0, 50)
+    sign.StudsOffset = Vector3.new(0, 3, 0)
+    
+    local label = Instance.new("TextLabel")
+    label.Parent = sign
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.SourceSansBold
+    label.Text = "TELEPORT HERE (" .. name .. ")"
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextSize = 14
+    label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    label.TextStrokeTransparency = 0
+    
+    return zone
+end
+
+-- Create the teleport zones
+createTeleportZone("BASE 1", teleportLocations["Base1"], BrickColor.new("Bright blue"))
+createTeleportZone("BASE 2", teleportLocations["Base2"], BrickColor.new("Bright violet"))
+
+print("Teleport System loaded successfully!")
