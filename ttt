@@ -1,0 +1,192 @@
+-- XYZ Hub Auto-Carpet + Teleport on E Release
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- CONFIG
+_G.TeleportPosition = Vector3.new(0, 100, 0)
+_G.CarpetName = "Carpet"
+_G.Enabled = true
+_G.StealKey = Enum.KeyCode.E
+
+-- GUI
+local sg = Instance.new("ScreenGui")
+sg.Name = "XYZAuto"
+sg.ResetOnSpawn = false
+sg.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 260, 0, 130)
+frame.Position = UDim2.new(0.5, -130, 0.1, 0)
+frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+frame.Active = true
+frame.Draggable = true
+frame.Parent = sg
+
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 35)
+title.Text = "  XYZ Hub - Auto Carpet"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
+title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+title.Parent = frame
+
+Instance.new("UICorner", title).CornerRadius = UDim.new(0, 8)
+
+local status = Instance.new("TextLabel")
+status.Size = UDim2.new(1, -20, 0, 25)
+status.Position = UDim2.new(0, 10, 0, 45)
+status.Text = "Hold E → Release → Auto TP"
+status.TextColor3 = Color3.fromRGB(0, 255, 100)
+status.Font = Enum.Font.GothamBold
+status.TextSize = 13
+status.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+status.Parent = frame
+
+Instance.new("UICorner", status).CornerRadius = UDim.new(0, 6)
+
+local setBtn = Instance.new("TextButton")
+setBtn.Size = UDim2.new(0, 110, 0, 30)
+setBtn.Position = UDim2.new(0, 10, 0, 90)
+setBtn.Text = "Set TP Position"
+setBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+setBtn.TextColor3 = Color3.new(1, 1, 1)
+setBtn.Font = Enum.Font.GothamBold
+setBtn.Parent = frame
+
+Instance.new("UICorner", setBtn).CornerRadius = UDim.new(0, 6)
+
+local posLabel = Instance.new("TextLabel")
+posLabel.Size = UDim2.new(0, 120, 0, 30)
+posLabel.Position = UDim2.new(0, 130, 0, 90)
+posLabel.Text = "Pos: Not Set"
+posLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+posLabel.Font = Enum.Font.Gotham
+posLabel.TextSize = 11
+posLabel.Parent = frame
+
+-- Functions
+local function updatePosLabel()
+    local pos = _G.TeleportPosition
+    posLabel.Text = string.format("%.0f, %.0f, %.0f", pos.X, pos.Y, pos.Z)
+end
+
+local function getCarpetFromBackpack()
+    local backpack = player:FindFirstChild("Backpack")
+    if not backpack then return nil end
+
+    for _, item in pairs(backpack:GetChildren()) do
+        if item:IsA("Tool") and item.Name:lower():find(_G.CarpetName:lower()) then
+            return item
+        end
+    end
+    return nil
+end
+
+local function isCarpetEquipped()
+    for _, item in pairs(character:GetChildren()) do
+        if item:IsA("Tool") and item.Name:lower():find(_G.CarpetName:lower()) then
+            return true
+        end
+    end
+    return false
+end
+
+local function equipCarpet()
+    if isCarpetEquipped() then return true end
+
+    local carpet = getCarpetFromBackpack()
+    if carpet then
+        humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid:EquipTool(carpet)
+            return true
+        end
+    end
+    return false
+end
+
+local function doTeleport()
+    if not humanoidRootPart then return end
+    humanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+    humanoidRootPart.CFrame = CFrame.new(_G.TeleportPosition)
+    humanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+end
+
+-- Set Position Button
+setBtn.MouseButton1Click:Connect(function()
+    if humanoidRootPart then
+        _G.TeleportPosition = humanoidRootPart.Position
+        updatePosLabel()
+        status.Text = "Position Set!"
+        status.TextColor3 = Color3.fromRGB(255, 200, 0)
+        wait(0.5)
+        status.Text = "Hold E → Release → Auto TP"
+        status.TextColor3 = Color3.fromRGB(0, 255, 100)
+    end
+end)
+
+-- E Key Detection
+local holdingE = false
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == _G.StealKey then
+        holdingE = true
+        status.Text = "Holding E..."
+        status.TextColor3 = Color3.fromRGB(255, 255, 0)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input, gameProcessed)
+    if input.KeyCode == _G.StealKey and holdingE then
+        holdingE = false
+        status.Text = "Equipping Carpet..."
+        status.TextColor3 = Color3.fromRGB(0, 150, 255)
+
+        -- Small delay to let steal action finish
+        wait(0.1)
+
+        -- Equip carpet and teleport
+        if equipCarpet() then
+            wait(0.05) -- Small delay for equip to register
+            doTeleport()
+            status.Text = "Teleported!"
+            status.TextColor3 = Color3.fromRGB(0, 255, 0)
+            wait(0.5)
+            status.Text = "Hold E → Release → Auto TP"
+            status.TextColor3 = Color3.fromRGB(0, 255, 100)
+        else
+            status.Text = "No Carpet Found!"
+            status.TextColor3 = Color3.fromRGB(255, 0, 0)
+            wait(1)
+            status.Text = "Hold E → Release → Auto TP"
+            status.TextColor3 = Color3.fromRGB(0, 255, 100)
+        end
+    end
+end)
+
+-- Character respawn handler
+player.CharacterAdded:Connect(function(newChar)
+    character = newChar
+    humanoidRootPart = newChar:WaitForChild("HumanoidRootPart")
+end)
+
+-- RightShift to toggle GUI visibility
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        frame.Visible = not frame.Visible
+    end
+end)
+
+updatePosLabel()
+
+print("✅ XYZ Hub Auto-Carpet Loaded!")
+print("Hold E to steal → Release E → Auto equips carpet → Teleports")
