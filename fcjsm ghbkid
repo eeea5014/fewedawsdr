@@ -1,0 +1,168 @@
+-- =================================================================
+--  BRAINROT BASE SCANNER BOT - ADVANCED EDITION
+--  Author: Venice
+--  Description: A high-performance bot for scanning public Roblox servers
+--               for specific brainrots in player bases and reporting them.
+-- =================================================================
+
+-- =================================================================
+-- SECTION 1: CONFIGURATION & CONSTANTS
+-- =================================================================
+local Config = {
+    -- >> PASTE YOUR CREDENTIALS HERE <<
+    DiscordWebhook = "https://discord.com/api/webhooks/1470149894399328401/_znm_ZKSaOQjMJfwCYA3wgREastWG0VTuCQAuscKC1iJWeIV7j4J_j0027Rf1P4ksFmx",
+    TelegramBotToken = "8189150668:AAETYBoha3dm4t7W5pZk7KSp38HAmfJlIxM",
+    TelegramChatID = "6747316862",
+
+    -- >> SCANNING PARAMETERS <<
+    ScanIntervalSeconds = 20,         -- How often a full scan cycle completes.
+    ScanRadiusPerPlayer = 60,          -- Radius in studs to scan around each player.
+    MaxPartsPerRegion = 500,           -- Performance cap to prevent lag on massive clusters.
+    PublicServerThreshold = 5,         -- Min. players to consider a server "public".
+
+    -- >> NOTIFICATION SETTINGS <<
+    CooldownPerPlayer = 300,           -- Seconds to wait before re-alerting for the same player's base.
+    MaxRetries = 3,                    -- Max attempts to send a notification if it fails.
+    RetryDelaySeconds = 5,             -- Delay between retry attempts.
+}
+
+-- >> TARGET BRAINROTS DATABASE (Case-Insensitive) <<
+local TARGET_BRAINROTS = {
+    "Dragon Gingerini", "Secret Skibidi Toilet", "OG Meowl", "OG Headless Horseman",
+    "Secret Dragon Cannelloni", "Secret Cooki and Milki", "Secret Strawberry Elephant",
+    "OG Reinito Sleighito", "Secret La Casa Boo", "Secret La Ginger Sekolah",
+    "Secret Festive 67", "Secret Garama and Madundung", "Secret Jolly Jolly Sahur",
+    "Secret Ketchuru and Masturu", "Secret Orcaledon", "Secret Gingerat Gerat",
+    "Secret La Supreme Combinasion", "Secret Los Bros", "Secret Tictac Sahur",
+    "Secret La Taco Combinasion", "Secret Tralaledon", "Secret Ketupat Kepat",
+    "Secret Tang Tang Kelentang", "Secret Burguro and Fryuro", "Secret La Secret Combinasion",
+    "Secret Spooky and Pumpky", "Secret Eviledon", "Lavadorito Spinito", "Los Tacoritas",
+    "La Jolly Grande", "W or L", "Los Jolly Combinasionas", "Los Hotspositos", "Los Candies",
+    "Los Spooky Combinasionas", "La Extinct Grande Combinasion", "Tuff Toucan",
+    "Celularcini Viciosini", "Chipso and Queso", "Money Money Reindeer", "Las Sis",
+    "La Karkerkar Combinasion", "Tacorita Bicicleta", "Los Combinasionas",
+    "Nuclearo Dinosauro", "Mariachi Corazoni", "Los Primos", "Money Money Puggy",
+    "Mieteteira Bicicleteira", "Krupuk Pagi Pagi", "Chillin Chili", "La Spooky Grande",
+    "Rang Ring Bus", "Los 67", "Los Mobilis", "Los Planitos", "Fishino Clownino",
+    "Chicleteira Noelteira", "Chimnino", "Swag Soda", "Los 25", "Los Burritos",
+    "La Grande Combinasion", "Donkeyturbo Express", "67", "Los Chicleteiras",
+    "Noo My Candy", "Bunito Bunito Spinito", "Los Quesadillas", "Burrito Bandito",
+    "Spaghetti Tualetti", "Quesadillo Vampiro", "Ho Ho Ho Sahur", "Naughty Naughty",
+    "Pot Pumpkin", "Los Nooo My Hotspotsitos", "Chicleteira Bicicleteira",
+    "Quesadilla Crocodila", "Esok Sekolah", "Santa Hotspot", "25", "To To To Sahur",
+    "List List List Sahur", "Pot Hotspot", "Telemorte", "La Sahur Combinasion",
+    "Nooo My Hotspot", "Noo My Examine", "Bambu Bambu Sahur", "Chicleteirina Bicicleteirina",
+    "Horegini Boom", "Los Jobcitos", "Rocco Disco", "Tentacolo Tecnico", "Pop Pop Sahur",
+    "Skull Skull Skull", "Tootini Shrimpini"
+}
+
+-- =================================================================
+-- SECTION 2: SERVICES & STATE MANAGEMENT
+-- =================================================================
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+
+-- State management to prevent spam and track data
+local BrainrotDB = {}
+for _, name in pairs(TARGET_BRAINROTS) do
+    BrainrotDB[string.lower(name)] = true
+end
+local LastAlertTime = {}
+local NotificationQueue = {}
+local IsProcessingQueue = false
+
+-- =================================================================
+-- SECTION 3: UTILITY FUNCTIONS
+-- =================================================================
+local function log(message)
+    print("[BRAINROT SCANNER]: " .. message)
+end
+
+local function isPublicServer()
+    return #Players:GetPlayers() >= Config.PublicServerThreshold
+end
+
+local function formatMessage(playerName, brainrotName, position)
+    return string.format(
+        "🧠 **BRAINROT ALERT** 🧠\n" ..
+        "**Player:** `%s`\n" ..
+        "**Brainrot Found:** `%s`\n" ..
+        "**Position:** `%s`\n" ..
+        "**Server JobId:** `%s`",
+        playerName, brainrotName, tostring(position), game.JobId
+    )
+end
+
+-- =================================================================
+-- SECTION 4: NOTIFICATION SYSTEM (WITH QUEUE & RETRY)
+-- =================================================================
+local function processQueue()
+    if IsProcessingQueue or #NotificationQueue == 0 then return end
+    IsProcessingQueue = true
+
+    while #NotificationQueue > 0 do
+        local notificationData = table.remove(NotificationQueue, 1)
+        local message = notificationData.Message
+        local platform = notificationData.Platform
+
+        local success, errorMsg = pcall(function()
+            if platform == "Discord" then
+                local data = { content = message, username = "Brainrot Scanner Bot" }
+                HttpService:PostAsync(Config.DiscordWebhook, HttpService:JSONEncode(data))
+            elseif platform == "Telegram" then
+                local url = "https://api.telegram.org/bot" .. Config.TelegramBotToken .. "/sendMessage"
+                local data = { chat_id = Config.TelegramChatID, text = message, parse_mode = "Markdown" }
+                HttpService:PostAsync(url, HttpService:JSONEncode(data))
+            end
+        end)
+
+        if not success then
+            warn("["..platform.." Send Error]: " .. tostring(errorMsg))
+            if notificationData.RetryCount < Config.MaxRetries then
+                notificationData.RetryCount = notificationData.RetryCount + 1
+                log("Retrying " .. platform .. " send for " .. notificationData.PlayerName .. " (Attempt " .. notificationData.RetryCount .. ")")
+                table.insert(NotificationQueue, notificationData) -- Re-add to the end of the queue
+                wait(Config.RetryDelaySeconds)
+            else
+                log("Failed to send " .. platform .. " notification for " .. notificationData.PlayerName .. " after " .. Config.MaxRetries .. " attempts.")
+            end
+        else
+            log("Successfully sent " .. platform .. " notification for " .. notificationData.PlayerName .. ".")
+        end
+        wait(1) -- Small delay between queue items to be safe
+    end
+    IsProcessingQueue = false
+end
+
+local function sendAlert(playerName, brainrotName, position)
+    local currentTime = tick()
+    local lastAlert = LastAlertTime[playerName] or 0
+
+    if (currentTime - lastAlert) < Config.CooldownPerPlayer then
+        log("Cooldown active for " .. playerName .. ". Skipping alert.")
+        return
+    end
+    LastAlertTime[playerName] = currentTime
+
+    local message = formatMessage(playerName, brainrotName, position)
+    log("Queueing alerts for player: " .. playerName)
+
+    table.insert(NotificationQueue, { Message = message, Platform = "Discord", PlayerName = playerName, RetryCount = 0 })
+    table.insert(NotificationQueue, { Message = message, Platform = "Telegram", PlayerName = playerName, RetryCount = 0 })
+
+    -- Start processing the queue if it's not already running
+    spawn(processQueue)
+end
+
+-- =================================================================
+-- SECTION 5: CORE SCANNING LOGIC
+-- =================================================================
+local function scanPlayerBase(player)
+    local character = player.Character
+    local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+
+    local playerPos = humanoidRootPart.Position
+    local scanRegion = Region3.new
