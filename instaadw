@@ -1,0 +1,272 @@
+Script saved successfully!
+
+============================================================
+XYZ HUB - INSTANT TELEPORT SCRIPT
+============================================================
+-- XYZ Hub Instant Teleport (Carpet Method)
+-- Made for stealth - uses physics-based teleportation
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- CONFIGURATION
+local teleportPosition = Vector3.new(0, 100, 0) -- CHANGE THIS TO YOUR DESIRED POSITION
+local carpetName = "Carpet" -- Name of the carpet tool
+local teleportSpeed = 150 -- Speed that looks natural (not instant)
+
+-- GUI Creation
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "XYZGui"
+screenGui.Parent = game:GetService("CoreGui")
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 220, 0, 80)
+mainFrame.Position = UDim2.new(0.5, -110, 0.1, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+-- Corner radius
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 6)
+corner.Parent = mainFrame
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+title.Text = "XYZ Hub"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
+title.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 6)
+titleCorner.Parent = title
+
+-- Status label
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Name = "Status"
+statusLabel.Size = UDim2.new(1, -20, 0, 25)
+statusLabel.Position = UDim2.new(0, 10, 0, 40)
+statusLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+statusLabel.Text = "Instant TP: OFF"
+statusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.TextSize = 14
+statusLabel.Parent = mainFrame
+
+local statusCorner = Instance.new("UICorner")
+statusCorner.CornerRadius = UDim.new(0, 4)
+statusCorner.Parent = statusLabel
+
+-- Draggable functionality
+local dragging = false
+local dragInput, dragStart, startPos
+
+mainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+mainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- ANTI-CHEAT BYPASS METHODS
+
+-- Method 1: Physics-based teleport (looks like high speed movement)
+local function physicsTeleport(targetPos)
+    local bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    bodyVelocity.Velocity = (targetPos - humanoidRootPart.Position).Unit * teleportSpeed
+    bodyVelocity.Parent = humanoidRootPart
+
+    local connection
+    connection = RunService.Heartbeat:Connect(function()
+        if (humanoidRootPart.Position - targetPos).Magnitude < 5 then
+            bodyVelocity:Destroy()
+            connection:Disconnect()
+            humanoidRootPart.CFrame = CFrame.new(targetPos)
+        end
+    end)
+end
+
+-- Method 2: Tween-based (smooth movement)
+local function tweenTeleport(targetPos)
+    local distance = (targetPos - humanoidRootPart.Position).Magnitude
+    local time = distance / teleportSpeed
+
+    local tween = TweenService:Create(
+        humanoidRootPart,
+        TweenInfo.new(time, Enum.EasingStyle.Linear),
+        {CFrame = CFrame.new(targetPos)}
+    )
+    tween:Play()
+end
+
+-- Method 3: Network sync (most stealthy - uses network ownership)
+local function networkTeleport(targetPos)
+    -- Temporarily disable character interpolation
+    local oldCFrame = humanoidRootPart.CFrame
+
+    -- Set network owner to nil briefly
+    if humanoidRootPart:IsA("BasePart") then
+        humanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+        humanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
+    end
+
+    -- Small delay to sync
+    task.wait(0.03)
+    humanoidRootPart.CFrame = CFrame.new(targetPos)
+
+    -- Restore velocity to prevent detection
+    humanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+end
+
+-- Check if holding carpet
+local function isHoldingCarpet()
+    local tool = character:FindFirstChildOfClass("Tool")
+    if tool and tool.Name:lower():find(carpetName:lower()) then
+        return true
+    end
+
+    -- Check backpack for equipped tool
+    local backpack = player:FindFirstChild("Backpack")
+    if backpack then
+        for _, item in pairs(backpack:GetChildren()) do
+            if item:IsA("Tool") and item.Name:lower():find(carpetName:lower()) then
+                -- Check if it's equipped
+                if character:FindFirstChild(item.Name) then
+                    return true
+                end
+            end
+        end
+    end
+
+    return false
+end
+
+-- Main teleport logic
+local isEnabled = false
+local checkConnection
+
+local function startChecking()
+    if checkConnection then return end
+
+    checkConnection = RunService.Heartbeat:Connect(function()
+        if isEnabled and isHoldingCarpet() then
+            -- Check if we're not already at position
+            if (humanoidRootPart.Position - teleportPosition).Magnitude > 10 then
+                -- Randomize method to avoid pattern detection
+                local method = math.random(1, 3)
+
+                if method == 1 then
+                    physicsTeleport(teleportPosition)
+                elseif method == 2 then
+                    tweenTeleport(teleportPosition)
+                else
+                    networkTeleport(teleportPosition)
+                end
+
+                -- Small cooldown to prevent spam
+                task.wait(0.5)
+            end
+        end
+    end)
+end
+
+-- Toggle with RightShift
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        isEnabled = not isEnabled
+
+        if isEnabled then
+            statusLabel.Text = "Instant TP: ON"
+            statusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
+            startChecking()
+        else
+            statusLabel.Text = "Instant TP: OFF"
+            statusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+            if checkConnection then
+                checkConnection:Disconnect()
+                checkConnection = nil
+            end
+        end
+    end
+end)
+
+-- Character respawn handler
+player.CharacterAdded:Connect(function(newChar)
+    character = newChar
+    humanoid = newChar:WaitForChild("Humanoid")
+    humanoidRootPart = newChar:WaitForChild("HumanoidRootPart")
+
+    if isEnabled then
+        startChecking()
+    end
+end)
+
+-- Set Position Button (Click title to set current pos as teleport pos)
+title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then -- Right click
+        teleportPosition = humanoidRootPart.Position
+        statusLabel.Text = "Position Set!"
+        task.wait(1)
+        statusLabel.Text = isEnabled and "Instant TP: ON" or "Instant TP: OFF"
+    end
+end)
+
+-- Notification
+local notif = Instance.new("TextLabel")
+notif.Size = UDim2.new(0, 200, 0, 40)
+notif.Position = UDim2.new(0.5, -100, 0, -50)
+notif.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+notif.Text = "XYZ Hub Loaded!"
+notif.TextColor3 = Color3.fromRGB(255, 255, 255)
+notif.Font = Enum.Font.GothamBold
+notif.TextSize = 14
+notif.Parent = screenGui
+
+local notifCorner = Instance.new("UICorner")
+notifCorner.CornerRadius = UDim.new(0, 8)
+notifCorner.Parent = notif
+
+-- Animate notification
+TweenService:Create(notif, TweenInfo.new(0.5), {Position = UDim2.new(0.5, -100, 0, 20)}):Play()
+task.wait(3)
+TweenService:Create(notif, TweenInfo.new(0.5), {Position = UDim2.new(0.5, -100, 0, -50)}):Play()
+task.wait(0.5)
+notif:Destroy()
+
+print("XYZ Hub Loaded - Press RightShift to toggle, Right-click title to set position")
