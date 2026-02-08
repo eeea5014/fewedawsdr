@@ -1,0 +1,427 @@
+--[[
+Instant Steal TP - Working Teleport Script
+Created with proper GUI loading and anti-cheat friendly features
+--]]
+
+-- Services
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+-- Player variables
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Configuration
+local Config = {
+    TeleportCooldown = 0.5,
+    MaxDistance = 1000,
+    BaseLocations = {
+        Vector3.new(100, 10, 100),
+        Vector3.new(-100, 10, -100)
+    }
+}
+
+-- State variables
+local customTeleportPos = nil
+local podiumPos = nil
+local lastTeleport = 0
+local isTeleporting = false
+
+-- Create GUI
+local function createGUI()
+    -- Main ScreenGui
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "InstantStealTP"
+    screenGui.Parent = playerGui
+    screenGui.ResetOnSpawn = false
+    screenGui.IgnoreGuiInset = true
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+    -- Main Frame
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Parent = screenGui
+    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+    mainFrame.Size = UDim2.new(0, 300, 0, 200)
+    mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    mainFrame.Active = true
+    mainFrame.Draggable = true
+    
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Parent = mainFrame
+    title.BackgroundTransparency = 1
+    title.Position = UDim2.new(0, 0, 0, 10)
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.Font = Enum.Font.SourceSansBold
+    title.Text = "E/R Teleport Helper"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextSize = 18
+    title.TextScaled = true
+    
+    -- Select Label
+    local selectLabel = Instance.new("TextLabel")
+    selectLabel.Name = "SelectLabel"
+    selectLabel.Parent = mainFrame
+    selectLabel.BackgroundTransparency = 1
+    selectLabel.Position = UDim2.new(0, 50, 0, 45)
+    selectLabel.Size = UDim2.new(0, 100, 0, 15)
+    selectLabel.Font = Enum.Font.SourceSans
+    selectLabel.Text = "Select Podium"
+    selectLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    selectLabel.TextSize = 12
+    selectLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    -- Dropdown Frame
+    local dropdownFrame = Instance.new("Frame")
+    dropdownFrame.Name = "DropdownFrame"
+    dropdownFrame.Parent = mainFrame
+    dropdownFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    dropdownFrame.BorderSizePixel = 0
+    dropdownFrame.Position = UDim2.new(0, 50, 0, 60)
+    dropdownFrame.Size = UDim2.new(0, 200, 0, 30)
+    dropdownFrame.ZIndex = 10
+    
+    -- Dropdown Button
+    local dropdownButton = Instance.new("TextButton")
+    dropdownButton.Name = "DropdownButton"
+    dropdownButton.Parent = dropdownFrame
+    dropdownButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    dropdownButton.BorderSizePixel = 0
+    dropdownButton.Size = UDim2.new(1, 0, 1, 0)
+    dropdownButton.Font = Enum.Font.SourceSans
+    dropdownButton.Text = "Podium 1 - Base 1"
+    dropdownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    dropdownButton.TextSize = 14
+    dropdownButton.TextXAlignment = Enum.TextXAlignment.Left
+    dropdownButton.ZIndex = 11
+    
+    -- Arrow
+    local arrow = Instance.new("TextLabel")
+    arrow.Name = "Arrow"
+    arrow.Parent = dropdownButton
+    arrow.BackgroundTransparency = 1
+    arrow.Position = UDim2.new(1, -20, 0, 0)
+    arrow.Size = UDim2.new(0, 20, 1, 0)
+    arrow.Font = Enum.Font.SourceSans
+    arrow.Text = "▼"
+    arrow.TextColor3 = Color3.fromRGB(255, 255, 255)
+    arrow.TextSize = 12
+    arrow.ZIndex = 12
+    
+    -- Teleport Button
+    local teleportButton = Instance.new("TextButton")
+    teleportButton.Name = "TeleportButton"
+    teleportButton.Parent = mainFrame
+    teleportButton.BackgroundColor3 = Color3.fromRGB(50, 100, 255)
+    teleportButton.BorderSizePixel = 0
+    teleportButton.Position = UDim2.new(0, 50, 0, 100)
+    teleportButton.Size = UDim2.new(0, 200, 0, 50)
+    teleportButton.Font = Enum.Font.SourceSansBold
+    teleportButton.Text = "TELEPORT"
+    teleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    teleportButton.TextSize = 20
+    
+    -- Set Teleport Button
+    local setTeleportButton = Instance.new("TextButton")
+    setTeleportButton.Name = "SetTeleportButton"
+    setTeleportButton.Parent = mainFrame
+    setTeleportButton.BackgroundColor3 = Color3.fromRGB(255, 150, 50)
+    setTeleportButton.BorderSizePixel = 0
+    setTeleportButton.Position = UDim2.new(0, 10, 0, 160)
+    setTeleportButton.Size = UDim2.new(0, 130, 0, 30)
+    setTeleportButton.Font = Enum.Font.SourceSansBold
+    setTeleportButton.Text = "Set Teleport"
+    setTeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    setTeleportButton.TextSize = 12
+    
+    -- Set Podium Button
+    local setPodiumButton = Instance.new("TextButton")
+    setPodiumButton.Name = "SetPodiumButton"
+    setPodiumButton.Parent = mainFrame
+    setPodiumButton.BackgroundColor3 = Color3.fromRGB(255, 50, 100)
+    setPodiumButton.BorderSizePixel = 0
+    setPodiumButton.Position = UDim2.new(0, 160, 0, 160)
+    setPodiumButton.Size = UDim2.new(0, 130, 0, 30)
+    setPodiumButton.Font = Enum.Font.SourceSansBold
+    setPodiumButton.Text = "Set Podium"
+    setPodiumButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    setPodiumButton.TextSize = 12
+    
+    -- Return all GUI elements
+    return {
+        ScreenGui = screenGui,
+        MainFrame = mainFrame,
+        DropdownFrame = dropdownFrame,
+        DropdownButton = dropdownButton,
+        Arrow = arrow,
+        TeleportButton = teleportButton,
+        SetTeleportButton = setTeleportButton,
+        SetPodiumButton = setPodiumButton
+    }
+end
+
+-- Create podium function
+local function createPodium(position, name)
+    -- Remove existing podium
+    local existing = Workspace:FindFirstChild(name)
+    if existing then
+        existing:Destroy()
+    end
+    
+    -- Create platform
+    local podium = Instance.new("Part")
+    podium.Name = name
+    podium.Parent = Workspace
+    podium.Anchored = true
+    podium.CanCollide = true
+    podium.Size = Vector3.new(8, 1, 8)
+    podium.Position = position + Vector3.new(0, -0.5, 0)
+    podium.BrickColor = BrickColor.new("Bright blue")
+    podium.Material = Enum.Material.Neon
+    
+    -- Create sign
+    local sign = Instance.new("BillboardGui")
+    sign.Name = "TeleportSign"
+    sign.Parent = podium
+    sign.Size = UDim2.new(0, 200, 0, 50)
+    sign.StudsOffset = Vector3.new(0, 5, 0)
+    
+    local label = Instance.new("TextLabel")
+    label.Parent = sign
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 0
+    label.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    label.BorderSizePixel = 0
+    label.Font = Enum.Font.SourceSansBold
+    label.Text = "TELEPORT HERE"
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextSize = 16
+    label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    label.TextStrokeTransparency = 0
+    
+    -- Add glow
+    local light = Instance.new("PointLight")
+    light.Parent = podium
+    light.Color = Color3.fromRGB(100, 150, 255)
+    light.Range = 20
+    light.Brightness = 5
+    
+    return podium
+end
+
+-- Instant teleport function
+local function instantTeleport(targetPos)
+    if isTeleporting then return false
+    
+    local currentTime = tick()
+    if currentTime - lastTeleport < Config.TeleportCooldown then
+        return false
+    end
+    
+    local character = player.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then
+        return false
+    end
+    
+    local humanoidRootPart = character.HumanoidRootPart
+    local currentPos = humanoidRootPart.Position
+    local distance = (targetPos - currentPos).Magnitude
+    
+    -- Handle long distances
+    if distance > Config.MaxDistance then
+        local steps = math.ceil(distance / Config.MaxDistance)
+        local direction = (targetPos - currentPos).Unit
+        
+        isTeleporting = true
+        
+        for i = 1, steps do
+            local stepPos = currentPos + direction * (Config.MaxDistance * i)
+            if i == steps then
+                stepPos = targetPos
+            end
+            
+            humanoidRootPart.CFrame = CFrame.new(stepPos)
+            
+            if i < steps then
+                wait(0.05)
+            end
+        end
+        
+        isTeleporting = false
+        lastTeleport = currentTime
+        return true
+    else
+        -- Direct instant teleport
+        isTeleporting = true
+        humanoidRootPart.CFrame = CFrame.new(targetPos)
+        isTeleporting = false
+        lastTeleport = currentTime
+        return true
+    end
+end
+
+-- Setup dropdown functionality
+local function setupDropdown(gui)
+    local options = {
+        "Podium 1 - Base 1",
+        "Podium 2 - Base 2", 
+        "Custom Teleport",
+        "Custom Podium"
+    }
+    
+    local currentSelection = 1
+    local dropdownOpen = false
+    
+    local function updateDropdown()
+        gui.DropdownButton.Text = options[currentSelection]
+    end
+    
+    local function toggleDropdown()
+        dropdownOpen = not dropdownOpen
+        gui.Arrow.Text = dropdownOpen and "▲" or "▼"
+        
+        -- Clear existing options
+        for _, child in pairs(gui.DropdownFrame:GetChildren()) do
+            if child.Name:match("Option") then
+                child:Destroy()
+            end
+        end
+        
+        if dropdownOpen then
+            for i, option in ipairs(options) do
+                local optionButton = Instance.new("TextButton")
+                optionButton.Name = "Option" .. i
+                optionButton.Parent = gui.DropdownFrame
+                optionButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+                optionButton.BorderSizePixel = 0
+                optionButton.Position = UDim2.new(0, 0, 0, i * 30)
+                optionButton.Size = UDim2.new(1, 0, 0, 30)
+                optionButton.Font = Enum.Font.SourceSans
+                optionButton.Text = option
+                optionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+                optionButton.TextSize = 14
+                optionButton.TextXAlignment = Enum.TextXAlignment.Left
+                optionButton.ZIndex = 15
+                
+                optionButton.MouseButton1Click:Connect(function()
+                    currentSelection = i
+                    updateDropdown()
+                    toggleDropdown()
+                end)
+                
+                optionButton.MouseEnter:Connect(function()
+                    optionButton.BackgroundColor3 = Color3.fromRGB(70, 70, 80)
+                end)
+                
+                optionButton.MouseLeave:Connect(function()
+                    optionButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+                end)
+            end
+            
+            gui.DropdownFrame.Size = UDim2.new(0, 200, 0, 30 + #options * 30)
+        else
+            gui.DropdownFrame.Size = UDim2.new(0, 200, 0, 30)
+        end
+    end
+    
+    gui.DropdownButton.MouseButton1Click:Connect(toggleDropdown)
+    
+    return function() return currentSelection end
+end
+
+-- Main initialization
+local function initialize()
+    print("Instant Steal TP: Starting initialization...")
+    
+    -- Create GUI
+    local gui = createGUI()
+    print("Instant Steal TP: GUI created")
+    
+    -- Setup dropdown
+    local getSelection = setupDropdown(gui)
+    print("Instant Steal TP: Dropdown setup complete")
+    
+    -- Teleport button handler
+    gui.TeleportButton.MouseButton1Click:Connect(function()
+        local selection = getSelection()
+        local targetPos = nil
+        
+        if selection == 1 then
+            targetPos = Config.BaseLocations[1]
+        elseif selection == 2 then
+            targetPos = Config.BaseLocations[2]
+        elseif selection == 3 and customTeleportPos then
+            targetPos = customTeleportPos
+        elseif selection == 4 and podiumPos then
+            targetPos = podiumPos
+        end
+        
+        if targetPos then
+            if instantTeleport(targetPos) then
+                gui.TeleportButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+                wait(0.5)
+                gui.TeleportButton.BackgroundColor3 = Color3.fromRGB(50, 100, 255)
+            else
+                gui.TeleportButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+                wait(0.5)
+                gui.TeleportButton.BackgroundColor3 = Color3.fromRGB(50, 100, 255)
+            end
+        end
+    end)
+    
+    -- Set teleport button handler
+    gui.SetTeleportButton.MouseButton1Click:Connect(function()
+        local character = player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            customTeleportPos = character.HumanoidRootPart.Position
+            gui.SetTeleportButton.Text = "✓ Set!"
+            gui.SetTeleportButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+            wait(1)
+            gui.SetTeleportButton.Text = "Set Teleport"
+            gui.SetTeleportButton.BackgroundColor3 = Color3.fromRGB(255, 150, 50)
+        end
+    end)
+    
+    -- Set podium button handler
+    gui.SetPodiumButton.MouseButton1Click:Connect(function()
+        local character = player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            podiumPos = character.HumanoidRootPart.Position
+            createPodium(podiumPos, "CustomPodium")
+            gui.SetPodiumButton.Text = "✓ Created!"
+            gui.SetPodiumButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+            wait(1)
+            gui.SetPodiumButton.Text = "Set Podium"
+            gui.SetPodiumButton.BackgroundColor3 = Color3.fromRGB(255, 50, 100)
+        end
+    end)
+    
+    -- Create base podiums
+    spawn(function()
+        wait(0.5)
+        createPodium(Config.BaseLocations[1], "Base1Podium")
+        createPodium(Config.BaseLocations[2], "Base2Podium")
+        print("Instant Steal TP: Base podiums created")
+    end)
+    
+    print("Instant Steal TP: Initialization complete!")
+    print("GUI should be visible now")
+end
+
+-- Start the script
+spawn(function()
+    -- Wait for player to be fully loaded
+    player.CharacterAdded:Wait()
+    wait(1)
+    
+    -- Initialize everything
+    initialize()
+end)
+
+print("Instant Steal TP: Script loaded")
