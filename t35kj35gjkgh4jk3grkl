@@ -1,0 +1,248 @@
+-- XYZ Hub Fixed Version
+-- Loads properly on all executors
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
+
+-- Wait for character properly
+repeat task.wait() until player.Character
+local character = player.Character
+local humanoid = character:WaitForChild("Humanoid", 10)
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart", 10)
+
+-- CONFIG
+_G.TeleportPosition = Vector3.new(0, 100, 0)
+_G.CarpetName = "Carpet"
+_G.Enabled = false
+
+-- GUI Parent (try multiple methods for compatibility)
+local function getGuiParent()
+    local success, result = pcall(function()
+        return game:GetService("CoreGui")
+    end)
+    if success then return result end
+
+    success, result = pcall(function()
+        return player:WaitForChild("PlayerGui")
+    end)
+    if success then return result end
+
+    return player.PlayerGui
+end
+
+-- Create GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "XYZHub"..tostring(math.random(1000,9999))
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local parent = getGuiParent()
+if parent then
+    screenGui.Parent = parent
+else
+    screenGui.Parent = player.PlayerGui
+end
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "Main"
+mainFrame.Size = UDim2.new(0, 240, 0, 100)
+mainFrame.Position = UDim2.new(0.5, -120, 0.1, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8)
+corner.Parent = mainFrame
+
+-- Title Bar
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(1, 0, 0, 35)
+title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+title.Text = "  XYZ Hub"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 8)
+titleCorner.Parent = title
+
+-- Status
+local status = Instance.new("TextLabel")
+status.Name = "Status"
+status.Size = UDim2.new(1, -20, 0, 30)
+status.Position = UDim2.new(0, 10, 0, 45)
+status.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+status.Text = "Instant TP: OFF"
+status.TextColor3 = Color3.fromRGB(255, 50, 50)
+status.Font = Enum.Font.GothamBold
+status.TextSize = 14
+status.Parent = mainFrame
+
+local statusCorner = Instance.new("UICorner")
+statusCorner.CornerRadius = UDim.new(0, 6)
+statusCorner.Parent = status
+
+-- Position Display
+local posDisplay = Instance.new("TextLabel")
+posDisplay.Name = "Pos"
+posDisplay.Size = UDim2.new(1, -20, 0, 20)
+posDisplay.Position = UDim2.new(0, 10, 0, 80)
+posDisplay.BackgroundTransparency = 1
+posDisplay.Text = "Pos: Not Set"
+posDisplay.TextColor3 = Color3.fromRGB(150, 150, 150)
+posDisplay.Font = Enum.Font.Gotham
+posDisplay.TextSize = 12
+posDisplay.Parent = mainFrame
+
+-- Functions
+local function updatePosDisplay()
+    local pos = _G.TeleportPosition
+    posDisplay.Text = string.format("Target: %.0f, %.0f, %.0f", pos.X, pos.Y, pos.Z)
+end
+
+local function checkCarpet()
+    if not character then return false end
+    for _, tool in pairs(character:GetChildren()) do
+        if tool:IsA("Tool") and string.find(tool.Name:lower(), _G.CarpetName:lower()) then
+            return true
+        end
+    end
+    return false
+end
+
+local function doTeleport()
+    if not humanoidRootPart then return end
+    if not checkCarpet() then return end
+
+    local target = _G.TeleportPosition
+    local current = humanoidRootPart.Position
+
+    if (current - target).Magnitude < 5 then return end
+
+    -- Method: Direct CFrame with velocity reset
+    humanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+    humanoidRootPart.CFrame = CFrame.new(target)
+    humanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+end
+
+-- Toggle Button
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(0, 60, 0, 25)
+toggleBtn.Position = UDim2.new(1, -70, 0, 5)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+toggleBtn.Text = "Toggle"
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 12
+toggleBtn.Parent = title
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 4)
+btnCorner.Parent = toggleBtn
+
+-- Set Pos Button
+local setBtn = Instance.new("TextButton")
+setBtn.Size = UDim2.new(0, 50, 0, 25)
+setBtn.Position = UDim2.new(1, -125, 0, 5)
+setBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+setBtn.Text = "Set Pos"
+setBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+setBtn.Font = Enum.Font.GothamBold
+setBtn.TextSize = 11
+setBtn.Parent = title
+
+local setCorner = Instance.new("UICorner")
+setCorner.CornerRadius = UDim.new(0, 4)
+setCorner.Parent = setBtn
+
+-- Button Functions
+setBtn.MouseButton1Click:Connect(function()
+    if humanoidRootPart then
+        _G.TeleportPosition = humanoidRootPart.Position
+        updatePosDisplay()
+        status.Text = "Position Set!"
+        status.TextColor3 = Color3.fromRGB(255, 200, 0)
+        task.wait(0.5)
+        status.Text = _G.Enabled and "Instant TP: ON" or "Instant TP: OFF"
+        status.TextColor3 = _G.Enabled and Color3.fromRGB(50, 255, 50) or Color3.fromRGB(255, 50, 50)
+    end
+end)
+
+toggleBtn.MouseButton1Click:Connect(function()
+    _G.Enabled = not _G.Enabled
+    status.Text = _G.Enabled and "Instant TP: ON" or "Instant TP: OFF"
+    status.TextColor3 = _G.Enabled and Color3.fromRGB(50, 255, 50) or Color3.fromRGB(255, 50, 50)
+end)
+
+-- Main Loop
+spawn(function()
+    while true do
+        task.wait(0.1)
+        if _G.Enabled and checkCarpet() then
+            doTeleport()
+            task.wait(0.3) -- Cooldown
+        end
+    end
+end)
+
+-- Character Respawn Fix
+player.CharacterAdded:Connect(function(newChar)
+    character = newChar
+    humanoid = newChar:WaitForChild("Humanoid", 10)
+    humanoidRootPart = newChar:WaitForChild("HumanoidRootPart", 10)
+end)
+
+-- Keybind (RightShift)
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        mainFrame.Visible = not mainFrame.Visible
+    end
+end)
+
+updatePosDisplay()
+
+-- Load Notification
+local notif = Instance.new("Frame")
+notif.Size = UDim2.new(0, 200, 0, 50)
+notif.Position = UDim2.new(0.5, -100, 0, -100)
+notif.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+notif.Parent = screenGui
+
+local notifCorner = Instance.new("UICorner")
+notifCorner.CornerRadius = UDim.new(0, 10)
+notifCorner.Parent = notif
+
+local notifText = Instance.new("TextLabel")
+notifText.Size = UDim2.new(1, 0, 1, 0)
+notifText.BackgroundTransparency = 1
+notifText.Text = "XYZ Hub Loaded!"
+notifText.TextColor3 = Color3.fromRGB(255, 255, 255)
+notifText.Font = Enum.Font.GothamBold
+notifText.TextSize = 16
+notifText.Parent = notif
+
+-- Animate in
+TweenService:Create(notif, TweenInfo.new(0.5), {Position = UDim2.new(0.5, -100, 0, 30)}):Play()
+task.wait(2)
+TweenService:Create(notif, TweenInfo.new(0.5), {Position = UDim2.new(0.5, -100, 0, -100)}):Play()
+task.wait(0.5)
+notif:Destroy()
+
+print("✅ XYZ Hub Loaded Successfully!")
+print("Controls:")
+print("- Click 'Set Pos' to save current location")
+print("- Click 'Toggle' to enable/disable teleport")
+print("- Hold carpet tool to teleport instantly")
+print("- Press RightShift to hide/show GUI")
