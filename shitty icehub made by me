@@ -1,0 +1,202 @@
+-- XYZ Hub - FULLY AUTO Instant Steal
+-- Just hold carpet = instant teleport to base
+-- No buttons needed, completely automatic
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- CONFIGURATION
+_G.BasePosition = Vector3.new(0, 100, 0)  -- SET YOUR BASE POSITION HERE
+_G.CarpetName = "Carpet"                   -- Name of your carpet tool
+_G.TeleportCooldown = 0.5                  -- Seconds between teleports
+_G.AutoSetPosition = true                  -- Auto-set position on first load
+
+-- GUI
+local sg = Instance.new("ScreenGui")
+sg.Name = "XYZAutoSteal"
+sg.ResetOnSpawn = false
+sg.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 280, 0, 150)
+frame.Position = UDim2.new(0.5, -140, 0.1, 0)
+frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Parent = sg
+
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 40)
+title.Text = "  XYZ Hub - Auto Steal"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+title.Parent = frame
+
+Instance.new("UICorner", title).CornerRadius = UDim.new(0, 10)
+
+-- Status
+local status = Instance.new("TextLabel")
+status.Size = UDim2.new(1, -20, 0, 30)
+status.Position = UDim2.new(0, 10, 0, 50)
+status.Text = "READY - Hold Carpet to TP"
+status.TextColor3 = Color3.fromRGB(0, 255, 100)
+status.Font = Enum.Font.GothamBold
+status.TextSize = 14
+status.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+status.Parent = frame
+
+Instance.new("UICorner", status).CornerRadius = UDim.new(0, 8)
+
+-- Position Display
+local posBox = Instance.new("TextBox")
+posBox.Size = UDim2.new(0, 160, 0, 30)
+posBox.Position = UDim2.new(0, 10, 0, 90)
+posBox.Text = string.format("%.0f, %.0f, %.0f", _G.BasePosition.X, _G.BasePosition.Y, _G.BasePosition.Z)
+posBox.ClearTextOnFocus = false
+posBox.TextColor3 = Color3.new(1, 1, 1)
+posBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+posBox.Font = Enum.Font.Gotham
+posBox.TextSize = 12
+posBox.Parent = frame
+
+Instance.new("UICorner", posBox).CornerRadius = UDim.new(0, 6)
+
+-- Set Button
+local setBtn = Instance.new("TextButton")
+setBtn.Size = UDim2.new(0, 90, 0, 30)
+setBtn.Position = UDim2.new(0, 180, 0, 90)
+setBtn.Text = "Set Base"
+setBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+setBtn.TextColor3 = Color3.new(1, 1, 1)
+setBtn.Font = Enum.Font.GothamBold
+setBtn.TextSize = 12
+setBtn.Parent = frame
+
+Instance.new("UICorner", setBtn).CornerRadius = UDim.new(0, 6)
+
+-- Info
+local info = Instance.new("TextLabel")
+info.Size = UDim2.new(1, -20, 0, 20)
+info.Position = UDim2.new(0, 10, 0, 125)
+info.Text = "Just hold carpet → Auto teleport!"
+info.TextColor3 = Color3.fromRGB(150, 150, 150)
+info.Font = Enum.Font.Gotham
+info.TextSize = 11
+info.BackgroundTransparency = 1
+info.Parent = frame
+
+-- Functions
+local lastTeleport = 0
+
+local function isHoldingCarpet()
+    if not character then return false end
+    for _, item in pairs(character:GetChildren()) do
+        if item:IsA("Tool") and item.Name:lower():find(_G.CarpetName:lower()) then
+            return true
+        end
+    end
+    return false
+end
+
+local function doTeleport()
+    local now = tick()
+    if now - lastTeleport < _G.TeleportCooldown then return end
+
+    if not humanoidRootPart then return end
+
+    -- Anti-cheat bypass: Reset velocity before and after
+    humanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+    humanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
+
+    -- Teleport
+    humanoidRootPart.CFrame = CFrame.new(_G.BasePosition)
+
+    -- Reset velocity again
+    humanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+    humanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
+
+    lastTeleport = now
+
+    -- Visual feedback
+    status.Text = "TELEPORTED!"
+    status.TextColor3 = Color3.fromRGB(0, 255, 255)
+
+    task.delay(0.5, function()
+        if status then
+            status.Text = "READY - Hold Carpet to TP"
+            status.TextColor3 = Color3.fromRGB(0, 255, 100)
+        end
+    end)
+end
+
+-- Set Base Position
+setBtn.MouseButton1Click:Connect(function()
+    if humanoidRootPart then
+        _G.BasePosition = humanoidRootPart.Position
+        posBox.Text = string.format("%.0f, %.0f, %.0f", _G.BasePosition.X, _G.BasePosition.Y, _G.BasePosition.Z)
+        status.Text = "Base Position Set!"
+        status.TextColor3 = Color3.fromRGB(255, 200, 0)
+        task.wait(1)
+        status.Text = "READY - Hold Carpet to TP"
+        status.TextColor3 = Color3.fromRGB(0, 255, 100)
+    end
+end)
+
+-- Parse manual position input
+posBox.FocusLost:Connect(function()
+    local text = posBox.Text
+    local x, y, z = text:match("([%-%d]+),%s*([%-%d]+),%s*([%-%d]+)")
+    if x and y and z then
+        _G.BasePosition = Vector3.new(tonumber(x), tonumber(y), tonumber(z))
+        status.Text = "Position Updated!"
+        task.wait(0.5)
+        status.Text = "READY - Hold Carpet to TP"
+    end
+end)
+
+-- MAIN LOOP - Check every frame if holding carpet
+RunService.RenderStepped:Connect(function()
+    if isHoldingCarpet() then
+        status.Text = "CARPET DETECTED - TPING..."
+        status.TextColor3 = Color3.fromRGB(255, 255, 0)
+        doTeleport()
+    end
+end)
+
+-- Character respawn fix
+player.CharacterAdded:Connect(function(newChar)
+    character = newChar
+    humanoidRootPart = newChar:WaitForChild("HumanoidRootPart")
+end)
+
+-- Auto-set position on load if enabled
+if _G.AutoSetPosition then
+    task.wait(1)
+    if humanoidRootPart then
+        _G.BasePosition = humanoidRootPart.Position
+        posBox.Text = string.format("%.0f, %.0f, %.0f", _G.BasePosition.X, _G.BasePosition.Y, _G.BasePosition.Z)
+        status.Text = "Auto-Set to Current Pos!"
+        status.TextColor3 = Color3.fromRGB(0, 150, 255)
+        task.wait(2)
+        status.Text = "READY - Hold Carpet to TP"
+        status.TextColor3 = Color3.fromRGB(0, 255, 100)
+    end
+end
+
+print("✅ XYZ Hub Auto-Steal Loaded!")
+print("How to use:")
+print("1. Stand at your base")
+print("2. Click 'Set Base' to save position")
+print("3. Go steal something")
+print("4. Hold out your carpet tool = INSTANT TELEPORT!")
+print("No buttons needed, just hold the carpet!")
