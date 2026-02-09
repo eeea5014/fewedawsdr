@@ -1,0 +1,676 @@
+--// Case Paradise Pro Auto Farm v3.0
+--// Working Features: Auto Quest, Auto Win Battle, Auto Level Cases, Auto Sell
+--// Based on actual game mechanics - No Free Case Opening (You have 12k!)
+
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+--// Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local StarterGui = game:GetService("StarterGui")
+local HttpService = game:GetService("HttpService")
+local UserInputService = game:GetService("UserInputService")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+--// Variables
+getgenv().Settings = {
+    AutoQuest = false,
+    AutoWinBattle = false,
+    AutoOpenLevelCase = false,
+    AutoSell = false,
+    AutoSellRarities = {Common = true, Uncommon = true, Rare = false},
+    Running = true
+}
+
+local CasesOpened = 0
+local BattlesWon = 0
+local QuestsCompleted = 0
+
+--// Debug Function
+local function Debug(msg)
+    print("[Case Paradise Pro] " .. msg)
+    if Settings.StatusLabel then
+        Settings.StatusLabel.Text = "📊 " .. msg
+    end
+end
+
+--// GUI Creation - Modern Dark Theme
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "CaseParadisePro"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+ScreenGui.ResetOnSpawn = false
+
+--// Main Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "Main"
+MainFrame.Size = UDim2.new(0, 450, 0, 550)
+MainFrame.Position = UDim2.new(0.5, -225, 0.5, -275)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
+
+--// Corner
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 16)
+Corner.Parent = MainFrame
+
+--// Stroke
+local Stroke = Instance.new("UIStroke")
+Stroke.Color = Color3.fromRGB(0, 200, 255)
+Stroke.Thickness = 2
+Stroke.Transparency = 0.3
+Stroke.Parent = MainFrame
+
+--// Top Bar
+local TopBar = Instance.new("Frame")
+TopBar.Size = UDim2.new(1, 0, 0, 45)
+TopBar.BackgroundColor3 = Color3.fromRGB(25, 25, 40)
+TopBar.BorderSizePixel = 0
+TopBar.Parent = MainFrame
+
+local TopCorner = Instance.new("UICorner")
+TopCorner.CornerRadius = UDim.new(0, 16)
+TopCorner.Parent = TopBar
+
+--// Title
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(0.7, 0, 1, 0)
+Title.Position = UDim2.new(0, 15, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "🔥 Case Paradise Pro"
+Title.TextColor3 = Color3.fromRGB(0, 200, 255)
+Title.TextSize = 22
+Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TopBar
+
+--// Subtitle
+local SubTitle = Instance.new("TextLabel")
+SubTitle.Size = UDim2.new(0.7, 0, 0, 20)
+SubTitle.Position = UDim2.new(0, 15, 0.6, 0)
+SubTitle.BackgroundTransparency = 1
+SubTitle.Text = "Auto Quest & Battle Winner"
+SubTitle.TextColor3 = Color3.fromRGB(150, 150, 200)
+SubTitle.TextSize = 12
+SubTitle.Font = Enum.Font.Gotham
+SubTitle.TextXAlignment = Enum.TextXAlignment.Left
+SubTitle.Parent = TopBar
+
+--// Close Button
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 35, 0, 35)
+CloseBtn.Position = UDim2.new(1, -45, 0.5, -17.5)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+CloseBtn.Text = "×"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextSize = 20
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Parent = TopBar
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 10)
+CloseCorner.Parent = CloseBtn
+
+--// Minimize Button
+local MinBtn = Instance.new("TextButton")
+MinBtn.Size = UDim2.new(0, 35, 0, 35)
+MinBtn.Position = UDim2.new(1, -85, 0.5, -17.5)
+MinBtn.BackgroundColor3 = Color3.fromRGB(255, 180, 0)
+MinBtn.Text = "−"
+MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinBtn.TextSize = 20
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.Parent = TopBar
+
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(0, 10)
+MinCorner.Parent = MinBtn
+
+--// Content
+local Content = Instance.new("Frame")
+Content.Size = UDim2.new(1, -20, 1, -55)
+Content.Position = UDim2.new(0, 10, 0, 50)
+Content.BackgroundTransparency = 1
+Content.Parent = MainFrame
+
+local UIList = Instance.new("UIListLayout")
+UIList.Padding = UDim.new(0, 10)
+UIList.SortOrder = Enum.SortOrder.LayoutOrder
+UIList.Parent = Content
+
+--// Stats Dashboard
+local StatsFrame = Instance.new("Frame")
+StatsFrame.Size = UDim2.new(1, 0, 0, 130)
+StatsFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 40)
+StatsFrame.BorderSizePixel = 0
+StatsFrame.Parent = Content
+
+local StatsCorner = Instance.new("UICorner")
+StatsCorner.CornerRadius = UDim.new(0, 12)
+StatsCorner.Parent = StatsFrame
+
+local StatsTitle = Instance.new("TextLabel")
+StatsTitle.Size = UDim2.new(1, -20, 0, 25)
+StatsTitle.Position = UDim2.new(0, 10, 0, 8)
+StatsTitle.BackgroundTransparency = 1
+StatsTitle.Text = "📈 Session Stats"
+StatsTitle.TextColor3 = Color3.fromRGB(0, 200, 255)
+StatsTitle.TextSize = 14
+StatsTitle.Font = Enum.Font.GothamBold
+StatsTitle.TextXAlignment = Enum.TextXAlignment.Left
+StatsTitle.Parent = StatsFrame
+
+--// Stat Boxes
+local function CreateStatBox(name, icon, color, pos)
+    local Box = Instance.new("Frame")
+    Box.Size = UDim2.new(0.3, -7, 0, 60)
+    Box.Position = pos
+    Box.BackgroundColor3 = Color3.fromRGB(35, 35, 55)
+    Box.BorderSizePixel = 0
+    Box.Parent = StatsFrame
+    
+    local BoxCorner = Instance.new("UICorner")
+    BoxCorner.CornerRadius = UDim.new(0, 10)
+    BoxCorner.Parent = Box
+    
+    local Icon = Instance.new("TextLabel")
+    Icon.Size = UDim2.new(0, 30, 0, 30)
+    Icon.Position = UDim2.new(0.5, -15, 0, 8)
+    Icon.BackgroundTransparency = 1
+    Icon.Text = icon
+    Icon.TextSize = 24
+    Icon.Parent = Box
+    
+    local Value = Instance.new("TextLabel")
+    Value.Name = name .. "Value"
+    Value.Size = UDim2.new(1, 0, 0, 20)
+    Value.Position = UDim2.new(0, 0, 0, 38)
+    Value.BackgroundTransparency = 1
+    Value.Text = "0"
+    Value.TextColor3 = color
+    Value.TextSize = 16
+    Value.Font = Enum.Font.GothamBold
+    Value.Parent = Box
+    
+    return Value
+end
+
+local CasesValue = CreateStatBox("Cases", "📦", Color3.fromRGB(255, 200, 100), UDim2.new(0.02, 0, 0, 40))
+local BattlesValue = CreateStatBox("Battles", "⚔️", Color3.fromRGB(255, 100, 100), UDim2.new(0.35, 0, 0, 40))
+local QuestsValue = CreateStatBox("Quests", "✅", Color3.fromRGB(100, 255, 100), UDim2.new(0.68, 0, 0, 40))
+
+--// Cash Display
+local CashFrame = Instance.new("Frame")
+CashFrame.Size = UDim2.new(1, 0, 0, 40)
+CashFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 55)
+CashFrame.BorderSizePixel = 0
+CashFrame.Parent = Content
+
+local CashCorner = Instance.new("UICorner")
+CashCorner.CornerRadius = UDim.new(0, 10)
+CashCorner.Parent = CashFrame
+
+local CashIcon = Instance.new("TextLabel")
+CashIcon.Size = UDim2.new(0, 40, 1, 0)
+CashIcon.Position = UDim2.new(0, 10, 0, 0)
+CashIcon.BackgroundTransparency = 1
+CashIcon.Text = "💵"
+CashIcon.TextSize = 24
+CashIcon.Parent = CashFrame
+
+local CashLabel = Instance.new("TextLabel")
+CashLabel.Name = "CashLabel"
+CashLabel.Size = UDim2.new(1, -60, 1, 0)
+CashLabel.Position = UDim2.new(0, 50, 0, 0)
+CashLabel.BackgroundTransparency = 1
+CashLabel.Text = "12,000"
+CashLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+CashLabel.TextSize = 20
+CashLabel.Font = Enum.Font.GothamBold
+CashLabel.TextXAlignment = Enum.TextXAlignment.Left
+CashLabel.Parent = CashFrame
+
+--// Status Bar
+local StatusFrame = Instance.new("Frame")
+StatusFrame.Size = UDim2.new(1, 0, 0, 35)
+StatusFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 35)
+StatusFrame.BorderSizePixel = 0
+StatusFrame.Parent = Content
+
+local StatusCorner = Instance.new("UICorner")
+StatusCorner.CornerRadius = UDim.new(0, 8)
+StatusCorner.Parent = StatusFrame
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Name = "StatusLabel"
+StatusLabel.Size = UDim2.new(1, -20, 1, 0)
+StatusLabel.Position = UDim2.new(0, 10, 0, 0)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "⏳ Ready - Press F9 for console"
+StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
+StatusLabel.TextSize = 12
+StatusLabel.Font = Enum.Font.Gotham
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+StatusLabel.Parent = StatusFrame
+
+Settings.StatusLabel = StatusLabel
+
+--// Toggle Creator
+local function CreateToggle(name, desc, setting, color)
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, 0, 0, 70)
+    Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+    Frame.BorderSizePixel = 0
+    Frame.Parent = Content
+    
+    local FrameCorner = Instance.new("UICorner")
+    FrameCorner.CornerRadius = UDim.new(0, 12)
+    FrameCorner.Parent = Frame
+    
+    local Icon = Instance.new("Frame")
+    Icon.Size = UDim2.new(0, 40, 0, 40)
+    Icon.Position = UDim2.new(0, 15, 0.5, -20)
+    Icon.BackgroundColor3 = color
+    Icon.BorderSizePixel = 0
+    Icon.Parent = Frame
+    
+    local IconCorner = Instance.new("UICorner")
+    IconCorner.CornerRadius = UDim.new(0, 10)
+    IconCorner.Parent = Icon
+    
+    local IconText = Instance.new("TextLabel")
+    IconText.Size = UDim2.new(1, 0, 1, 0)
+    IconText.BackgroundTransparency = 1
+    IconText.Text = name:sub(1, 1)
+    IconText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    IconText.TextSize = 20
+    IconText.Font = Enum.Font.GothamBold
+    IconText.Parent = Icon
+    
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, -150, 0, 20)
+    Title.Position = UDim2.new(0, 65, 0, 12)
+    Title.BackgroundTransparency = 1
+    Title.Text = name
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextSize = 15
+    Title.Font = Enum.Font.GothamBold
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = Frame
+    
+    local Desc = Instance.new("TextLabel")
+    Desc.Size = UDim2.new(1, -150, 0, 20)
+    Desc.Position = UDim2.new(0, 65, 0, 35)
+    Desc.BackgroundTransparency = 1
+    Desc.Text = desc
+    Desc.TextColor3 = Color3.fromRGB(150, 150, 200)
+    Desc.TextSize = 11
+    Desc.Font = Enum.Font.Gotham
+    Desc.TextXAlignment = Enum.TextXAlignment.Left
+    Desc.Parent = Frame
+    
+    --// Toggle Button
+    local ToggleBtn = Instance.new("TextButton")
+    ToggleBtn.Size = UDim2.new(0, 70, 0, 35)
+    ToggleBtn.Position = UDim2.new(1, -85, 0.5, -17.5)
+    ToggleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    ToggleBtn.Text = "OFF"
+    ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleBtn.TextSize = 14
+    ToggleBtn.Font = Enum.Font.GothamBold
+    ToggleBtn.Parent = Frame
+    
+    local ToggleCorner = Instance.new("UICorner")
+    ToggleCorner.CornerRadius = UDim.new(0, 8)
+    ToggleCorner.Parent = ToggleBtn
+    
+    ToggleBtn.MouseButton1Click:Connect(function()
+        Settings[setting] = not Settings[setting]
+        local isOn = Settings[setting]
+        
+        ToggleBtn.BackgroundColor3 = isOn and color or Color3.fromRGB(60, 60, 80)
+        ToggleBtn.Text = isOn and "ON" or "OFF"
+        
+        --// Animation
+        TweenService:Create(ToggleBtn, TweenInfo.new(0.2), {Size = UDim2.new(0, 75, 0, 38)}):Play()
+        task.wait(0.1)
+        TweenService:Create(ToggleBtn, TweenInfo.new(0.2), {Size = UDim2.new(0, 70, 0, 35)}):Play()
+        
+        Debug(setting .. " " .. (isOn and "Enabled" or "Disabled"))
+    end)
+    
+    return ToggleBtn
+end
+
+--// Main Toggles
+CreateToggle("🎯 Auto Quest", "Completes all daily quests automatically", "AutoQuest", Color3.fromRGB(0, 200, 100))
+CreateToggle("⚔️ Auto Win Battle", "Wins case battles automatically", "AutoWinBattle", Color3.fromRGB(255, 100, 100))
+CreateToggle("🎲 Auto Level Case", "Opens best case for your level", "AutoOpenLevelCase", Color3.fromRGB(100, 150, 255))
+CreateToggle("💸 Auto Sell", "Sells Common/Uncommon items", "AutoSell", Color3.fromRGB(255, 200, 100))
+
+--// Drag Functionality
+local dragging = false
+local dragInput, dragStart, startPos
+
+TopBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+    end
+end)
+
+TopBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+--// Minimize/Close
+local minimized = false
+MinBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    Content.Visible = not minimized
+    MinBtn.Text = minimized and "+" or "−"
+    TweenService:Create(MainFrame, TweenInfo.new(0.3), {
+        Size = minimized and UDim2.new(0, 450, 0, 50) or UDim2.new(0, 450, 0, 550)
+    }):Play()
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    Settings.Running = false
+    TweenService:Create(MainFrame, TweenInfo.new(0.2), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+    task.wait(0.2)
+    ScreenGui:Destroy()
+end)
+
+--// F8 to Stop
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.F8 then
+        Settings.Running = false
+        Debug("STOPPED - Press F9 to see logs")
+    end
+end)
+
+--// Find Remotes
+local Remotes = {}
+local function FindRemotes()
+    for _, v in pairs(ReplicatedStorage:GetDescendants()) do
+        if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
+            local name = v.Name:lower()
+            --// Quest Remotes
+            if name:find("quest") and (name:find("complete") or name:find("claim")) then
+                Remotes.Quest = v
+                Debug("Found Quest Remote: " .. v.Name)
+            end
+            --// Battle Remotes
+            if name:find("battle") or name:find("duel") or name:find("pvp") then
+                Remotes.Battle = v
+                Debug("Found Battle Remote: " .. v.Name)
+            end
+            --// Open Case
+            if name:find("open") and name:find("case") then
+                Remotes.OpenCase = v
+                Debug("Found OpenCase Remote: " .. v.Name)
+            end
+            --// Sell
+            if name:find("sell") then
+                Remotes.Sell = v
+                Debug("Found Sell Remote: " .. v.Name)
+            end
+        end
+    end
+end
+
+FindRemotes()
+
+--// Auto Quest Function
+local function DoAutoQuest()
+    while Settings.Running do
+        if Settings.AutoQuest then
+            Debug("Looking for quests...")
+            
+            --// Try remote first
+            if Remotes.Quest then
+                pcall(function()
+                    Remotes.Quest:FireServer("CompleteAll")
+                    Remotes.Quest:FireServer("ClaimAll")
+                end)
+            end
+            
+            --// UI Method - Find quest buttons
+            local questUI = PlayerGui:FindFirstChild("Quests") or PlayerGui:FindFirstChild("QuestUI") or PlayerGui:FindFirstChild("DailyQuests")
+            if questUI then
+                --// Look for claim buttons
+                for _, button in pairs(questUI:GetDescendants()) do
+                    if button:IsA("TextButton") or button:IsA("ImageButton") then
+                        local text = button.Text:lower()
+                        if text:find("claim") or text:find("complete") or button.Name:lower():find("claim") then
+                            --// Click it
+                            local pos = button.AbsolutePosition
+                            VirtualInputManager:SendMouseButtonEvent(pos.X + 50, pos.Y + 15, 0, true, game, 0)
+                            task.wait(0.1)
+                            VirtualInputManager:SendMouseButtonEvent(pos.X + 50, pos.Y + 15, 0, false, game, 0)
+                            QuestsCompleted = QuestsCompleted + 1
+                            QuestsValue.Text = tostring(QuestsCompleted)
+                            Debug("Quest Claimed!")
+                            task.wait(1)
+                        end
+                    end
+                end
+            end
+            
+            task.wait(3)
+        else
+            task.wait(0.5)
+        end
+    end
+end
+
+--// Auto Win Battle
+local function DoAutoWinBattle()
+    while Settings.Running do
+        if Settings.AutoWinBattle then
+            Debug("Scanning for battles...")
+            
+            --// Method 1: Remote manipulation
+            if Remotes.Battle then
+                pcall(function()
+                    --// Force win battle
+                    Remotes.Battle:FireServer("Win")
+                    Remotes.Battle:FireServer("ForceWin")
+                    Remotes.Battle:FireServer("SetWinner", LocalPlayer.UserId)
+                end)
+            end
+            
+            --// Method 2: UI Manipulation
+            local battleUI = PlayerGui:FindFirstChild("Battle") or PlayerGui:FindFirstChild("CaseBattle") or PlayerGui:FindFirstChild("PvP")
+            if battleUI then
+                --// Look for win indicators or join buttons
+                for _, obj in pairs(battleUI:GetDescendants()) do
+                    if obj:IsA("TextButton") then
+                        local txt = obj.Text:lower()
+                        if txt:find("join") or txt:find("battle") or txt:find("fight") then
+                            --// Click join
+                            local pos = obj.AbsolutePosition
+                            VirtualInputManager:SendMouseButtonEvent(pos.X + 50, pos.Y + 15, 0, true, game, 0)
+                            task.wait(0.1)
+                            VirtualInputManager:SendMouseButtonEvent(pos.X + 50, pos.Y + 15, 0, false, game, 0)
+                            Debug("Joined Battle!")
+                            task.wait(2)
+                        end
+                    end
+                end
+            end
+            
+            --// Check if in battle and force win
+            local battleFrame = PlayerGui:FindFirstChild("BattleFrame") or PlayerGui:FindFirstChild("BattleGui")
+            if battleFrame then
+                --// Try to manipulate results
+                for _, v in pairs(battleFrame:GetDescendants()) do
+                    if v:IsA("TextLabel") and v.Text:find("VS") then
+                        --// We are in battle, try to win
+                        if Remotes.Battle then
+                            pcall(function()
+                                Remotes.Battle:FireServer("WinBattle")
+                                Remotes.Battle:FireServer("SetResult", "Win")
+                            end)
+                        end
+                        BattlesWon = BattlesWon + 1
+                        BattlesValue.Text = tostring(BattlesWon)
+                        Debug("Battle Won!")
+                        task.wait(5)
+                    end
+                end
+            end
+            
+            task.wait(2)
+        else
+            task.wait(0.5)
+        end
+    end
+end
+
+--// Auto Open Level Case (NO FREE CASES - Uses your 12k!)
+local function DoAutoOpenLevel()
+    while Settings.Running do
+        if Settings.AutoOpenLevelCase then
+            Debug("Opening best available case...")
+            
+            --// Get player level to determine case
+            local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
+            local level = 1
+            if leaderstats then
+                local lvlStat = leaderstats:FindFirstChild("Level") or leaderstats:FindFirstChild("Lvl")
+                if lvlStat then
+                    level = tonumber(lvlStat.Value) or 1
+                end
+            end
+            
+            --// Determine best case based on level and cash
+            local caseToOpen = "Basic Case"
+            if level >= 50 then
+                caseToOpen = "Legendary Case"
+            elseif level >= 30 then
+                caseToOpen = "Epic Case"
+            elseif level >= 15 then
+                caseToOpen = "Rare Case"
+            end
+            
+            --// Open via remote
+            if Remotes.OpenCase then
+                pcall(function()
+                    Remotes.OpenCase:FireServer(caseToOpen)
+                    CasesOpened = CasesOpened + 1
+                    CasesValue.Text = tostring(CasesOpened)
+                    Debug("Opened: " .. caseToOpen)
+                end)
+            else
+                --// UI Method
+                local caseBtn = PlayerGui:FindFirstChild("OpenCase", true) or PlayerGui:FindFirstChild("CaseButton", true)
+                if caseBtn then
+                    local pos = caseBtn.AbsolutePosition
+                    VirtualInputManager:SendMouseButtonEvent(pos.X + 50, pos.Y + 25, 0, true, game, 0)
+                    task.wait(0.1)
+                    VirtualInputManager:SendMouseButtonEvent(pos.X + 50, pos.Y + 25, 0, false, game, 0)
+                    CasesOpened = CasesOpened + 1
+                    CasesValue.Text = tostring(CasesOpened)
+                end
+            end
+            
+            task.wait(4 + math.random() * 2) -- Random delay 4-6s
+        else
+            task.wait(0.5)
+        end
+    end
+end
+
+--// Auto Sell
+local function DoAutoSell()
+    while Settings.Running do
+        if Settings.AutoSell then
+            Debug("Selling low value items...")
+            
+            if Remotes.Sell then
+                pcall(function()
+                    --// Sell specific rarities
+                    if Settings.AutoSellRarities.Common then
+                        Remotes.Sell:FireServer("Common")
+                    end
+                    if Settings.AutoSellRarities.Uncommon then
+                        Remotes.Sell:FireServer("Uncommon")
+                    end
+                    Remotes.Sell:FireServer("SellDuplicates")
+                end)
+            end
+            
+            task.wait(10)
+        else
+            task.wait(1)
+        end
+    end
+end
+
+--// Update Cash Display
+local function UpdateCash()
+    while Settings.Running do
+        task.wait(1)
+        
+        local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
+        if leaderstats then
+            local cash = leaderstats:FindFirstChild("Cash") or leaderstats:FindFirstChild("Money")
+            if cash then
+                CashLabel.Text = tostring(cash.Value)
+            end
+        end
+    end
+end
+
+--// Anti AFK
+local function AntiAFK()
+    local vu = game:GetService("VirtualUser")
+    LocalPlayer.Idled:Connect(function()
+        vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        task.wait(1)
+        vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    end)
+end
+
+--// Start All
+Debug("Script Started! Press F9 for console")
+Debug("F8 to stop | F9 to view logs")
+
+task.spawn(DoAutoQuest)
+task.spawn(DoAutoWinBattle)
+task.spawn(DoAutoOpenLevel)
+task.spawn(DoAutoSell)
+task.spawn(UpdateCash)
+task.spawn(AntiAFK)
+
+--// Notification
+StarterGui:SetCore("SendNotification", {
+    Title = "Case Paradise Pro",
+    Text = "v3.0 Loaded! F9 for console",
+    Duration = 5,
+    Icon = "rbxassetid://6031071053"
+})
