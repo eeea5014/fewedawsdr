@@ -1,0 +1,456 @@
+--// Case Paradise Auto Quest Script
+--// Features: Auto-collect, Auto-sell, Auto-rebirth, GUI controls
+--// Place this in your Roblox executor (Synapse X, Krnl, Fluxus, etc.)
+
+--// Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+--// Configuration
+getgenv().Settings = {
+    AutoCollect = false,
+    AutoSell = false,
+    AutoRebirth = false,
+    CollectRange = 50,
+    SellInterval = 30, -- seconds
+    RebirthAmount = 1000000, -- minimum cash for rebirth
+    WalkSpeed = 50,
+    AntiAFK = true
+}
+
+--// GUI Setup
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "CaseParadiseAuto"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+--// Main Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "Main"
+MainFrame.Size = UDim2.new(0, 300, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
+
+--// Rounded Corners
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = MainFrame
+
+--// Title
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+Title.Text = "🏝️ Case Paradise Auto"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 18
+Title.Font = Enum.Font.GothamBold
+Title.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 12)
+TitleCorner.Parent = Title
+
+--// Close Button
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -35, 0, 5)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextSize = 14
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Parent = Title
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 8)
+CloseCorner.Parent = CloseBtn
+
+--// Minimize Button
+local MinimizeBtn = Instance.new("TextButton")
+MinimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+MinimizeBtn.Position = UDim2.new(1, -70, 0, 5)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 180, 60)
+MinimizeBtn.Text = "-"
+MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeBtn.TextSize = 18
+MinimizeBtn.Font = Enum.Font.GothamBold
+MinimizeBtn.Parent = Title
+
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(0, 8)
+MinCorner.Parent = MinimizeBtn
+
+--// Content Frame
+local Content = Instance.new("Frame")
+Content.Name = "Content"
+Content.Size = UDim2.new(1, -20, 1, -60)
+Content.Position = UDim2.new(0, 10, 0, 50)
+Content.BackgroundTransparency = 1
+Content.Parent = MainFrame
+
+--// UI Layout
+local UIList = Instance.new("UIListLayout")
+UIList.Padding = UDim.new(0, 10)
+UIList.SortOrder = Enum.SortOrder.LayoutOrder
+UIList.Parent = Content
+
+--// Toggle Button Creator
+local function CreateToggle(name, settingName, color)
+    local ToggleFrame = Instance.new("Frame")
+    ToggleFrame.Size = UDim2.new(1, 0, 0, 50)
+    ToggleFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    ToggleFrame.BorderSizePixel = 0
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 8)
+    Corner.Parent = ToggleFrame
+    
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0.6, 0, 1, 0)
+    Label.Position = UDim2.new(0, 15, 0, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = name
+    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Label.TextSize = 14
+    Label.Font = Enum.Font.Gotham
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = ToggleFrame
+    
+    local ToggleBtn = Instance.new("TextButton")
+    ToggleBtn.Name = "Toggle"
+    ToggleBtn.Size = UDim2.new(0, 60, 0, 30)
+    ToggleBtn.Position = UDim2.new(1, -70, 0.5, -15)
+    ToggleBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+    ToggleBtn.Text = "OFF"
+    ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleBtn.TextSize = 12
+    ToggleBtn.Font = Enum.Font.GothamBold
+    ToggleBtn.Parent = ToggleFrame
+    
+    local ToggleCorner = Instance.new("UICorner")
+    ToggleCorner.CornerRadius = UDim.new(0, 6)
+    ToggleCorner.Parent = ToggleBtn
+    
+    ToggleBtn.MouseButton1Click:Connect(function()
+        getgenv().Settings[settingName] = not getgenv().Settings[settingName]
+        local isOn = getgenv().Settings[settingName]
+        
+        ToggleBtn.BackgroundColor3 = isOn and color or Color3.fromRGB(80, 80, 80)
+        ToggleBtn.Text = isOn and "ON" or "OFF"
+        
+        -- Animation
+        TweenService:Create(ToggleBtn, TweenInfo.new(0.2), {
+            Size = isOn and UDim2.new(0, 65, 0, 32) or UDim2.new(0, 60, 0, 30)
+        }):Play()
+        task.wait(0.1)
+        TweenService:Create(ToggleBtn, TweenInfo.new(0.2), {
+            Size = UDim2.new(0, 60, 0, 30)
+        }):Play()
+    end)
+    
+    return ToggleFrame
+end
+
+--// Create Toggles
+local AutoCollectToggle = CreateToggle("🔍 Auto Collect Cases", "AutoCollect", Color3.fromRGB(0, 200, 100))
+AutoCollectToggle.Parent = Content
+
+local AutoSellToggle = CreateToggle("💰 Auto Sell", "AutoSell", Color3.fromRGB(255, 200, 0))
+AutoSellToggle.Parent = Content
+
+local AutoRebirthToggle = CreateToggle("🔄 Auto Rebirth", "AutoRebirth", Color3.fromRGB(0, 150, 255))
+AutoRebirthToggle.Parent = Content
+
+--// Stats Display
+local StatsFrame = Instance.new("Frame")
+StatsFrame.Size = UDim2.new(1, 0, 0, 80)
+StatsFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+StatsFrame.BorderSizePixel = 0
+StatsFrame.Parent = Content
+
+local StatsCorner = Instance.new("UICorner")
+StatsCorner.CornerRadius = UDim.new(0, 8)
+StatsCorner.Parent = StatsFrame
+
+local StatsLabel = Instance.new("TextLabel")
+StatsLabel.Size = UDim2.new(1, 0, 0, 25)
+StatsLabel.BackgroundTransparency = 1
+StatsLabel.Text = "📊 Stats"
+StatsLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+StatsLabel.TextSize = 14
+StatsLabel.Font = Enum.Font.GothamBold
+StatsLabel.Parent = StatsFrame
+
+local CashLabel = Instance.new("TextLabel")
+CashLabel.Size = UDim2.new(1, -10, 0, 20)
+CashLabel.Position = UDim2.new(0, 5, 0, 30)
+CashLabel.BackgroundTransparency = 1
+CashLabel.Text = "💵 Cash: Loading..."
+CashLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+CashLabel.TextSize = 12
+CashLabel.Font = Enum.Font.Gotham
+CashLabel.TextXAlignment = Enum.TextXAlignment.Left
+CashLabel.Parent = StatsFrame
+
+local CasesLabel = Instance.new("TextLabel")
+CasesLabel.Size = UDim2.new(1, -10, 0, 20)
+CasesLabel.Position = UDim2.new(0, 5, 0, 55)
+CasesLabel.BackgroundTransparency = 1
+CasesLabel.Text = "📦 Cases: 0"
+CasesLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+CasesLabel.TextSize = 12
+CasesLabel.Font = Enum.Font.Gotham
+CasesLabel.TextXAlignment = Enum.TextXAlignment.Left
+CasesLabel.Parent = StatsFrame
+
+--// Status Bar
+local StatusBar = Instance.new("Frame")
+StatusBar.Size = UDim2.new(1, 0, 0, 30)
+StatusBar.Position = UDim2.new(0, 0, 1, -30)
+StatusBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+StatusBar.BorderSizePixel = 0
+StatusBar.Parent = MainFrame
+
+local StatusCorner = Instance.new("UICorner")
+StatusCorner.CornerRadius = UDim.new(0, 0)
+StatusCorner.Parent = StatusBar
+
+local StatusText = Instance.new("TextLabel")
+StatusText.Size = UDim2.new(1, -10, 1, 0)
+StatusText.Position = UDim2.new(0, 5, 0, 0)
+StatusText.BackgroundTransparency = 1
+StatusText.Text = "⏳ Status: Idle"
+StatusText.TextColor3 = Color3.fromRGB(100, 255, 100)
+StatusText.TextSize = 12
+StatusText.Font = Enum.Font.Gotham
+StatusText.TextXAlignment = Enum.TextXAlignment.Left
+StatusText.Parent = StatusBar
+
+--// Draggable GUI
+local dragging, dragInput, dragStart, startPos
+
+Title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+Title.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+--// Close/Minimize Functions
+local minimized = false
+MinimizeBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    TweenService:Create(Content, TweenInfo.new(0.3), {
+        Size = minimized and UDim2.new(1, -20, 0, 0) or UDim2.new(1, -20, 1, -60)
+    }):Play()
+    TweenService:Create(MainFrame, TweenInfo.new(0.3), {
+        Size = minimized and UDim2.new(0, 300, 0, 50) or UDim2.new(0, 300, 0, 400)
+    }):Play()
+    MinimizeBtn.Text = minimized and "+" or "-"
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+    getgenv().Settings.AutoCollect = false
+    getgenv().Settings.AutoSell = false
+    getgenv().Settings.AutoRebirth = false
+end)
+
+--// Game Functions
+local function GetCases()
+    local cases = {}
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") and obj.Name:lower():find("case") then
+            if obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChild("Handle") then
+                table.insert(cases, obj)
+            end
+        end
+    end
+    return cases
+end
+
+local function GetNearestCase()
+    local nearest, dist = nil, math.huge
+    local cases = GetCases()
+    
+    for _, case in pairs(cases) do
+        local part = case:FindFirstChild("HumanoidRootPart") or case:FindFirstChild("Handle") or case:FindFirstChildWhichIsA("BasePart")
+        if part then
+            local magnitude = (part.Position - HumanoidRootPart.Position).Magnitude
+            if magnitude < dist and magnitude < Settings.CollectRange then
+                dist = magnitude
+                nearest = part
+            end
+        end
+    end
+    return nearest
+end
+
+local function CollectCase(casePart)
+    if not casePart then return end
+    
+    -- Tween to case
+    local distance = (casePart.Position - HumanoidRootPart.Position).Magnitude
+    local tweenTime = math.clamp(distance / Settings.WalkSpeed, 0.5, 3)
+    
+    local tween = TweenService:Create(HumanoidRootPart, TweenInfo.new(tweenTime, Enum.EasingStyle.Linear), {
+        CFrame = CFrame.new(casePart.Position + Vector3.new(0, 3, 0))
+    })
+    
+    tween:Play()
+    tween.Completed:Wait()
+    
+    -- Touch/interact with case
+    firetouchinterest(HumanoidRootPart, casePart, 0)
+    task.wait(0.1)
+    firetouchinterest(HumanoidRootPart, casePart, 1)
+    
+    StatusText.Text = "✅ Collected: " .. casePart.Parent.Name
+end
+
+local function SellCases()
+    -- Find sell NPC/Zone
+    local sellZone = workspace:FindFirstChild("Sell") or workspace:FindFirstChild("SellZone")
+    if sellZone then
+        local part = sellZone:FindFirstChildWhichIsA("BasePart")
+        if part then
+            StatusText.Text = "💰 Selling cases..."
+            
+            local tween = TweenService:Create(HumanoidRootPart, TweenInfo.new(2, Enum.EasingStyle.Quad), {
+                CFrame = CFrame.new(part.Position + Vector3.new(0, 5, 0))
+            })
+            tween:Play()
+            tween.Completed:Wait()
+            
+            -- Trigger sell remote
+            local sellRemote = ReplicatedStorage:FindFirstChild("Sell") or ReplicatedStorage:FindFirstChild("SellCases")
+            if sellRemote then
+                sellRemote:FireServer()
+            end
+            
+            task.wait(1)
+            StatusText.Text = "⏳ Status: Idle"
+        end
+    end
+end
+
+local function DoRebirth()
+    local rebirthRemote = ReplicatedStorage:FindFirstChild("Rebirth") or ReplicatedStorage:FindFirstChild("DoRebirth")
+    if rebirthRemote then
+        StatusText.Text = "🔄 Rebirthing..."
+        rebirthRemote:FireServer()
+        task.wait(2)
+        StatusText.Text = "⏳ Status: Idle"
+    end
+end
+
+--// Anti-AFK
+if Settings.AntiAFK then
+    local afkConnection
+    afkConnection = LocalPlayer.Idled:Connect(function()
+        VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        task.wait(1)
+        VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    end)
+end
+
+--// Main Loop
+task.spawn(function()
+    while ScreenGui.Parent do
+        task.wait(0.1)
+        
+        -- Update Stats
+        local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
+        if leaderstats then
+            local cash = leaderstats:FindFirstChild("Cash") or leaderstats:FindFirstChild("Money")
+            if cash then
+                CashLabel.Text = "💵 Cash: " .. tostring(cash.Value)
+            end
+            
+            local cases = leaderstats:FindFirstChild("Cases") or leaderstats:FindFirstChild("Case")
+            if cases then
+                CasesLabel.Text = "📦 Cases: " .. tostring(cases.Value)
+            end
+        end
+        
+        -- Auto Collect
+        if Settings.AutoCollect then
+            local case = GetNearestCase()
+            if case then
+                CollectCase(case)
+            else
+                StatusText.Text = "🔍 Searching for cases..."
+            end
+        end
+    end
+end)
+
+--// Sell Loop
+task.spawn(function()
+    while ScreenGui.Parent do
+        task.wait(Settings.SellInterval)
+        
+        if Settings.AutoSell then
+            SellCases()
+        end
+    end
+end)
+
+--// Rebirth Loop
+task.spawn(function()
+    while ScreenGui.Parent do
+        task.wait(5)
+        
+        if Settings.AutoRebirth then
+            local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
+            if leaderstats then
+                local cash = leaderstats:FindFirstChild("Cash") or leaderstats:FindFirstChild("Money")
+                if cash and cash.Value >= Settings.RebirthAmount then
+                    DoRebirth()
+                end
+            end
+        end
+    end
+end)
+
+--// Notification
+game.StarterGui:SetCore("SendNotification", {
+    Title = "Case Paradise Auto",
+    Text = "Script loaded successfully! Press - to minimize",
+    Duration = 5,
+    Icon = "rbxassetid://6031071053"
+})
+
+print("✅ Case Paradise Auto Quest Script Loaded")
+print("🔧 Made for Roblox Executor")
