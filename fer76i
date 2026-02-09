@@ -1,0 +1,763 @@
+--// Saber Simulator / Steal Game Hub
+--// Made with love for the community
+--// Features: Instant Steal, Dual TP System, Friend ESP, Custom Delays
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+--// Configuration & State
+local Config = {
+    StealDelay = 2.1, -- Seconds before teleporting to escape position
+    AutoSteal = false,
+    FriendList = {},
+    FriendESPEnabled = false,
+    AllowFriendsInBase = false,
+    AdminSpam = false, -- Disabled as requested
+}
+
+--// Saved Positions
+local SavedPositions = {
+    TargetBase = nil,    -- Where to teleport to steal
+    EscapeSpot = nil,    -- Where to teleport after steal
+}
+
+--// ESP Storage
+local ESPObjects = {}
+
+--// UI Library (Using OrionLib as base structure, simplified)
+local function CreateUI()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "IceHubV2"
+    ScreenGui.Parent = game.CoreGui
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+    -- Main Frame
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Size = UDim2.new(0, 320, 0, 450)
+    MainFrame.Position = UDim2.new(0.5, -160, 0.5, -225)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Parent = ScreenGui
+    
+    -- Corner
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 8)
+    Corner.Parent = MainFrame
+    
+    -- Header
+    local Header = Instance.new("Frame")
+    Header.Name = "Header"
+    Header.Size = UDim2.new(1, 0, 0, 35)
+    Header.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    Header.BorderSizePixel = 0
+    Header.Parent = MainFrame
+    
+    local HeaderCorner = Instance.new("UICorner")
+    HeaderCorner.CornerRadius = UDim.new(0, 8)
+    HeaderCorner.Parent = Header
+    
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(0.8, 0, 1, 0)
+    Title.Position = UDim2.new(0.05, 0, 0, 0)
+    Title.BackgroundTransparency = 1
+    Title.Text = "ICE HUB"
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextSize = 18
+    Title.Font = Enum.Font.GothamBold
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = Header
+    
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+    CloseBtn.Position = UDim2.new(1, -35, 0, 2.5)
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 75, 75)
+    CloseBtn.Text = "X"
+    CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseBtn.Font = Enum.Font.GothamBold
+    CloseBtn.TextSize = 14
+    CloseBtn.Parent = Header
+    
+    local CloseCorner = Instance.new("UICorner")
+    CloseCorner.CornerRadius = UDim.new(0, 6)
+    CloseCorner.Parent = CloseBtn
+    
+    -- Content Container
+    local Content = Instance.new("Frame")
+    Content.Name = "Content"
+    Content.Size = UDim2.new(1, -20, 1, -45)
+    Content.Position = UDim2.new(0, 10, 0, 40)
+    Content.BackgroundTransparency = 1
+    Content.Parent = MainFrame
+    
+    local Layout = Instance.new("UIListLayout")
+    Layout.Padding = UDim.new(0, 8)
+    Layout.Parent = Content
+    
+    --// Helper function to create buttons
+    local function CreateButton(name, text, color, keybind)
+        local BtnFrame = Instance.new("Frame")
+        BtnFrame.Size = UDim2.new(1, 0, 0, 45)
+        BtnFrame.BackgroundTransparency = 1
+        BtnFrame.Parent = Content
+        
+        local Btn = Instance.new("TextButton")
+        Btn.Name = name
+        Btn.Size = UDim2.new(0.7, 0, 1, 0)
+        Btn.BackgroundColor3 = color or Color3.fromRGB(45, 45, 45)
+        Btn.Text = text
+        Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Btn.Font = Enum.Font.GothamSemibold
+        Btn.TextSize = 14
+        Btn.Parent = BtnFrame
+        
+        local BtnCorner = Instance.new("UICorner")
+        BtnCorner.CornerRadius = UDim.new(0, 6)
+        BtnCorner.Parent = Btn
+        
+        if keybind then
+            local KeyLabel = Instance.new("TextLabel")
+            KeyLabel.Size = UDim2.new(0.25, 0, 1, 0)
+            KeyLabel.Position = UDim2.new(0.75, 5, 0, 0)
+            KeyLabel.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+            KeyLabel.Text = keybind
+            KeyLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+            KeyLabel.Font = Enum.Font.GothamBold
+            KeyLabel.TextSize = 14
+            KeyLabel.Parent = BtnFrame
+            
+            local KeyCorner = Instance.new("UICorner")
+            KeyCorner.CornerRadius = UDim.new(0, 6)
+            KeyCorner.Parent = KeyLabel
+        end
+        
+        return Btn
+    end
+    
+    --// Helper for toggle buttons
+    local function CreateToggle(name, text, defaultState)
+        local ToggleFrame = Instance.new("Frame")
+        ToggleFrame.Size = UDim2.new(1, 0, 0, 35)
+        ToggleFrame.BackgroundTransparency = 1
+        ToggleFrame.Parent = Content
+        
+        local Label = Instance.new("TextLabel")
+        Label.Size = UDim2.new(0.7, 0, 1, 0)
+        Label.BackgroundTransparency = 1
+        Label.Text = text
+        Label.TextColor3 = Color3.fromRGB(200, 200, 200)
+        Label.Font = Enum.Font.Gotham
+        Label.TextSize = 13
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.Parent = ToggleFrame
+        
+        local ToggleBtn = Instance.new("TextButton")
+        ToggleBtn.Name = name
+        ToggleBtn.Size = UDim2.new(0.25, 0, 0.8, 0)
+        ToggleBtn.Position = UDim2.new(0.75, 0, 0.1, 0)
+        ToggleBtn.BackgroundColor3 = defaultState and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(255, 50, 50)
+        ToggleBtn.Text = defaultState and "ON" or "OFF"
+        ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        ToggleBtn.Font = Enum.Font.GothamBold
+        ToggleBtn.TextSize = 12
+        ToggleBtn.Parent = ToggleFrame
+        
+        local ToggleCorner = Instance.new("UICorner")
+        ToggleCorner.CornerRadius = UDim.new(0, 10)
+        ToggleCorner.Parent = ToggleBtn
+        
+        return ToggleBtn, Label
+    end
+    
+    --// Helper for sliders/input
+    local function CreateInput(name, text, defaultValue)
+        local InputFrame = Instance.new("Frame")
+        InputFrame.Size = UDim2.new(1, 0, 0, 50)
+        InputFrame.BackgroundTransparency = 1
+        InputFrame.Parent = Content
+        
+        local Label = Instance.new("TextLabel")
+        Label.Size = UDim2.new(0.6, 0, 0.5, 0)
+        Label.BackgroundTransparency = 1
+        Label.Text = text
+        Label.TextColor3 = Color3.fromRGB(200, 200, 200)
+        Label.Font = Enum.Font.Gotham
+        Label.TextSize = 12
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.Parent = InputFrame
+        
+        local ValueLabel = Instance.new("TextLabel")
+        ValueLabel.Size = UDim2.new(0.4, 0, 0.5, 0)
+        ValueLabel.Position = UDim2.new(0.6, 0, 0, 0)
+        ValueLabel.BackgroundTransparency = 1
+        ValueLabel.Text = tostring(defaultValue) .. "s"
+        ValueLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
+        ValueLabel.Font = Enum.Font.GothamBold
+        ValueLabel.TextSize = 12
+        ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+        ValueLabel.Parent = InputFrame
+        
+        local InputBox = Instance.new("TextBox")
+        InputBox.Name = name
+        InputBox.Size = UDim2.new(1, 0, 0.45, 0)
+        InputBox.Position = UDim2.new(0, 0, 0.55, 0)
+        InputBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        InputBox.Text = tostring(defaultValue)
+        InputBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+        InputBox.Font = Enum.Font.Gotham
+        InputBox.TextSize = 13
+        InputBox.ClearTextOnFocus = false
+        InputBox.Parent = InputFrame
+        
+        local InputCorner = Instance.new("UICorner")
+        InputCorner.CornerRadius = UDim.new(0, 6)
+        InputCorner.Parent = InputBox
+        
+        return InputBox, ValueLabel
+    end
+    
+    --// Create UI Elements
+    
+    -- Instant Steal Button
+    local InstantStealBtn = CreateButton("InstantSteal", "INSTANT STEAL", Color3.fromRGB(45, 45, 45), "E")
+    
+    -- Insta Leave Button (Red)
+    local InstaLeaveBtn = CreateButton("InstaLeave", "INSTA LEAVE", Color3.fromRGB(200, 50, 50), "T")
+    
+    -- Separator
+    local Sep1 = Instance.new("Frame")
+    Sep1.Size = UDim2.new(1, 0, 0, 2)
+    Sep1.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    Sep1.BorderSizePixel = 0
+    Sep1.Parent = Content
+    
+    -- Set TP Position 1 (Target Base)
+    local SetTP1Btn = CreateButton("SetTP1", "SET TARGET BASE (POS 1)", Color3.fromRGB(60, 60, 60), nil)
+    
+    -- Set TP Position 2 (Escape Spot)
+    local SetTP2Btn = CreateButton("SetTP2", "SET ESCAPE SPOT (POS 2)", Color3.fromRGB(60, 60, 60), nil)
+    
+    -- Position Status Labels
+    local Pos1Status = Instance.new("TextLabel")
+    Pos1Status.Size = UDim2.new(1, 0, 0, 20)
+    Pos1Status.BackgroundTransparency = 1
+    Pos1Status.Text = "Target Base: NOT SET"
+    Pos1Status.TextColor3 = Color3.fromRGB(255, 100, 100)
+    Pos1Status.Font = Enum.Font.Gotham
+    Pos1Status.TextSize = 11
+    Pos1Status.Parent = Content
+    
+    local Pos2Status = Instance.new("TextLabel")
+    Pos2Status.Size = UDim2.new(1, 0, 0, 20)
+    Pos2Status.BackgroundTransparency = 1
+    Pos2Status.Text = "Escape Spot: NOT SET"
+    Pos2Status.TextColor3 = Color3.fromRGB(255, 100, 100)
+    Pos2Status.Font = Enum.Font.Gotham
+    Pos2Status.TextSize = 11
+    Pos2Status.Parent = Content
+    
+    -- Separator
+    local Sep2 = Instance.new("Frame")
+    Sep2.Size = UDim2.new(1, 0, 0, 2)
+    Sep2.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    Sep2.BorderSizePixel = 0
+    Sep2.Parent = Content
+    
+    -- Custom Delay Input
+    local DelayInput, DelayLabel = CreateInput("DelayInput", "STEAL DELAY (SECONDS)", Config.StealDelay)
+    
+    -- Separator
+    local Sep3 = Instance.new("Frame")
+    Sep3.Size = UDim2.new(1, 0, 0, 2)
+    Sep3.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    Sep3.BorderSizePixel = 0
+    Sep3.Parent = Content
+    
+    -- Admin Spam Toggle (Always OFF as requested)
+    local AdminSpamToggle, AdminSpamLabel = CreateToggle("AdminSpam", "STEAL (ADMIN SPAM):", false)
+    AdminSpamToggle.Text = "OFF"
+    AdminSpamToggle.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    AdminSpamToggle.AutoButtonColor = false -- Disable clicking
+    
+    -- Friend ESP Toggle
+    local FriendESPToggle, FriendESPLabel = CreateToggle("FriendESP", "FRIEND ESP:", false)
+    
+    -- Allow Friends Toggle
+    local AllowFriendsToggle, AllowFriendsLabel = CreateToggle("AllowFriends", "ALLOW FRIENDS IN BASE:", false)
+    
+    --// Drag Functionality
+    local dragging, dragInput, dragStart, startPos
+    
+    Header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = MainFrame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    
+    Header.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    
+    -- Close Button
+    CloseBtn.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+        -- Cleanup ESP
+        for _, obj in pairs(ESPObjects) do
+            if obj then obj:Destroy() end
+        end
+    end)
+    
+    return {
+        InstantStealBtn = InstantStealBtn,
+        InstaLeaveBtn = InstaLeaveBtn,
+        SetTP1Btn = SetTP1Btn,
+        SetTP2Btn = SetTP2Btn,
+        Pos1Status = Pos1Status,
+        Pos2Status = Pos2Status,
+        DelayInput = DelayInput,
+        DelayLabel = DelayLabel,
+        FriendESPToggle = FriendESPToggle,
+        AllowFriendsToggle = AllowFriendsToggle,
+    }
+end
+
+--// ESP Functions
+local function CreateESP(player)
+    if player == LocalPlayer then return end
+    if ESPObjects[player] then return end
+    
+    local espFolder = Instance.new("Folder")
+    espFolder.Name = player.Name .. "_ESP"
+    
+    -- Box
+    local box = Instance.new("BoxHandleAdornment")
+    box.Size = Vector3.new(4, 6, 4)
+    box.Color3 = Color3.fromRGB(0, 255, 255)
+    box.Transparency = 0.7
+    box.ZIndex = 10
+    box.AlwaysOnTop = true
+    box.Adornee = nil
+    box.Parent = espFolder
+    
+    -- Name Tag
+    local billboard = Instance.new("BillboardGui")
+    billboard.Size = UDim2.new(0, 200, 0, 50)
+    billboard.AlwaysOnTop = true
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, 0, 1, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = player.Name
+    nameLabel.TextColor3 = Color3.fromRGB(0, 255, 255)
+    nameLabel.TextStrokeTransparency = 0
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.TextSize = 14
+    nameLabel.Parent = billboard
+    
+    billboard.Parent = espFolder
+    espFolder.Parent = game.CoreGui
+    
+    ESPObjects[player] = {
+        Folder = espFolder,
+        Box = box,
+        Billboard = billboard,
+        NameLabel = nameLabel,
+    }
+    
+    -- Update connection
+    local connection = RunService.RenderStepped:Connect(function()
+        if not Config.FriendESPEnabled then
+            espFolder.Enabled = false
+            return
+        end
+        
+        local character = player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local hrp = character.HumanoidRootPart
+            local isFriend = Config.FriendList[player.UserId] or false
+            
+            espFolder.Enabled = true
+            box.Adornee = hrp
+            
+            if isFriend then
+                box.Color3 = Color3.fromRGB(0, 255, 100) -- Green for friends
+                nameLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
+                nameLabel.Text = player.Name .. " [FRIEND]"
+            else
+                box.Color3 = Color3.fromRGB(255, 50, 50) -- Red for enemies
+                nameLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+                nameLabel.Text = player.Name .. " [ENEMY]"
+            end
+            
+            billboard.Adornee = hrp
+        else
+            espFolder.Enabled = false
+            box.Adornee = nil
+        end
+    end)
+    
+    ESPObjects[player].Connection = connection
+end
+
+local function RemoveESP(player)
+    if ESPObjects[player] then
+        if ESPObjects[player].Connection then
+            ESPObjects[player].Connection:Disconnect()
+        end
+        if ESPObjects[player].Folder then
+            ESPObjects[player].Folder:Destroy()
+        end
+        ESPObjects[player] = nil
+    end
+end
+
+--// Teleport Function (Safe)
+local function SafeTeleport(position)
+    local character = LocalPlayer.Character
+    if not character then return end
+    
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    
+    -- Use CFrame for instant teleport
+    hrp.CFrame = CFrame.new(position + Vector3.new(0, 5, 0)) -- Slightly above ground
+    
+    -- Alternative: Tween for smoother teleport (uncomment if needed)
+    --[[
+    local tween = TweenService:Create(hrp, TweenInfo.new(0.1), {
+        CFrame = CFrame.new(position + Vector3.new(0, 5, 0))
+    })
+    tween:Play()
+    --]]
+end
+
+--// Check if holding carpet (Saber Simulator specific)
+local function IsHoldingCarpet()
+    local character = LocalPlayer.Character
+    if not character then return false end
+    
+    -- Check backpack for carpet tool or equipped tool
+    local backpack = LocalPlayer:FindFirstChild("Backpack")
+    local equipped = character:FindFirstChildOfClass("Tool")
+    
+    -- Common carpet names in steal games
+    local carpetNames = {"Carpet", "FlyingCarpet", "MagicCarpet", "Fly", "FlyTool"}
+    
+    if equipped then
+        for _, name in ipairs(carpetNames) do
+            if equipped.Name:lower():find(name:lower()) then
+                return true
+            end
+        end
+    end
+    
+    if backpack then
+        for _, tool in ipairs(backpack:GetChildren()) do
+            for _, name in ipairs(carpetNames) do
+                if tool.Name:lower():find(name:lower()) then
+                    return true
+                end
+            end
+        end
+    end
+    
+    return false
+end
+
+--// Auto-equip carpet if available
+local function EquipCarpet()
+    local backpack = LocalPlayer:FindFirstChild("Backpack")
+    if not backpack then return false end
+    
+    local carpetNames = {"Carpet", "FlyingCarpet", "MagicCarpet", "Fly", "FlyTool"}
+    
+    for _, tool in ipairs(backpack:GetChildren()) do
+        for _, name in ipairs(carpetNames) do
+            if tool.Name:lower():find(name:lower()) then
+                tool.Parent = LocalPlayer.Character
+                return true
+            end
+        end
+    end
+    
+    return false
+end
+
+--// Main Logic
+local UI = CreateUI()
+
+--// Button Connections
+
+-- Set Target Base (Position 1)
+UI.SetTP1Btn.MouseButton1Click:Connect(function()
+    local character = LocalPlayer.Character
+    if not character then return end
+    
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    
+    SavedPositions.TargetBase = hrp.Position
+    UI.Pos1Status.Text = "Target Base: SET ✓"
+    UI.Pos1Status.TextColor3 = Color3.fromRGB(100, 255, 100)
+    
+    -- Visual feedback
+    UI.SetTP1Btn.Text = "POSITION 1 SAVED!"
+    task.wait(0.5)
+    UI.SetTP1Btn.Text = "SET TARGET BASE (POS 1)"
+end)
+
+-- Set Escape Spot (Position 2)
+UI.SetTP2Btn.MouseButton1Click:Connect(function()
+    local character = LocalPlayer.Character
+    if not character then return end
+    
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    
+    SavedPositions.EscapeSpot = hrp.Position
+    UI.Pos2Status.Text = "Escape Spot: SET ✓"
+    UI.Pos2Status.TextColor3 = Color3.fromRGB(100, 255, 100)
+    
+    -- Visual feedback
+    UI.SetTP2Btn.Text = "POSITION 2 SAVED!"
+    task.wait(0.5)
+    UI.SetTP2Btn.Text = "SET ESCAPE SPOT (POS 2)"
+end)
+
+-- Instant Steal Logic
+UI.InstantStealBtn.MouseButton1Click:Connect(function()
+    -- Validation
+    if not SavedPositions.TargetBase then
+        UI.InstantStealBtn.Text = "SET POS 1 FIRST!"
+        UI.InstantStealBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+        task.wait(1)
+        UI.InstantStealBtn.Text = "INSTANT STEAL"
+        UI.InstantStealBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        return
+    end
+    
+    if not SavedPositions.EscapeSpot then
+        UI.InstantStealBtn.Text = "SET POS 2 FIRST!"
+        UI.InstantStealBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+        task.wait(1)
+        UI.InstantStealBtn.Text = "INSTANT STEAL"
+        UI.InstantStealBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        return
+    end
+    
+    -- Check/Equip carpet
+    if not IsHoldingCarpet() then
+        EquipCarpet()
+    end
+    
+    -- Visual feedback - Executing
+    UI.InstantStealBtn.Text = "STEALING..."
+    UI.InstantStealBtn.BackgroundColor3 = Color3.fromRGB(255, 200, 0)
+    
+    -- Step 1: Teleport to target base
+    SafeTeleport(SavedPositions.TargetBase)
+    
+    -- Step 2: Wait for steal to process (custom delay)
+    task.wait(Config.StealDelay)
+    
+    -- Step 3: Teleport to escape spot
+    SafeTeleport(SavedPositions.EscapeSpot)
+    
+    -- Reset button
+    UI.InstantStealBtn.Text = "INSTANT STEAL"
+    UI.InstantStealBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+end)
+
+-- Insta Leave (Emergency Escape)
+UI.InstaLeaveBtn.MouseButton1Click:Connect(function()
+    if not SavedPositions.EscapeSpot then
+        UI.InstaLeaveBtn.Text = "NO ESCAPE SET!"
+        task.wait(0.5)
+        UI.InstaLeaveBtn.Text = "INSTA LEAVE"
+        return
+    end
+    
+    SafeTeleport(SavedPositions.EscapeSpot)
+    
+    -- Visual feedback
+    UI.InstaLeaveBtn.Text = "ESCAPED!"
+    task.wait(0.3)
+    UI.InstaLeaveBtn.Text = "INSTA LEAVE"
+end)
+
+-- Delay Input Handler
+UI.DelayInput.FocusLost:Connect(function()
+    local num = tonumber(UI.DelayInput.Text)
+    if num then
+        Config.StealDelay = math.clamp(num, 0.1, 10)
+        UI.DelayInput.Text = tostring(Config.StealDelay)
+        UI.DelayLabel.Text = Config.StealDelay .. "s"
+    else
+        UI.DelayInput.Text = tostring(Config.StealDelay)
+    end
+end)
+
+-- Friend ESP Toggle
+UI.FriendESPToggle.MouseButton1Click:Connect(function()
+    Config.FriendESPEnabled = not Config.FriendESPEnabled
+    
+    if Config.FriendESPEnabled then
+        UI.FriendESPToggle.Text = "ON"
+        UI.FriendESPToggle.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
+        
+        -- Create ESP for all players
+        for _, player in ipairs(Players:GetPlayers()) do
+            CreateESP(player)
+        end
+    else
+        UI.FriendESPToggle.Text = "OFF"
+        UI.FriendESPToggle.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        
+        -- Hide all ESP
+        for _, obj in pairs(ESPObjects) do
+            if obj and obj.Folder then
+                obj.Folder.Enabled = false
+            end
+        end
+    end
+end)
+
+-- Allow Friends Toggle
+UI.AllowFriendsToggle.MouseButton1Click:Connect(function()
+    Config.AllowFriendsInBase = not Config.AllowFriendsInBase
+    
+    if Config.AllowFriendsInBase then
+        UI.AllowFriendsToggle.Text = "ALLOW"
+        UI.AllowFriendsToggle.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
+    else
+        UI.AllowFriendsToggle.Text = "BLOCK"
+        UI.AllowFriendsToggle.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    end
+end)
+
+--// Keybinds
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.E then
+        UI.InstantStealBtn.MouseButton1Click:Fire()
+    elseif input.KeyCode == Enum.KeyCode.T then
+        UI.InstaLeaveBtn.MouseButton1Click:Fire()
+    end
+end)
+
+--// Player Added/Removed handlers for ESP
+Players.PlayerAdded:Connect(function(player)
+    if Config.FriendESPEnabled then
+        CreateESP(player)
+    end
+    
+    -- Check if friend
+    if LocalPlayer:IsFriendsWith(player.UserId) then
+        Config.FriendList[player.UserId] = true
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    RemoveESP(player)
+    Config.FriendList[player.UserId] = nil
+end)
+
+--// Initialize existing players
+for _, player in ipairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer and LocalPlayer:IsFriendsWith(player.UserId) then
+        Config.FriendList[player.UserId] = true
+    end
+end
+
+--// Anti-AFK
+local VirtualUser = game:GetService("VirtualUser")
+LocalPlayer.Idled:Connect(function()
+    VirtualUser:Button2Down(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
+    task.wait(1)
+    VirtualUser:Button2Up(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
+end)
+
+--// Notification
+local function Notify(title, text, duration)
+    local notifGui = Instance.new("ScreenGui")
+    notifGui.Name = "Notification"
+    notifGui.Parent = game.CoreGui
+    
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 250, 0, 80)
+    frame.Position = UDim2.new(1, -260, 1, -100)
+    frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    frame.BorderSizePixel = 0
+    frame.Parent = notifGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = frame
+    
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, -10, 0, 25)
+    titleLabel.Position = UDim2.new(0, 5, 0, 5)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title
+    titleLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 16
+    titleLabel.Parent = frame
+    
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, -10, 0, 45)
+    textLabel.Position = UDim2.new(0, 5, 0, 30)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = text
+    textLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    textLabel.Font = Enum.Font.Gotham
+    textLabel.TextSize = 13
+    textLabel.TextWrapped = true
+    textLabel.Parent = frame
+    
+    -- Animate in
+    frame.Position = UDim2.new(1, 0, 1, -100)
+    TweenService:Create(frame, TweenInfo.new(0.5), {
+        Position = UDim2.new(1, -260, 1, -100)
+    }):Play()
+    
+    task.wait(duration or 3)
+    
+    -- Animate out
+    TweenService:Create(frame, TweenInfo.new(0.5), {
+        Position = UDim2.new(1, 0, 1, -100)
+    }):Play()
+    
+    task.wait(0.5)
+    notifGui:Destroy()
+end
+
+--// Startup Notification
+Notify("ICE HUB LOADED", "Press E to Instant Steal | T to Escape", 5)
+
+print("ICE HUB | Loaded Successfully")
+print("ICE HUB | Features: Instant Steal, Dual TP, Friend ESP, Custom Delays")
