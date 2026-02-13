@@ -1,0 +1,169 @@
+--!strict
+-- Services
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+-- Player
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- State Variables
+local isDesyncing = false
+
+-- === GUI CREATION ===
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "XYZHubGui"
+screenGui.Parent = playerGui
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.ResetOnSpawn = false -- Keep GUI on respawn
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Parent = screenGui
+mainFrame.Size = UDim2.new(0, 300, 0, 400)
+mainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+mainFrame.BorderSizePixel = 0
+
+-- White Outline for Main Frame
+local mainFrameStroke = Instance.new("UIStroke")
+mainFrameStroke.Parent = mainFrame
+mainFrameStroke.Color = Color3.fromRGB(255, 255, 255)
+mainFrameStroke.Thickness = 2
+mainFrameStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+-- Title Label
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "TitleLabel"
+titleLabel.Parent = mainFrame
+titleLabel.Size = UDim2.new(1, 0, 0, 50)
+titleLabel.Position = UDim2.new(0, 0, 0, 10)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "XYZ Hub Paid"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextScaled = true
+titleLabel.Font = Enum.Font.GothamBold
+
+-- White Outline for Title
+local titleStroke = Instance.new("UIStroke")
+titleStroke.Parent = titleLabel
+titleStroke.Color = Color3.fromRGB(255, 255, 255)
+titleStroke.Thickness = 1
+
+-- Button Creation Function
+local function createButton(text: string, yPos: number): TextButton
+    local button = Instance.new("TextButton")
+    button.Name = text .. "Button"
+    button.Parent = mainFrame
+    button.Size = UDim2.new(0, 250, 0, 40)
+    button.Position = UDim2.new(0, 25, 0, yPos)
+    button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    button.BorderSizePixel = 0
+    button.Text = text
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.TextScaled = true
+    button.Font = Enum.Font.Gotham
+
+    -- White Outline for Button
+    local buttonStroke = Instance.new("UIStroke")
+    buttonStroke.Parent = button
+    buttonStroke.Color = Color3.fromRGB(255, 255, 255)
+    buttonStroke.Thickness = 1
+
+    -- Hover Effect
+    button.MouseEnter:Connect(function()
+        button.BackgroundColor3 = Color3.fromRGB(65, 65, 65)
+    end)
+    button.MouseLeave:Connect(function()
+        button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    end)
+
+    return button
+end
+
+-- Create Buttons
+local desyncButton = createButton("Desync", 80)
+local instantStealButton = createButton("Instant Steal", 140)
+local setPositionButton = createButton("Set Position", 200)
+
+-- === FUNCTIONALITY ===
+
+-- Desync Logic
+desyncButton.MouseButton1Click:Connect(function()
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+    local humanoidRootPart = player.Character.HumanoidRootPart
+
+    isDesyncing = not isDesyncing
+    if isDesyncing then
+        desyncButton.Text = "Stop Desync"
+        task.spawn(function()
+            while isDesyncing and humanoidRootPart and humanoidRootPart.Parent do
+                -- Rapidly move the player to create desync
+                humanoidRootPart.CFrame = humanoidRootPart.CFrame * CFrame.new(0, 0.5, 0)
+                task.wait(0.05)
+                humanoidRootPart.CFrame = humanoidRootPart.CFrame * CFrame.new(0, -0.5, 0)
+                task.wait(0.05)
+            end
+        end)
+    else
+        desyncButton.Text = "Desync"
+    end
+end)
+
+-- Instant Steal Logic
+instantStealButton.MouseButton1Click:Connect(function()
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+    local targetCFrame = player.Character.HumanoidRootPart.CFrame
+
+    -- Search for items in the workspace
+    for _, item in ipairs(workspace:GetDescendants()) do
+        -- Check if it's a common collectible type
+        if item:IsA("Tool") or (item:IsA("Part") and item:FindFirstChildOfClass("TouchTransmitter")) then
+            -- Teleport the item to the player
+            item:PivotTo(targetCFrame)
+        end
+    end
+end)
+
+-- Set Position Logic
+setPositionButton.MouseButton1Click:Connect(function()
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+    local humanoidRootPart = player.Character.HumanoidRootPart
+    
+    -- Teleport to a high, central position
+    humanoidRootPart.CFrame = CFrame.new(0, 200, 0)
+end)
+
+-- === DRAGGABILITY ===
+-- Make the main frame draggable
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+mainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
