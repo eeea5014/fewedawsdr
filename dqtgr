@@ -1,0 +1,28 @@
+--[[
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+task.spawn(function()
+    while task.wait() do
+        game:GetService("ReplicatedStorage").Remotes.UpdateStats:FireServer(
+            "HealthUpgrade",
+            150,
+            30
+        )
+    end
+end)
+
+task.spawn(function()
+    while task.wait() do
+        game:GetService("ReplicatedStorage").Remotes.UpdateStats:FireServer(
+            "SlapStrengthUpgrade",
+            58,
+            -88638
+        )
+    end
+end)
+
+task.spawn(function()
+    while task.wait() do
+        game:GetService("ReplicatedStorage").Remotes.Rebirth:FireServer()
+    end
+end)
