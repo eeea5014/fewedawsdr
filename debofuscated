@@ -1,0 +1,432 @@
+-- ts file was generated at discord.gg/25ms
+
+local fenv = getfenv()
+local _ = fenv.FlatIdent_24A02
+local _ = fenv.Descriptor
+local _call5 = Instance.new('ScreenGui')
+_call5.Name = 'AmirHubGui'
+_call5.Parent = game.Players.LocalPlayer:WaitForChild('PlayerGui')
+_call5.ResetOnSpawn = false
+
+local _call15 = game:GetService('Workspace')
+local _LocalPlayer16 = game:GetService('Players').LocalPlayer
+
+Vector3.new(-352.98, -7.3, 74.3)
+Vector3.new(-352.98, -7.3, 45.76)
+
+local _call28 = Color3.fromRGB(39, 39, 39)
+local _call30 = Instance.new('Part')
+
+_call30.Name = 'CosmicTeleportHereBase2'
+_call30.Size = Vector3.new(3.8, 0.3, 3.8)
+_call30.Material = Enum.Material.Plastic
+_call30.Color = _call28
+_call30.Transparency = 0.57
+_call30.Anchored = true
+_call30.CanCollide = false
+_call30.Position = Vector3.new(-352.98, -7.3, 74.3)
+_call30.Parent = _call15
+
+local _call36 = Instance.new('BillboardGui')
+
+_call36.Size = UDim2.new(0, 200, 0, 50)
+_call36.StudsOffset = Vector3.new(0, 4, 0)
+_call36.AlwaysOnTop = true
+_call36.Parent = _call30
+
+local _call42 = Instance.new('TextLabel')
+
+_call42.Size = UDim2.new(1, 0, 1, 0)
+_call42.BackgroundTransparency = 1
+_call42.Text = ' TELEPORT HERE (BASE 2) '
+_call42.TextColor3 = Color3.fromRGB(255, 255, 255)
+_call42.TextStrokeTransparency = 0.3
+_call42.TextStrokeColor3 = _call28
+_call42.Font = Enum.Font.GothamBold
+_call42.TextSize = 18
+_call42.Parent = _call36
+_G.teleportPlatform1Billboard = _call36
+_call30.Transparency = 1
+_call36.Enabled = false
+
+local _call52 = Color3.fromRGB(39, 39, 39)
+local _call54 = Instance.new('Part')
+
+_call54.Name = 'CosmicTeleportHereBase1'
+_call54.Size = Vector3.new(3.8, 0.3, 3.8)
+_call54.Material = Enum.Material.Plastic
+_call54.Color = _call52
+_call54.Transparency = 0.57
+_call54.Anchored = true
+_call54.CanCollide = false
+_call54.Position = Vector3.new(-352.98, -7.3, 45.76)
+_call54.Parent = _call15
+
+local _call60 = Instance.new('BillboardGui')
+
+_call60.Size = UDim2.new(0, 200, 0, 50)
+_call60.StudsOffset = Vector3.new(0, 4, 0)
+_call60.AlwaysOnTop = true
+_call60.Parent = _call54
+
+local _call66 = Instance.new('TextLabel')
+
+_call66.Size = UDim2.new(1, 0, 1, 0)
+_call66.BackgroundTransparency = 1
+_call66.Text = ' TELEPORT HERE (BASE 1) '
+_call66.TextColor3 = Color3.fromRGB(255, 255, 255)
+_call66.TextStrokeTransparency = 0.3
+_call66.TextStrokeColor3 = _call52
+_call66.Font = Enum.Font.GothamBold
+_call66.TextSize = 18
+_call66.Parent = _call60
+_G.teleportPlatform2Billboard = _call60
+_call54.Transparency = 1
+_call60.Enabled = false
+
+spawn(function(...)
+    task.wait(0.2)
+
+    local _ = _LocalPlayer16.Character
+
+    _LocalPlayer16.Character:FindFirstChild('HumanoidRootPart')
+
+    local _Position81 = _LocalPlayer16.Character.HumanoidRootPart.Position
+    local _ = (_Position81 - Vector3.new(-336.09, -4.94, 101.13)).Magnitude
+    local _ = (_Position81 - Vector3.new(-335.94, -4.94, 18.94)).Magnitude
+
+    error('line 12: attempt to compare number < table')
+end)
+
+local _call87 = Instance.new('Frame')
+
+_call87.Size = UDim2.new(0, 240, 0, 210)
+_call87.Position = UDim2.new(0.5, -120, 0.5, -105)
+_call87.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+_call87.BackgroundTransparency = 0.35
+_call87.Active = true
+_call87.Draggable = true
+_call87.Parent = _call5
+
+local _call95 = Instance.new('UICorner')
+
+_call95.CornerRadius = UDim.new(0, 12)
+_call95.Parent = _call87
+
+local _call99 = Instance.new('UIStroke')
+
+_call99.Color = Color3.fromRGB(255, 255, 255)
+_call99.Transparency = 0.75
+_call99.Thickness = 6
+_call99.Parent = _call87
+
+local _call103 = Instance.new('UIStroke')
+
+_call103.Color = Color3.fromRGB(255, 255, 255)
+_call103.Transparency = 0.45
+_call103.Thickness = 3
+_call103.Parent = _call87
+
+local _call107 = Instance.new('UIStroke')
+
+_call107.Color = Color3.fromRGB(0, 0, 0)
+_call107.Transparency = 0.4
+_call107.Thickness = 2
+_call107.Parent = _call87
+
+local _call111 = Instance.new('TextLabel')
+
+_call111.Size = UDim2.new(1, 0, 0, 35)
+_call111.Position = UDim2.new(0, 0, 0, 8)
+_call111.BackgroundTransparency = 1
+_call111.Text = 'Amir Hub'
+_call111.TextColor3 = Color3.fromRGB(255, 255, 255)
+_call111.TextSize = 26
+_call111.Font = Enum.Font.GothamBold
+_call111.TextXAlignment = Enum.TextXAlignment.Center
+_call111.Parent = _call87
+
+local _call123 = Instance.new('Frame')
+
+_call123.Size = UDim2.new(0.85, 0, 0, 1)
+_call123.Position = UDim2.new(0.075, 0, 0, 45)
+_call123.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+_call123.BackgroundTransparency = 0.75
+_call123.BorderSizePixel = 0
+_call123.Parent = _call87
+
+local _call131 = Instance.new('TextLabel')
+
+_call131.Size = UDim2.new(1, 0, 0, 22)
+_call131.Position = UDim2.new(0, 0, 0, 50)
+_call131.BackgroundTransparency = 1
+_call131.Text = 'Semi Tp (BEST)'
+_call131.TextColor3 = Color3.fromRGB(255, 255, 255)
+_call131.TextSize = 16
+_call131.Font = Enum.Font.GothamSemibold
+_call131.TextXAlignment = Enum.TextXAlignment.Center
+_call131.Parent = _call87
+
+local _call143 = Instance.new('Frame')
+
+_call143.Size = UDim2.new(1, 0, 0, 30)
+_call143.Position = UDim2.new(0, 0, 0, 75)
+_call143.BackgroundTransparency = 1
+_call143.Parent = _call87
+
+local _call149 = Instance.new('TextLabel')
+
+_call149.Size = UDim2.new(0.55, 0, 1, 0)
+_call149.Position = UDim2.new(0, 15, 0, 0)
+_call149.BackgroundTransparency = 1
+_call149.Text = 'Half Tp'
+_call149.TextColor3 = Color3.fromRGB(255, 255, 255)
+_call149.TextSize = 17
+_call149.Font = Enum.Font.Gotham
+_call149.TextXAlignment = Enum.TextXAlignment.Left
+_call149.Parent = _call143
+
+local _call161 = Instance.new('Frame')
+
+_call161.Size = UDim2.new(0, 40, 0, 20)
+_call161.Position = UDim2.new(1, -55, 0.5, -10)
+_call161.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+_call161.BorderSizePixel = 0
+_call161.Parent = _call143
+
+local _call169 = Instance.new('UICorner')
+
+_call169.CornerRadius = UDim.new(1, 0)
+_call169.Parent = _call161
+
+local _call173 = Instance.new('Frame')
+
+_call173.Size = UDim2.new(0, 18, 0, 18)
+_call173.Position = UDim2.new(1, -19, 0.5, -9)
+_call173.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+_call173.BorderSizePixel = 0
+_call173.Parent = _call161
+
+local _call181 = Instance.new('UICorner')
+
+_call181.CornerRadius = UDim.new(1, 0)
+_call181.Parent = _call173
+
+local _call185 = Instance.new('TextButton')
+
+_call185.Size = UDim2.new(1, 0, 1, 0)
+_call185.BackgroundTransparency = 1
+_call185.Text = ''
+_call185.Parent = _call161
+
+_call185.MouseButton1Click:Connect(function(...)
+    _call161.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+    _call173.Position = UDim2.new(0, 1, 0.5, -9)
+
+    game:GetService('ProximityPromptService').PromptButtonHoldEnded:Connect(function(...)
+        local _199_vararg1, _199_vararg2 = ...
+        local _ = _199_vararg2 == _LocalPlayer16
+    end)
+end)
+
+local _call202 = Instance.new('Frame')
+
+_call202.Size = UDim2.new(1, 0, 0, 30)
+_call202.Position = UDim2.new(0, 0, 0, 105)
+_call202.BackgroundTransparency = 1
+_call202.Parent = _call87
+
+local _call208 = Instance.new('TextLabel')
+
+_call208.Size = UDim2.new(0.55, 0, 1, 0)
+_call208.Position = UDim2.new(0, 15, 0, 0)
+_call208.BackgroundTransparency = 1
+_call208.Text = 'Reset To Work'
+_call208.TextColor3 = Color3.fromRGB(255, 255, 255)
+_call208.TextSize = 17
+_call208.Font = Enum.Font.Gotham
+_call208.TextXAlignment = Enum.TextXAlignment.Left
+_call208.Parent = _call202
+
+local _call220 = Instance.new('Frame')
+
+_call220.Size = UDim2.new(0, 40, 0, 20)
+_call220.Position = UDim2.new(1, -55, 0.5, -10)
+_call220.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+_call220.BorderSizePixel = 0
+_call220.Parent = _call202
+
+local _call228 = Instance.new('UICorner')
+
+_call228.CornerRadius = UDim.new(1, 0)
+_call228.Parent = _call220
+
+local _call232 = Instance.new('Frame')
+
+_call232.Size = UDim2.new(0, 18, 0, 18)
+_call232.Position = UDim2.new(1, -19, 0.5, -9)
+_call232.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+_call232.BorderSizePixel = 0
+_call232.Parent = _call220
+
+local _call240 = Instance.new('UICorner')
+
+_call240.CornerRadius = UDim.new(1, 0)
+_call240.Parent = _call232
+
+local _call244 = Instance.new('TextButton')
+
+_call244.Size = UDim2.new(1, 0, 1, 0)
+_call244.BackgroundTransparency = 1
+_call244.Text = ''
+_call244.Parent = _call220
+
+_call244.MouseButton1Click:Connect(function(...)
+    _call220.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+    _call232.Position = UDim2.new(0, 1, 0.5, -9)
+
+    setfflag('GameNetPVHeaderRotationalVelocityZeroCutoffExponent', '-5000')
+    setfflag('LargeReplicatorWrite5', 'true')
+    setfflag('LargeReplicatorEnabled9', 'true')
+    setfflag('AngularVelociryLimit', '360')
+    setfflag('TimestepArbiterVelocityCriteriaThresholdTwoDt', '2147483646')
+    setfflag('S2PhysicsSenderRate', '15000')
+    setfflag('DisableDPIScale', 'true')
+    setfflag('MaxDataPacketPerSend', '2147483647')
+    setfflag('PhysicsSenderMaxBandwidthBps', '20000')
+    setfflag('TimestepArbiterHumanoidLinearVelThreshold', '21')
+    setfflag('MaxMissedWorldStepsRemembered', '-2147483648')
+    setfflag('PlayerHumanoidPropertyUpdateRestrict', 'true')
+    setfflag('SimDefaultHumanoidTimestepMultiplier', '0')
+    setfflag('StreamJobNOUVolumeLengthCap', '2147483647')
+    setfflag('DebugSendDistInSteps', '-2147483648')
+    setfflag('GameNetDontSendRedundantNumTimes', '1')
+    setfflag('CheckPVLinearVelocityIntegrateVsDeltaPositionThresholdPercent', '1')
+    setfflag('InterpolationFrameRotVelocityThresholdMillionth', '5')
+    setfflag('LargeReplicatorSerializeRead3', 'true')
+    setfflag('ReplicationFocusNouExtentsSizeCutoffForPauseStuds', '2147483647')
+    setfflag('WorldStepMax', '30')
+    setfflag('CheckPVDifferencesForInterpolationMinRotVelThresholdRadsPerSecHundredth', '1')
+    setfflag('GameNetDontSendRedundantDeltaPositionMillionth', '1')
+    setfflag('InterpolationFrameVelocityThresholdMillionth', '5')
+    setfflag('StreamJobNOUVolumeCap', '2147483647')
+    setfflag('CheckPVCachedRotVelThresholdPercent', '10')
+    setfflag('CheckPVCachedVelThresholdPercent', '10')
+    setfflag('NextGenReplicatorEnabledWrite4', 'true')
+    setfflag('InterpolationFramePositionThresholdMillionth', '5')
+    setfflag('TimestepArbiterHumanoidTurningVelThreshold', '1')
+    setfflag('CheckPVDifferencesForInterpolationMinVelThresholdStudsPerSecHundredth', '1')
+    setfflag('GameNetPVHeaderLinearVelocityZeroCutoffExponent', '-5000')
+    setfflag('SimOwnedNOUCountThresholdMillionth', '2147483647')
+    setfflag('TimestepArbiterOmegaThou', '1073741823')
+    setfflag('MaxAcceptableUpdateDelay', '1')
+    setfflag('LargeReplicatorSerializeWrite4', 'true')
+
+    local _Character291 = _LocalPlayer16.Character
+
+    _Character291:FindFirstChildWhichIsA('Humanoid'):ChangeState(Enum.HumanoidStateType.Dead)
+    _Character291:ClearAllChildren()
+
+    local _call301 = Instance.new('Model')
+    local _ = _G.workspace
+
+    _call301.Parent = workspace
+    _LocalPlayer16.Character = _call301
+
+    task.wait()
+
+    _LocalPlayer16.Character = _Character291
+
+    _call301:Destroy()
+    task.wait(0.5)
+
+    local _ = _LocalPlayer16.Character
+    local _Character305 = _LocalPlayer16.Character
+
+    for _310, _310_2 in ipairs(_Character305:FindFirstChildOfClass('Humanoid'):GetPlayingAnimationTracks())do
+        _310_2:Stop()
+    end
+    for _315, _315_2 in ipairs(_Character305:GetDescendants())do
+        _315_2:IsA('Animator')
+        _315_2:Destroy()
+    end
+
+    _Character305.DescendantAdded:Connect(function(...)
+        local _323_vararg1 = ...
+
+        _323_vararg1:IsA('Animator')
+        _323_vararg1:Destroy()
+    end)
+    _Character305.AncestryChanged:Connect(function(...) end)
+    _LocalPlayer16.CharacterAdded:Connect(function(...)
+        local _335_vararg1 = ...
+
+        for _340, _340_2 in ipairs(_335_vararg1:FindFirstChildOfClass('Humanoid'):GetPlayingAnimationTracks())do
+            _340_2:Stop()
+        end
+        for _345, _345_2 in ipairs(_335_vararg1:GetDescendants())do
+            _345_2:IsA('Animator')
+            _345_2:Destroy()
+        end
+
+        _335_vararg1.DescendantAdded:Connect(function(...)
+            error('internal 557: <25ms: infinitelooperror>')
+        end)
+        _335_vararg1.AncestryChanged:Connect(function(...) end)
+    end)
+end)
+
+local _call360 = Instance.new('Frame')
+
+_call360.Size = UDim2.new(1, 0, 0, 40)
+_call360.Position = UDim2.new(0, 0, 0, 140)
+_call360.BackgroundTransparency = 1
+_call360.Parent = _call87
+
+local _call366 = Instance.new('TextButton')
+
+_call366.Size = UDim2.new(0, 90, 0, 30)
+_call366.Position = UDim2.new(0, 25, 0, 5)
+_call366.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+_call366.Text = 'TP 1'
+_call366.TextColor3 = Color3.fromRGB(255, 255, 255)
+_call366.TextSize = 14
+_call366.Font = Enum.Font.GothamBold
+_call366.Parent = _call360
+
+local _call378 = Instance.new('UICorner')
+
+_call378.CornerRadius = UDim.new(0, 8)
+_call378.Parent = _call366
+
+_call366.MouseButton1Click:Connect(function(...) end)
+
+local _call386 = Instance.new('TextButton')
+
+_call386.Size = UDim2.new(0, 90, 0, 30)
+_call386.Position = UDim2.new(0, 125, 0, 5)
+_call386.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+_call386.Text = 'TP 2'
+_call386.TextColor3 = Color3.fromRGB(255, 255, 255)
+_call386.TextSize = 14
+_call386.Font = Enum.Font.GothamBold
+_call386.Parent = _call360
+
+local _call398 = Instance.new('UICorner')
+
+_call398.CornerRadius = UDim.new(0, 8)
+_call398.Parent = _call386
+
+_call386.MouseButton1Click:Connect(function(...) end)
+
+local _call406 = Instance.new('TextLabel')
+
+_call406.Size = UDim2.new(1, 0, 0, 20)
+_call406.Position = UDim2.new(0, 0, 1, -25)
+_call406.BackgroundTransparency = 1
+_call406.Text = 'https://discord.gg/fZksnxvmm'
+_call406.TextColor3 = Color3.fromRGB(255, 255, 255)
+_call406.TextSize = 13
+_call406.Font = Enum.Font.Gotham
+_call406.TextXAlignment = Enum.TextXAlignment.Center
+_call406.Parent = _call87
