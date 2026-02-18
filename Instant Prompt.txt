@@ -1,0 +1,121 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local originalDurations = {}
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "InstantPromptToggle"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 220, 0, 90)
+frame.Position = UDim2.new(0.5, -110, 0.1, 0)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = frame
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(80, 80, 120)
+stroke.Thickness = 1.5
+stroke.Transparency = 0.4
+stroke.Parent = frame
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundTransparency = 1
+title.Text = "Instant Prompts"
+title.TextColor3 = Color3.fromRGB(220, 220, 255)
+title.TextSize = 18
+title.Font = Enum.Font.GothamBold
+title.Parent = frame
+
+local toggleFrame = Instance.new("Frame")
+toggleFrame.Size = UDim2.new(0, 100, 0, 40)
+toggleFrame.Position = UDim2.new(0.5, -50, 0, 35)
+toggleFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+toggleFrame.BorderSizePixel = 0
+toggleFrame.Parent = frame
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(1, 0)
+toggleCorner.Parent = toggleFrame
+
+local knob = Instance.new("Frame")
+knob.Size = UDim2.new(0, 34, 0, 34)
+knob.Position = UDim2.new(0, 3, 0, 3)
+knob.BackgroundColor3 = Color3.fromRGB(220, 220, 220)
+knob.BorderSizePixel = 0
+knob.Parent = toggleFrame
+
+local knobCorner = Instance.new("UICorner")
+knobCorner.CornerRadius = UDim.new(1, 0)
+knobCorner.Parent = knob
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1, 0, 0, 20)
+statusLabel.Position = UDim2.new(0, 0, 1, -22)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "OFF"
+statusLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+statusLabel.TextSize = 16
+statusLabel.Font = Enum.Font.GothamSemibold
+statusLabel.Parent = frame
+
+local isOn = false
+
+local function updateToggle()
+    if isOn then
+        toggleFrame.BackgroundColor3 = Color3.fromRGB(40, 200, 120)
+        knob.Position = UDim2.new(0, 63, 0, 3)
+        statusLabel.Text = "ON"
+        statusLabel.TextColor3 = Color3.fromRGB(100, 255, 140)
+        
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("ProximityPrompt") then
+                if not originalDurations[obj] then
+                    originalDurations[obj] = obj.HoldDuration
+                end
+                obj.HoldDuration = 0
+            end
+        end
+    else
+        toggleFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+        knob.Position = UDim2.new(0, 3, 0, 3)
+        statusLabel.Text = "OFF"
+        statusLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+        
+        for prompt, dur in pairs(originalDurations) do
+            if prompt and prompt.Parent then
+                prompt.HoldDuration = dur
+            end
+        end
+    end
+end
+
+toggleFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isOn = not isOn
+        updateToggle()
+    end
+end)
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if not toggleFrame:IsAncestorOf(input.Target) then
+            isOn = not isOn
+            updateToggle()
+        end
+    end
+end)
+
+updateToggle()
+
+print("Instant Prompt Toggle GUI loaded! Drag the box around.")
