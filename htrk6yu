@@ -1,0 +1,188 @@
+-- ============================================
+-- Brainrot Heist - Advanced GUI Version
+-- ============================================
+-- Features:
+-- - In-game coordinate setting via GUI
+-- - Segmented teleportation for anti-cheat evasion
+-- - Event-driven brainrot pickup
+-- - Clean, modern UI
+-- ============================================
+
+-- Services
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+
+-- Player and Character
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
+
+-- ============================================
+-- GUI CREATION
+-- ============================================
+
+-- Main ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "BrainrotHeistGUI"
+screenGui.Parent = CoreGui
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.ResetOnSpawn = false
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Parent = screenGui
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+mainFrame.BorderSizePixel = 0
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+mainFrame.Size = UDim2.new(0, 400, 0, 300)
+mainFrame.ClipsDescendants = true
+
+-- Add a corner rounding effect
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 12)
+uiCorner.Parent = mainFrame
+
+-- Title Label
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "TitleLabel"
+titleLabel.Parent = mainFrame
+titleLabel.BackgroundTransparency = 1
+titleLabel.Position = UDim2.new(0, 0, 0, 10)
+titleLabel.Size = UDim2.new(1, 0, 0, 40)
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.Text = "Brainrot Heist"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextSize = 24
+titleLabel.TextStrokeTransparency = 0.8
+
+-- Status Label
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Name = "StatusLabel"
+statusLabel.Parent = mainFrame
+statusLabel.BackgroundTransparency = 1
+statusLabel.Position = UDim2.new(0, 10, 0, 55)
+statusLabel.Size = UDim2.new(1, -20, 0, 20)
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.Text = "Status: Ready"
+statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+statusLabel.TextSize = 14
+statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Base Status Labels
+local myBaseLabel = Instance.new("TextLabel")
+myBaseLabel.Name = "MyBaseLabel"
+myBaseLabel.Parent = mainFrame
+myBaseLabel.BackgroundTransparency = 1
+myBaseLabel.Position = UDim2.new(0, 10, 0, 85)
+myBaseLabel.Size = UDim2.new(1, -20, 0, 20)
+myBaseLabel.Font = Enum.Font.Gotham
+myBaseLabel.Text = "My Base: Not Set"
+myBaseLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+myBaseLabel.TextSize = 14
+myBaseLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local targetBaseLabel = Instance.new("TextLabel")
+targetBaseLabel.Name = "TargetBaseLabel"
+targetBaseLabel.Parent = mainFrame
+targetBaseLabel.BackgroundTransparency = 1
+targetBaseLabel.Position = UDim2.new(0, 10, 0, 110)
+targetBaseLabel.Size = UDim2.new(1, -20, 0, 20)
+targetBaseLabel.Font = Enum.Font.Gotham
+targetBaseLabel.Text = "Target Base: Not Set"
+targetBaseLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+targetBaseLabel.TextSize = 14
+targetBaseLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Button Creation Function
+local function createButton(name, text, position)
+    local button = Instance.new("TextButton")
+    button.Name = name
+    button.Parent = mainFrame
+    button.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+    button.BorderSizePixel = 0
+    button.Position = position
+    button.Size = UDim2.new(0, 180, 0, 40)
+    button.Font = Enum.Font.GothamSemibold
+    button.Text = text
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.TextSize = 16
+    
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 8)
+    buttonCorner.Parent = button
+
+    -- Hover effect
+    local hoverTween = TweenService:Create(button, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(60, 60, 80)})
+    local releaseTween = TweenService:Create(button, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(45, 45, 60)})
+
+    button.MouseEnter:Connect(function()
+        hoverTween:Play()
+    end)
+    button.MouseLeave:Connect(function()
+        releaseTween:Play()
+    end)
+
+    return button
+end
+
+-- Create Buttons
+local setMyBaseBtn = createButton("SetMyBaseBtn", "Set My Base", UDim2.new(0, 10, 0, 150))
+local setTargetBaseBtn = createButton("SetTargetBaseBtn", "Set Target Base", UDim2.new(0, 210, 0, 150))
+local executeBtn = createButton("ExecuteBtn", "Execute Heist", UDim2.new(0.5, -90, 0, 210))
+
+-- Execute button is disabled by default
+executeBtn.Active = false
+executeBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+executeBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+
+
+-- ============================================
+-- SCRIPT LOGIC & CONFIGURATION
+-- ============================================
+
+-- State Variables
+local myBasePos = nil
+local targetBasePos = nil
+local isHeistRunning = false
+
+-- Heist Configuration
+local STEP_SIZE = 100 -- Distance in studs for each small teleport hop.
+local HOP_DELAY = 0.02 -- Delay in seconds between hops. Lower is faster but riskier.
+local PICKUP_RADIUS = 30 -- How far from the target to search for the brainrot.
+
+-- Helper function to update the status label
+local function updateStatus(text)
+    statusLabel.Text = "Status: " .. text
+end
+
+-- Helper function to format Vector3 for display
+local function formatVector3(v)
+    if v then
+        return string.format("(%.1f, %.1f, %.1f)", v.X, v.Y, v.Z)
+    else
+        return "Not Set"
+    end
+end
+
+-- Function to smoothly teleport in segments
+local function segmentedTeleport(destination)
+    if not hrp or not destination then return end
+    updateStatus("Infiltrating...")
+
+    local startPos = hrp.Position
+    local distance = (destination - startPos).Magnitude
+    local direction = (destination - startPos).Unit
+    local steps = math.ceil(distance / STEP_SIZE)
+
+    for i = 1, steps do
+        if not isHeistRunning then -- Cancel if heist is stopped
+            updateStatus("Heist cancelled.")
+            return
+        end
+        local nextPos = startPos + (direction * STEP_SIZE * i)
+        hrp.CFrame = CFrame.new(next
