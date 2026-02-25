@@ -1,0 +1,571 @@
+-- xyz lagger.lua
+-- Advanced Multi-Target Lag Generator
+-- Designed for "Steal a Brainrot" – use responsibly!
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local Debris = game:GetService("Debris")
+local HttpService = game:GetService("HttpService")
+local player = Players.LocalPlayer
+
+-- ================= CONFIGURATION =================
+local GUI_COLOR = Color3.fromRGB(128, 0, 255) -- Purple
+local OUTLINE_COLOR = Color3.fromRGB(255, 255, 255) -- White outline
+local BACKGROUND_TRANSPARENCY = 0.2
+local DRAGGABLE = true
+local DEFAULT_LAG_INTENSITY = 3 -- 1-5
+
+-- ================= GUI CREATION =================
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "XYZLagger"
+screenGui.Parent = player:WaitForChild("PlayerGui")
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 350, 0, 250)
+mainFrame.Position = UDim2.new(0.5, -175, 0.5, -125)
+mainFrame.BackgroundColor3 = GUI_COLOR
+mainFrame.BackgroundTransparency = BACKGROUND_TRANSPARENCY
+mainFrame.BorderSizePixel = 3
+mainFrame.BorderColor3 = OUTLINE_COLOR
+mainFrame.Active = true
+mainFrame.Draggable = DRAGGABLE
+mainFrame.Parent = screenGui
+
+-- Title Bar
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 30)
+titleBar.BackgroundColor3 = GUI_COLOR
+titleBar.BackgroundTransparency = 0.1
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "TitleLabel"
+titleLabel.Size = UDim2.new(1, -10, 1, 0)
+titleLabel.Position = UDim2.new(0, 5, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "XYZ LAGGER v2.0"
+titleLabel.TextColor3 = Color3.new(1, 1, 1)
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Font = Enum.Font.GothamBlack
+titleLabel.TextScaled = true
+titleLabel.Parent = titleBar
+
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 25, 0, 25)
+closeButton.Position = UDim2.new(1, -30, 0, 2.5)
+closeButton.BackgroundColor3 = Color3.new(1, 0, 0)
+closeButton.BorderSizePixel = 2
+closeButton.BorderColor3 = OUTLINE_COLOR
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = titleBar
+closeButton.MouseButton1Click:Connect(function() screenGui:Destroy() end)
+
+-- Status Frame
+local statusFrame = Instance.new("Frame")
+statusFrame.Name = "StatusFrame"
+statusFrame.Size = UDim2.new(1, -20, 0, 40)
+statusFrame.Position = UDim2.new(0, 10, 0, 35)
+statusFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+statusFrame.BackgroundTransparency = 0.3
+statusFrame.BorderSizePixel = 2
+statusFrame.BorderColor3 = OUTLINE_COLOR
+statusFrame.Parent = mainFrame
+
+local statusIcon = Instance.new("Frame")
+statusIcon.Name = "StatusIcon"
+statusIcon.Size = UDim2.new(0, 15, 0, 15)
+statusIcon.Position = UDim2.new(0, 10, 0.5, -7.5)
+statusIcon.BackgroundColor3 = Color3.new(1, 0, 0)
+statusIcon.BorderSizePixel = 1
+statusIcon.BorderColor3 = OUTLINE_COLOR
+statusIcon.Parent = statusFrame
+
+local statusText = Instance.new("TextLabel")
+statusText.Name = "StatusText"
+statusText.Size = UDim2.new(1, -35, 1, 0)
+statusText.Position = UDim2.new(0, 30, 0, 0)
+statusText.BackgroundTransparency = 1
+statusText.Text = "● LAGGING: OFF"
+statusText.TextColor3 = Color3.new(1, 1, 1)
+statusText.TextXAlignment = Enum.TextXAlignment.Left
+statusText.Font = Enum.Font.GothamBold
+statusText.TextScaled = true
+statusText.Parent = statusFrame
+
+-- Target Info
+local targetFrame = Instance.new("Frame")
+targetFrame.Name = "TargetFrame"
+targetFrame.Size = UDim2.new(1, -20, 0, 30)
+targetFrame.Position = UDim2.new(0, 10, 0, 80)
+targetFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+targetFrame.BackgroundTransparency = 0.3
+targetFrame.BorderSizePixel = 2
+targetFrame.BorderColor3 = OUTLINE_COLOR
+targetFrame.Parent = mainFrame
+
+local targetLabel = Instance.new("TextLabel")
+targetLabel.Name = "TargetLabel"
+targetLabel.Size = UDim2.new(1, -10, 1, 0)
+targetLabel.Position = UDim2.new(0, 5, 0, 0)
+targetLabel.BackgroundTransparency = 1
+targetLabel.Text = "Affecting " .. #Players:GetPlayers()-1 .. " others"
+targetLabel.TextColor3 = Color3.new(1, 1, 1)
+targetLabel.TextXAlignment = Enum.TextXAlignment.Left
+targetLabel.Font = Enum.Font.Gotham
+targetLabel.TextScaled = true
+targetLabel.Parent = targetFrame
+
+-- Intensity Slider
+local intensityFrame = Instance.new("Frame")
+intensityFrame.Name = "IntensityFrame"
+intensityFrame.Size = UDim2.new(1, -20, 0, 40)
+intensityFrame.Position = UDim2.new(0, 10, 0, 115)
+intensityFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+intensityFrame.BackgroundTransparency = 0.3
+intensityFrame.BorderSizePixel = 2
+intensityFrame.BorderColor3 = OUTLINE_COLOR
+intensityFrame.Parent = mainFrame
+
+local intensityLabel = Instance.new("TextLabel")
+intensityLabel.Name = "IntensityLabel"
+intensityLabel.Size = UDim2.new(0, 80, 1, 0)
+intensityLabel.Position = UDim2.new(0, 5, 0, 0)
+intensityLabel.BackgroundTransparency = 1
+intensityLabel.Text = "Intensity:"
+intensityLabel.TextColor3 = Color3.new(1, 1, 1)
+intensityLabel.TextXAlignment = Enum.TextXAlignment.Left
+intensityLabel.Font = Enum.Font.Gotham
+intensityLabel.TextScaled = true
+intensityLabel.Parent = intensityFrame
+
+local intensityValue = Instance.new("TextLabel")
+intensityValue.Name = "IntensityValue"
+intensityValue.Size = UDim2.new(0, 30, 1, 0)
+intensityValue.Position = UDim2.new(0, 90, 0, 0)
+intensityValue.BackgroundTransparency = 1
+intensityValue.Text = tostring(DEFAULT_LAG_INTENSITY)
+intensityValue.TextColor3 = Color3.new(1, 1, 1)
+intensityValue.Font = Enum.Font.GothamBold
+intensityValue.TextScaled = true
+intensityValue.Parent = intensityFrame
+
+local sliderBg = Instance.new("Frame")
+sliderBg.Name = "SliderBg"
+sliderBg.Size = UDim2.new(0, 180, 0, 15)
+sliderBg.Position = UDim2.new(0, 125, 0.5, -7.5)
+sliderBg.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+sliderBg.BorderSizePixel = 2
+sliderBg.BorderColor3 = OUTLINE_COLOR
+sliderBg.Parent = intensityFrame
+
+local sliderButton = Instance.new("TextButton")
+sliderButton.Name = "SliderButton"
+sliderButton.Size = UDim2.new(0, 20, 0, 25)
+sliderButton.Position = UDim2.new(0, (DEFAULT_LAG_INTENSITY-1)*45, 0.5, -12.5) -- 4 increments
+sliderButton.BackgroundColor3 = GUI_COLOR
+sliderButton.BorderSizePixel = 2
+sliderButton.BorderColor3 = OUTLINE_COLOR
+sliderButton.Text = ""
+sliderButton.Parent = sliderBg
+
+local intensity = DEFAULT_LAG_INTENSITY
+local dragging = false
+
+sliderButton.MouseButton1Down:Connect(function()
+    dragging = true
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local mousePos = UserInputService:GetMouseLocation()
+        local sliderPos = sliderBg.AbsolutePosition.X
+        local relativeX = math.clamp(mousePos.X - sliderPos, 0, sliderBg.AbsoluteSize.X)
+        local newIntensity = math.floor(relativeX / (sliderBg.AbsoluteSize.X / 4)) + 1
+        newIntensity = math.clamp(newIntensity, 1, 5)
+        if newIntensity ~= intensity then
+            intensity = newIntensity
+            intensityValue.Text = tostring(intensity)
+            sliderButton.Position = UDim2.new(0, (intensity-1)*45, 0.5, -12.5)
+        end
+    end
+end)
+
+-- Buttons Frame
+local buttonsFrame = Instance.new("Frame")
+buttonsFrame.Name = "ButtonsFrame"
+buttonsFrame.Size = UDim2.new(1, -20, 0, 50)
+buttonsFrame.Position = UDim2.new(0, 10, 0, 165)
+buttonsFrame.BackgroundTransparency = 1
+buttonsFrame.Parent = mainFrame
+
+-- Start Lag Button
+local startButton = Instance.new("TextButton")
+startButton.Name = "StartButton"
+startButton.Size = UDim2.new(0.5, -5, 1, 0)
+startButton.BackgroundColor3 = Color3.new(0, 0.5, 0)
+startButton.BorderSizePixel = 3
+startButton.BorderColor3 = OUTLINE_COLOR
+startButton.Text = "START LAGGING"
+startButton.TextColor3 = Color3.new(1, 1, 1)
+startButton.Font = Enum.Font.GothamBold
+startButton.TextScaled = true
+startButton.Parent = buttonsFrame
+
+-- Stop Lag Button
+local stopButton = Instance.new("TextButton")
+stopButton.Name = "StopButton"
+stopButton.Size = UDim2.new(0.5, -5, 1, 0)
+stopButton.Position = UDim2.new(0.5, 5, 0, 0)
+stopButton.BackgroundColor3 = Color3.new(0.5, 0, 0)
+stopButton.BorderSizePixel = 3
+stopButton.BorderColor3 = OUTLINE_COLOR
+stopButton.Text = "STOP LAGGING"
+stopButton.TextColor3 = Color3.new(1, 1, 1)
+stopButton.Font = Enum.Font.GothamBold
+stopButton.TextScaled = true
+stopButton.Parent = buttonsFrame
+
+-- Stats Frame (for show)
+local statsFrame = Instance.new("Frame")
+statsFrame.Name = "StatsFrame"
+statsFrame.Size = UDim2.new(1, -20, 0, 25)
+statsFrame.Position = UDim2.new(0, 10, 0, 220)
+statsFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+statsFrame.BackgroundTransparency = 0.5
+statsFrame.BorderSizePixel = 2
+statsFrame.BorderColor3 = OUTLINE_COLOR
+statsFrame.Parent = mainFrame
+
+local packetsSent = Instance.new("TextLabel")
+packetsSent.Size = UDim2.new(0.5, -2, 1, 0)
+packetsSent.Position = UDim2.new(0, 2, 0, 0)
+packetsSent.BackgroundTransparency = 1
+packetsSent.Text = "Packets: 0"
+packetsSent.TextColor3 = Color3.new(1, 1, 1)
+packetsSent.TextXAlignment = Enum.TextXAlignment.Left
+packetsSent.Font = Enum.Font.Gotham
+packetsSent.TextScaled = true
+packetsSent.Parent = statsFrame
+
+local partsSpawned = Instance.new("TextLabel")
+partsSpawned.Size = UDim2.new(0.5, -2, 1, 0)
+partsSpawned.Position = UDim2.new(0.5, 2, 0, 0)
+partsSpawned.BackgroundTransparency = 1
+partsSpawned.Text = "Objects: 0"
+partsSpawned.TextColor3 = Color3.new(1, 1, 1)
+partsSpawned.TextXAlignment = Enum.TextXAlignment.Right
+partsSpawned.Font = Enum.Font.Gotham
+partsSpawned.TextScaled = true
+partsSpawned.Parent = statsFrame
+
+-- Warning text (small)
+local warningText = Instance.new("TextLabel")
+warningText.Name = "WarningText"
+warningText.Size = UDim2.new(1, -20, 0, 20)
+warningText.Position = UDim2.new(0, 10, 1, -25)
+warningText.BackgroundTransparency = 1
+warningText.Text = "⚠️ May cause game instability. Use at own risk."
+warningText.TextColor3 = Color3.new(1, 0.5, 0)
+warningText.TextScaled = true
+warningText.Font = Enum.Font.Gotham
+warningText.Parent = mainFrame
+
+-- ================= LAG MECHANICS =================
+local lagging = false
+local lagThreads = {}
+local packetCount = 0
+local objectCount = 0
+
+-- Update stats periodically
+spawn(function()
+    while true do
+        packetsSent.Text = "Packets: " .. packetCount
+        partsSpawned.Text = "Objects: " .. objectCount
+        wait(0.5)
+    end
+end)
+
+-- Update target count when players join/leave
+local function updateTargetCount()
+    targetLabel.Text = "Affecting " .. (#Players:GetPlayers() - 1) .. " others"
+end
+Players.PlayerAdded:Connect(updateTargetCount)
+Players.PlayerRemoving:Connect(updateTargetCount)
+updateTargetCount()
+
+-- Method 1: Spawn invisible parts that replicate to others
+local function spawnParts(amount)
+    for i = 1, amount do
+        local part = Instance.new("Part")
+        part.Size = Vector3.new(math.random(5, 20), math.random(5, 20), math.random(5, 20))
+        part.Position = Vector3.new(math.random(-500, 500), math.random(100, 300), math.random(-500, 500))
+        part.Transparency = 1 -- Invisible to everyone, but still replicates
+        part.Anchored = true
+        part.CanCollide = false
+        part.CastShadow = false
+        part.Material = Enum.Material.SmoothPlastic
+        part.Parent = Workspace
+        Debris:AddItem(part, 30) -- Remove after 30 seconds to avoid memory leak
+        objectCount = objectCount + 1
+    end
+end
+
+-- Method 2: Spam remote events (generic attempts)
+local function spamRemotes(amount)
+    -- Attempt to find common remote names in Steal a Brainrot
+    local possibleRemotes = {
+        "TradeRequest", "BuyItem", "SellItem", "Attack", "UseItem",
+        "CollectBrainrot", "PlaceTower", "Upgrade", "Spin", "OpenCrate",
+        "RemoteEvent", "RemoteFunction", "Teleport", "Damage"
+    }
+    
+    for i = 1, amount do
+        for _, remoteName in ipairs(possibleRemotes) do
+            local remote = ReplicatedStorage:FindFirstChild(remoteName) or 
+                          game:GetService("ReplicatedStorage"):FindFirstChild(remoteName) or
+                          player:FindFirstChild(remoteName)
+            if remote and (remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction")) then
+                pcall(function()
+                    remote:FireServer("LagSpam" .. HttpService:GenerateGUID(false))
+                end)
+                packetCount = packetCount + 1
+            end
+        end
+    end
+end
+
+-- Method 3: Create physics objects (unanchored) to stress server physics
+local function spawnPhysicsObjects(amount)
+    for i = 1, amount do
+        local part = Instance.new("Part")
+        part.Size = Vector3.new(2, 2, 2)
+        part.Position = Vector3.new(math.random(-100, 100), 500, math.random(-100, 100))
+        part.Transparency = 0.5 -- Semi-transparent so they're visible but not too obtrusive
+        part.Anchored = false
+        part.CanCollide = true
+        part.Velocity = Vector3.new(math.random(-200, 200), math.random(-200, 200), math.random(-200, 200))
+        part.RotVelocity = Vector3.new(math.random(-100, 100), math.random(-100, 100), math.random(-100, 100))
+        part.Parent = Workspace
+        Debris:AddItem(part, 20)
+        objectCount = objectCount + 1
+    end
+end
+
+-- Method 4: Spam GUI notifications (for all players, if possible)
+local function spamNotifications(amount)
+    -- Some games have a global notification system
+    local notificationRemote = ReplicatedStorage:FindFirstChild("Notification") or
+                               ReplicatedStorage:FindFirstChild("ShowNotification") or
+                               ReplicatedStorage:FindFirstChild("ChatMessage")
+    if notificationRemote and notificationRemote:IsA("RemoteEvent") then
+        for i = 1, amount do
+            pcall(function()
+                notificationRemote:FireServer("LagSpam Notification " .. i)
+            end)
+            packetCount = packetCount + 1
+        end
+    end
+end
+
+-- Method 5: Teleport spam (if game has teleports)
+local function teleportSpam(amount)
+    local teleportRemote = ReplicatedStorage:FindFirstChild("Teleport") or
+                          ReplicatedStorage:FindFirstChild("RequestTeleport")
+    if teleportRemote and teleportRemote:IsA("RemoteEvent") then
+        for i = 1, amount do
+            pcall(function()
+                teleportRemote:FireServer(Vector3.new(math.random(-1000,1000), math.random(0,500), math.random(-1000,1000)))
+            end)
+            packetCount = packetCount + 1
+        end
+    end
+end
+
+-- Method 6: Create many parts with complex meshes (if possible)
+local function spawnMeshParts(amount)
+    for i = 1, amount do
+        local part = Instance.new("Part")
+        part.Size = Vector3.new(10, 10, 10)
+        part.Position = Vector3.new(math.random(-300, 300), math.random(50, 200), math.random(-300, 300))
+        part.Transparency = 1
+        part.Anchored = true
+        part.Parent = Workspace
+        
+        -- Add a mesh if available
+        local mesh = Instance.new("SpecialMesh")
+        mesh.MeshType = Enum.MeshType.Sphere
+        mesh.Parent = part
+        
+        Debris:AddItem(part, 30)
+        objectCount = objectCount + 1
+    end
+end
+
+-- Main lag loop
+local function startLagging()
+    lagging = true
+    statusIcon.BackgroundColor3 = Color3.new(0, 1, 0)
+    statusText.Text = "● LAGGING: ON (Intensity " .. intensity .. ")"
+    
+    -- Spawn multiple threads for different lag methods
+    local threads = {}
+    
+    -- Thread 1: Part spawning (scales with intensity)
+    table.insert(threads, spawn(function()
+        while lagging do
+            local partCount = intensity * 10
+            spawnParts(partCount)
+            wait(0.5 / intensity) -- Faster at higher intensity
+        end
+    end))
+    
+    -- Thread 2: Remote spam
+    table.insert(threads, spawn(function()
+        while lagging do
+            local remoteCount = intensity * 5
+            spamRemotes(remoteCount)
+            wait(0.3 / intensity)
+        end
+    end))
+    
+    -- Thread 3: Physics objects (only at intensity >= 3)
+    if intensity >= 3 then
+        table.insert(threads, spawn(function()
+            while lagging do
+                spawnPhysicsObjects(intensity * 2)
+                wait(0.4 / intensity)
+            end
+        end))
+    end
+    
+    -- Thread 4: Notifications (intensity >= 2)
+    if intensity >= 2 then
+        table.insert(threads, spawn(function()
+            while lagging do
+                spamNotifications(intensity * 3)
+                wait(0.5 / intensity)
+            end
+        end))
+    end
+    
+    -- Thread 5: Teleport spam (intensity >= 4)
+    if intensity >= 4 then
+        table.insert(threads, spawn(function()
+            while lagging do
+                teleportSpam(intensity * 2)
+                wait(0.4 / intensity)
+            end
+        end))
+    end
+    
+    -- Thread 6: Mesh parts (intensity >= 5)
+    if intensity >= 5 then
+        table.insert(threads, spawn(function()
+            while lagging do
+                spawnMeshParts(intensity * 2)
+                wait(0.6 / intensity)
+            end
+        end))
+    end
+    
+    -- Store threads to stop later
+    lagThreads = threads
+end
+
+local function stopLagging()
+    lagging = false
+    statusIcon.BackgroundColor3 = Color3.new(1, 0, 0)
+    statusText.Text = "● LAGGING: OFF"
+    
+    -- Stop all threads
+    for _, thread in ipairs(lagThreads) do
+        coroutine.close(thread) -- In Lua, we can't easily kill threads; we rely on lagging flag
+    end
+    lagThreads = {}
+    
+    -- Optionally clear some objects? But they will expire via Debris.
+end
+
+-- Button connections
+startButton.MouseButton1Click:Connect(function()
+    if not lagging then
+        startLagging()
+    end
+end)
+
+stopButton.MouseButton1Click:Connect(function()
+    if lagging then
+        stopLagging()
+    end
+end)
+
+-- Update intensity in real-time (if lagging, adjust behavior)
+intensity:GetPropertyChangedSignal("Value"):Connect(function()
+    if lagging then
+        -- Restart with new intensity
+        stopLagging()
+        startLagging()
+    end
+end)
+
+-- ================= SELF-PROTECTION =================
+-- Try to hide from other players' exploits (just for fun)
+local function protectSelf()
+    -- Make GUI invisible to others? Not possible.
+    -- But we can make our character less noticeable
+    if player.Character then
+        local humanoid = player.Character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+        end
+    end
+end
+protectSelf()
+player.CharacterAdded:Connect(protectSelf)
+
+-- ================= CLEANUP =================
+player.OnTeleport:Connect(function()
+    stopLagging()
+    screenGui:Destroy()
+end)
+
+-- ================= INITIAL MESSAGE =================
+print([[ 
+╔══════════════════════════════════════════╗
+║         XYZ LAGGER v2.0 (Multi-Target)   ║
+╠══════════════════════════════════════════╣
+║ • Targets all other players              ║
+║ • Purple outline GUI, draggable          ║
+║ • 5 intensity levels (1-5)               ║
+║ • Multiple lag methods:                   ║
+║   - Part spawning (invisible)            ║
+║   - Remote event spam                    ║
+║   - Physics objects                      ║
+║   - Notification spam                    ║
+║   - Teleport requests                     ║
+║   - Mesh parts                            ║
+║ • Start/Stop buttons with status indicator║
+║ • Self-protection features                ║
+╚══════════════════════════════════════════╝
+WARNING: This may violate Roblox ToS. Use at your own risk.
+]])
