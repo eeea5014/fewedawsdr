@@ -1,0 +1,52 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local ScreenGui = Instance.new("ScreenGui", player.PlayerGui)
+ScreenGui.Name = "QuickResetGui"
+
+local ResetBtn = Instance.new("TextButton", ScreenGui)
+ResetBtn.Size = UDim2.new(0, 200, 0, 50)
+ResetBtn.Position = UDim2.new(0.5, -100, 0.8, 0)
+ResetBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+ResetBtn.Text = "FORCE RESET"
+ResetBtn.TextColor3 = Color3.new(1, 1, 1)
+ResetBtn.Font = Enum.Font.GothamBold
+ResetBtn.TextSize = 18
+Instance.new("UICorner", ResetBtn).CornerRadius = UDim.new(0, 8)
+
+-- Логика сброса
+ResetBtn.MouseButton1Click:Connect(function()
+    if player.Character then
+        player.Character:Destroy() -- Удаление персонажа для мгновенного ресета
+        ResetBtn.Text = "RESETTING..."
+        ResetBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+        task.delay(5, function()
+            ResetBtn.Text = "FORCE RESET"
+            ResetBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        end)
+    end
+end)
+
+-- Драг (перетаскивание) для мобилок и ПК
+local dragging, dragStart, startPos
+ResetBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = ResetBtn.Position
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        ResetBtn.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+ResetBtn.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
