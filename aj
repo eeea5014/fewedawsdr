@@ -10,7 +10,7 @@ local CoreGui         = game:GetService("CoreGui")
 local TweenService    = game:GetService("TweenService")
 local UIS             = game:GetService("UserInputService")
 
-local WS_URL    = "ws://sabajxyz.railway.internal:9000"
+local WS_URL    = "wss://sabajxyz.up.railway.app"
 local PLACE_ID  = 109983668079237
 local SAVE_FILE = "LacedNotifierV2.json"
 
