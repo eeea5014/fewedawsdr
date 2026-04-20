@@ -6,4 +6,4 @@ COPY . .
 
 EXPOSE 9000
 
-CMD ["resty", "d127e1a304605558.lua"]
+CMD ["openresty", "-p", "/app", "-c", "/app/nginx.conf", "-g", "daemon off;"]
